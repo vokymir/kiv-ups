@@ -22,3 +22,12 @@ Prsi. Zacit se da po cca 5. cviceni, kde bude navrh protokolu.
     - netcat (vyber tu openBSD verzi), posloucha na nejakym portu
     - takze, kdyz das *nc -l IP PORT* tak to posloucha
     - a kdyz das to samy bez -l, tak pak muzes psat a posilat.
+
+# pripojovani
+
+- eryx.zcu.cz
+- ares.fav.zcu.cz
+
+# zajimavost
+
+univerzita ma pridelene IP adresy (v4) jako 147.228.xxx.xxx
