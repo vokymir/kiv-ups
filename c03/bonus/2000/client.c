@@ -20,7 +20,11 @@ int main(int argc, char **argv)
     else if (argv[2][0] == '-') operand = "minus";
     else if (argv[2][0] == 'x') operand = "multiply";
     else if (argv[2][0] == '/') operand = "division";
-    else operand = argv[2];
+    else
+    {
+        printf("Invalid operand.\n");
+        return 1;
+    }
 
     // correct order for server
     char request[256];
@@ -46,6 +50,8 @@ int main(int argc, char **argv)
         return 1;
     }
 
+    printf("Sending: %s", request);
+
     if (send(sock, request, strlen(request), 0) < 0)
     {
         perror("send");
@@ -53,26 +59,35 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    // read response
-    char buffer[5000];
-    if ((recv(sock, buffer, sizeof(buffer)- 1, 0)) < 0)
-    {
-        perror("recv");
-        close(sock);
-        return 1;
-    }
-
-    buffer[4999] = '\0';
-
-    // parse the line starting with "OK|"
-    char *line = strtok(buffer, "\n");
-    while (line) {
-        if (strncmp(line, "OK|", 3) == 0) {
-            printf("%s\n", line + 3); // print res after OK
-            break;
+    int should_end = 0;
+    do {
+        // read response
+        char buffer[5000];
+        if ((recv(sock, buffer, sizeof(buffer)- 1, 0)) < 0)
+        {
+            perror("recv");
+            close(sock);
+            return 1;
         }
-        line = strtok(NULL, "\n");
-    }
+
+        buffer[4999] = '\0';
+
+        // look for the line starting with "OK|" or "ERROR|"
+        char *line = strtok(buffer, "\n");
+        while (line) {
+            if (strncmp(line, "OK|", 3) == 0) {
+                printf("Result: %s\n", line + 3); // print res after OK
+                should_end = 1;
+                break;
+            }
+            else if (strncmp(line, "ERROR|", 6) == 0) {
+                printf("Somwthing went wrong. %s\n", line + 6); // print res after ERROR
+                should_end = 1;
+                break;
+            }
+            line = strtok(NULL, "\n");
+        }
+    }while (should_end == 0);
 
     close(sock);
     return 0;

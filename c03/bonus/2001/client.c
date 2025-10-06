@@ -9,7 +9,8 @@
 int main(int argc, char **argv)
 {
     if (argc < 2){
-        printf("Usage %s <one-word-message>", argv[0]);
+        printf("Usage: %s <one-word-message>\n", argv[0]);
+        return 1;
     }
 
     int sock = socket(AF_INET, SOCK_STREAM, 0);
@@ -37,6 +38,8 @@ int main(int argc, char **argv)
     request[strlen(argv[1])] = '\n';
     request[strlen(argv[1]) + 1] = '\0';
 
+    printf("Sending: %s", request);
+
     if (send(sock, request, strlen(request), 0) < 0)
     {
         perror("send");
@@ -54,6 +57,8 @@ int main(int argc, char **argv)
     }
 
     buffer[4999] = '\0';
+
+    printf("Received: %s", request);
 
     int len = strlen(request);
     if (strncmp(request, buffer, len) == 0) {
