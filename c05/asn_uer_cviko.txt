@@ -1,0 +1,83 @@
+UPSChatProtocol DEFINITIONS ::= BEGIN
+
+	MessageType ::= IA5String(
+		"nick" |
+		"chat" |
+		"conn" |
+		"disc" |
+		"exit"
+	)
+
+	NickType ::= IA5String(SIZE(4..32))
+
+	MessageHeader { MessageType:Type } ::= SEQUENCE {
+		magic       IA5String ("KIVUPS"),
+		command     Type,
+		totalLength INTEGER(0..9999)
+	}
+
+	NickMessage ::= SEQUENCE {
+		header      MessageHeader{{"nick"}},
+		newNick     NickType
+	}
+
+	NickMessageSrv ::= SEQUENCE {
+		header      MessageHeader{{"nick"}},
+		newNick     NickType,
+		oldNick     NickType
+	}
+
+	ChatMessage ::= SEQUENCE {
+		header      MessageHeader{{"chat"}},
+		message     IA5String (SIZE(1..999))
+	}
+
+	ChatMessageSrv ::= SEQUENCE {
+		header      MessageHeader{{"chat"}},
+		nick		NickType,
+		message     IA5String (SIZE(1..999))
+	}
+
+	ConnDisconnMessage ::= SEQUENCE {
+		header      MessageHeader{{"conn"}},
+		nick        NickType
+	}
+
+END
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------
+
+= UER (UPS Encoding Rules)
+
+Hodnoty jsou přepsány přímo do výsledného zakódovaného PDU v tisknutelných ASCII znacích. Řetězce nejsou
+zakončeny nulovým znakem.
+
+== Použité výrazy a symboly
+
+n = skutečná velikost sekvence
+p = dolní hranice délky sekvence
+q = horní hranice délky sekvence
+SEQUENCE_VALUE = fyzická hodnota sekvence
+SEQUENCE_VALUE(p..q) = fyzická hodnota sekvence v prvcích od indexu p do indexu q
+ToIA5String(num) = převod čísla num do ASCII řetězce; volitelně lze výstup formátovat modifikátory WIDTH a PADDING
+WIDTH(a) = pevná délka 'a' formátovaného výstupu v bajtech po převodu na znaky
+PADDING(b) = výplň znakem 'b' při zvolení fixního výstupu
+
+== Přepisovací pravidla
+
+IA5String(SIZE(n))           = SEQUENCE_VALUE(0..n)
+
+IA5String(SIZE(p..q))        = INTEGER(p..q) SEQUENCE_VALUE(0..n)
+
+IA5String(a1 | a2 | ... | an) && STRLEN(a1) == STRLEN(a2) == ... == STRLEN(an)
+                             = IA5String(SIZE(an))
+
+INTEGER(p..q) && q < 10      = ToIA5String(SEQUENCE_VALUE)
+INTEGER(p..q) && q < 100     = ToIA5String(SEQUENCE_VALUE, WIDTH(2), PADDING('0'))
+INTEGER(p..q) && q < 1000    = ToIA5String(SEQUENCE_VALUE, WIDTH(3), PADDING('0'))
+INTEGER(p..q) && q < 10000   = ToIA5String(SEQUENCE_VALUE, WIDTH(4), PADDING('0'))
+
+SEQUENCE(SIZE(p..q))         = INTEGER(p..q) SEQUENCE_VALUE(0..n)
