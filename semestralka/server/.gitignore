@@ -7,3 +7,6 @@ Makefile
 
 # executable
 prsi.exe
+
+# using with Neovim
+compile_commands.json
