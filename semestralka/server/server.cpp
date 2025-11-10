@@ -1,123 +1,156 @@
+#include <algorithm>
+#include <asm-generic/socket.h>
+#include <cstddef>
+#include <cstdio>
 #include <iostream>
-#include <string>
-#include <vector>
-#include <array>
-#include <cstring>
-#include <stdexcept>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
 #include <netinet/in.h>
-#include <sys/ioctl.h>
+#include <string>
+#include <sys/poll.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <unistd.h>
 
-// LLM spitted, now read-through and redo
-class SocketRAII {
-public:
-    explicit SocketRAII(int fd = -1) : fd_(fd) {}
-    ~SocketRAII() { if (fd_ >= 0) ::close(fd_); }
+#include "client_details.hpp"
+#include "server.hpp"
 
-    SocketRAII(const SocketRAII&) = delete;
-    SocketRAII& operator=(const SocketRAII&) = delete;
+volatile sig_atomic_t Server::running = 1;
 
-    SocketRAII(SocketRAII&& other) noexcept : fd_(other.fd_) { other.fd_ = -1; }
-    SocketRAII& operator=(SocketRAII&& other) noexcept {
-        if (this != &other) {
-            if (fd_ >= 0) ::close(fd_);
-            fd_ = other.fd_;
-            other.fd_ = -1;
-        }
-        return *this;
+void Server::handle_sigint(int) {
+  running = 0;
+  std::cout << std::endl
+            << "Shutting down: Interrupt caused by the user." << std::endl;
+}
+
+Server::~Server() {
+  for (auto &pair : clients) {
+    close(pair.first);
+  }
+  clients.clear();
+
+  if (listen_fd >= 0) {
+    close(listen_fd);
+    listen_fd = -1;
+  }
+
+  fds.clear();
+}
+
+int Server::create_listening_socket() {
+  listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+  if (listen_fd < 0) {
+    if (mVerbose)
+      perror("socket");
+    return 1;
+  }
+
+  int optval = 1;
+  setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &optval, sizeof(optval));
+
+  sockaddr_in addr{AF_INET, htons(mPort), {INADDR_ANY}};
+  if (bind(listen_fd, (sockaddr *)&addr, sizeof(addr)) < 0) {
+    if (mVerbose)
+      perror("bind");
+    close(listen_fd);
+    return 1;
+  }
+
+  if (listen(listen_fd, SOMAXCONN) < 0) {
+    if (mVerbose)
+      perror("listen");
+    close(listen_fd);
+    return 1;
+  }
+
+  fds.push_back({listen_fd, POLLIN, 0});
+  if (mVerbose)
+    std::cout << "Server listening on port " << mPort << std::endl;
+  return listen_fd;
+}
+
+void Server::accept_new_client() {
+  sockaddr_in client_addr{};
+  socklen_t len = sizeof(client_addr);
+  int client_fd = accept(listen_fd, (sockaddr *)&client_addr, &len);
+  if (client_fd < 0) {
+    if (mVerbose)
+      perror("accept");
+    return;
+  }
+
+  fds.push_back({client_fd, POLLIN, 0});
+  clients[client_fd] = Client_Details{};
+  if (mVerbose)
+    std::cout << "Client connected: fd=" << client_fd << std::endl;
+}
+
+bool Server::handle_client_event(const int fd) {
+  char buf[1024];
+  ssize_t n = recv(fd, buf, sizeof(buf) - 1, 0);
+  if (n <= 0)
+    return false;
+
+  buf[n] = '\0';
+  auto &client = clients[fd];
+  std::string s = client.handle_message(buf);
+
+  send(fd, s);
+
+  return client.is_active();
+}
+
+void Server::remove_client(const int fd) {
+  if (mVerbose)
+    std::cout << "Removing client fd=" << fd << std::endl;
+  close(fd);
+  clients.erase(fd);
+  fds.erase(std::remove_if(fds.begin(), fds.end(),
+                           [fd](const pollfd &p) { return p.fd == fd; }),
+            fds.end());
+}
+
+void Server::send(const int fd, const std::string &message) {
+  ssize_t bytes_sent = ::send(fd, message.c_str(), message.size(), 0);
+  if (bytes_sent <= 0 && mVerbose)
+    perror("send");
+}
+
+void Server::run() {
+  if (create_listening_socket() < 0)
+    return;
+
+  while (running) {
+    int ret = poll(fds.data(), fds.size(), mTimeout);
+    if (ret < 0) {
+      if (mVerbose)
+        perror("poll");
+      break;
     }
 
-    [[nodiscard]] int get() const { return fd_; }
-    [[nodiscard]] bool valid() const { return fd_ >= 0; }
+    for (size_t i = 0; i < fds.size(); ++i) {
+      short rev = fds[i].revents;
+      if (!rev)
+        continue; // Skip if nothing is going on
 
-private:
-    int fd_;
-};
+      if (rev & (POLLERR | POLLHUP | POLLNVAL)) { // error occurred
+        remove_client(fds[i].fd);
+        --i;
+        continue;
+      }
 
-int main() {
-    try {
-        // Create listening socket
-        SocketRAII server_socket(::socket(AF_INET, SOCK_STREAM, 0));
-        if (!server_socket.valid())
-            throw std::runtime_error("Socket creation failed");
-
-        int reuse = 1;
-        if (::setsockopt(server_socket.get(), SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse)) == -1)
-            std::cerr << "Warning: setsockopt(SO_REUSEADDR) failed\n";
-
-        sockaddr_in server_addr{};
-        server_addr.sin_family = AF_INET;
-        server_addr.sin_port = htons(10000);
-        server_addr.sin_addr.s_addr = INADDR_ANY;
-
-        if (::bind(server_socket.get(), reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr)) != 0)
-            throw std::runtime_error("Bind failed");
-
-        std::cout << "Bind - OK\n";
-
-        if (::listen(server_socket.get(), 5) != 0)
-            throw std::runtime_error("Listen failed");
-
-        std::cout << "Listen - OK\n";
-
-        // FD sets for select()
-        fd_set client_socks;
-        FD_ZERO(&client_socks);
-        FD_SET(server_socket.get(), &client_socks);
-
-        int max_fd = server_socket.get();
-
-        std::cout << "Server running on port 10000...\n";
-
-        while (true) {
-            fd_set readfds = client_socks; // copy for select
-            int activity = ::select(max_fd + 1, &readfds, nullptr, nullptr, nullptr);
-
-            if (activity < 0) {
-                std::cerr << "Select error\n";
-                break;
-            }
-
-            for (int fd = 3; fd <= max_fd; ++fd) {
-                if (FD_ISSET(fd, &readfds)) {
-                    if (fd == server_socket.get()) {
-                        // New connection
-                        sockaddr_in client_addr{};
-                        socklen_t len = sizeof(client_addr);
-                        int client_fd = ::accept(server_socket.get(), reinterpret_cast<sockaddr*>(&client_addr), &len);
-                        if (client_fd >= 0) {
-                            FD_SET(client_fd, &client_socks);
-                            if (client_fd > max_fd) max_fd = client_fd;
-                            std::cout << "New client connected (fd=" << client_fd << ")\n";
-                        }
-                    } else {
-                        // Existing client
-                        int bytes_available = 0;
-                        ::ioctl(fd, FIONREAD, &bytes_available);
-
-                        if (bytes_available > 0) {
-                            char c;
-                            ssize_t received = ::recv(fd, &c, 1, 0);
-                            if (received > 0) {
-                                std::cout << "Received: " << c << " (from fd=" << fd << ")\n";
-                            }
-                        } else {
-                            // Client disconnected
-                            ::close(fd);
-                            FD_CLR(fd, &client_socks);
-                            std::cout << "Client (fd=" << fd << ") disconnected\n";
-                        }
-                    }
-                }
-            }
+      if (rev & POLLIN) {             // ready to accept/sent something
+        if (fds[i].fd == listen_fd) { // new client
+          accept_new_client();
+          continue;
         }
-
-    } catch (const std::exception& ex) {
-        std::cerr << "Fatal error: " << ex.what() << '\n';
-        return EXIT_FAILURE;
+        if (!handle_client_event(fds[i].fd)) { // sent something
+          remove_client(fds[i].fd); // If after handling should be terminated
+          --i;
+        }
+      }
     }
+  }
 
-    return EXIT_SUCCESS;
+  if (mVerbose)
+    std::cout << "Stopping the server listening on port: "
+              << std::to_string(mPort) << std::endl;
 }
