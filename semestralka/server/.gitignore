@@ -1,3 +1,5 @@
+# Cache
+.cache/
 
 # CMake
 CMakeFiles/
