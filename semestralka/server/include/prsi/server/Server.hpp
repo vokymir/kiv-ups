@@ -1,7 +1,7 @@
 #pragma once
 
-#include "prsi/server/Protocol.hpp"
-#include "prsi/server/SessionManager.hpp"
+#include "Protocol.hpp"
+#include "SessionManager.hpp"
 #include "prsi/util/Config.hpp"
 #include <memory>
 

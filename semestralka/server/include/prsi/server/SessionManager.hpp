@@ -1,6 +1,6 @@
 #pragma once
 
-#include "prsi/server/Session.hpp"
+#include "Session.hpp"
 #include <memory>
 
 namespace prsi::server {
