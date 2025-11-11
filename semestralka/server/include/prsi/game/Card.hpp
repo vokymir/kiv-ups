@@ -2,34 +2,27 @@
 
 namespace prsi::game {
 
-enum class Suit : char {
-  Hearts = 'H',
-  Diamonds = 'D',
-  Clubs = 'C',
-  Spades = 'S'
+enum struct Barva : char {
+  Srdce = 's',
+  Listy = 'l',
+  Kule = 'k',
+  Zaludy = 'z',
 };
-enum class Rank : int {
-  Seven = 7,
-  Eight = 8,
-  Nine = 9,
-  Ten = 10,
-  Under = 11,
-  Over = 12,
-  King = 13,
-  Ace = 14
+
+enum struct Hodnota : char {
+  Sedm = '7',
+  Osm = '8',
+  Devet = '9',
+  Deset = '0',
+  Spodek = 's',
+  Menic = 'm',
+  Kral = 'k',
+  Eso = 'e',
 };
 
 struct Card {
-private:
-  Suit suit_;
-  Rank rank_;
-
-public:
-  Card();
-  ~Card();
-  // getters
-  Suit Suit();
-  Rank Rank();
+  Barva barva_;
+  Hodnota hodnota_;
 };
 
 } // namespace prsi::game
