@@ -8,6 +8,7 @@ namespace prsi::util {
 class Config {
 private:
   Config();
+  ~Config();
 
 public:
   static Config &instance() {
@@ -30,6 +31,8 @@ public:
 
   int maxRooms = 10;
   int maxPlayers = 50;
+
+  std::string logFilename = "log.txt";
 };
 
 } // namespace prsi::util

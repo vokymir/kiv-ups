@@ -1,19 +1,20 @@
 #pragma once
 
-#include "prsi/game/Player.hpp"
-#include <memory>
-#include <optional>
+#include "prsi/game/Model.hpp"
+#include "prsi/interfaces/ILoggable.hpp"
 #include <string>
+
+using prsi::game::Player;
 
 namespace prsi::server {
 
-class Session {
+class Session : public interfaces::ILoggable {
 private:
   std::string receiving_;
   std::string sending_;
   bool wanna_send_;
 
-  std::optional<std::unique_ptr<Player>> player_;
+  Player *player_;
 
 public:
   Session();
