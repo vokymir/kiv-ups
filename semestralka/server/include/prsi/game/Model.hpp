@@ -28,6 +28,7 @@ enum struct Hodnota : char {
 struct Card {
   Barva barva;
   Hodnota hodnota;
+  Card(Barva b, Hodnota h) : barva(b), hodnota(h) {}
   static std::vector<Card> create_deck();
 };
 
