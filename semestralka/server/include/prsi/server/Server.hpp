@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Protocol.hpp"
-#include "SessionManager.hpp"
+#include "prsi/server/Session.hpp"
 #include "prsi/util/Config.hpp"
 #include <memory>
+#include <vector>
 
 using prsi::util::Config;
 
@@ -12,8 +12,7 @@ namespace prsi::server {
 class Server {
 private:
   std::unique_ptr<Config> config_;
-  std::unique_ptr<SessionManager> session_manager_;
-  std::unique_ptr<Protocol> protocol_;
+  std::vector<std::unique_ptr<Session>> sessions_;
 
 public:
   Server();
