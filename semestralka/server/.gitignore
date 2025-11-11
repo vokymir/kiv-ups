@@ -5,6 +5,9 @@ CMakeCache.txt
 cmake_install.cmake
 Makefile
 
+build/
+build-tests/
+
 # executable
 prsi.exe
 
