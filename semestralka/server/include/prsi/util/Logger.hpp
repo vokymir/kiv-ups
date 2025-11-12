@@ -17,16 +17,16 @@ public:
     return lgr;
   }
   // remove copy
-  Logger(const Logger &) = delete;
-  Logger &operator=(const Logger &) = delete;
+  // Logger(const Logger &) = delete;
+  // Logger &operator=(const Logger &) = delete;
 
   // useful functions
-  void Info(std::string log);
-  void Warn(std::string log);
-  void Error(std::string log);
+  void info(std::string log);
+  void warn(std::string log);
+  void error(std::string log);
 
 private:
-  std::string filename_ = Config::instance().logFilename;
+  std::string filename_ = Config::instance().log_filename;
 };
 
 } // namespace prsi::util

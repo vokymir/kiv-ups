@@ -19,20 +19,20 @@ public:
   void loadFromFile(const std::string &path);
 
   // remove copy
-  Config(const Config &) = delete;
+  // Config(const Config &) = delete;
   Config &operator=(const Config &) = delete;
 
   // values
-  std::string listenAddress = "127.0.0.1";
-  int listenPort = 10000;
+  std::string server_address = "127.0.0.1";
+  int server_port = 10000;
 
-  int pollTimeoutMs = 1500;
-  int pingIntervalMs = 3000;
+  int poll_timeout_ms = 1500;
+  int ping_interval_ms = 3000;
 
-  int maxRooms = 10;
-  int maxPlayers = 50;
+  int max_rooms = 10;
+  int max_players = 50;
 
-  std::string logFilename = "log.txt";
+  std::string log_filename = "log.txt";
 };
 
 } // namespace prsi::util
