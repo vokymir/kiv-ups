@@ -194,10 +194,10 @@ void Server::accept_new_connection() {
                 " (fd= " + std::to_string(client_fd) + ")."));
 }
 
-void Server::handle_client_event(int fd, uint32_t events) {
+bool Server::handle_client_event(const int fd, uint32_t events) {
   auto it = sessions_.find(fd);
   if (it == sessions_.end()) {
-    return;
+    return false;
   }
 
   auto &session = it->second;
@@ -205,7 +205,7 @@ void Server::handle_client_event(int fd, uint32_t events) {
   if (events & (EPOLLERR | EPOLLHUP)) {
     logger_.info("Client <nickname> disconnected (error/hangup).");
     remove_client(fd);
-    return;
+    return false;
   }
 
   if (events & EPOLLIN) {
@@ -223,6 +223,8 @@ void Server::handle_client_event(int fd, uint32_t events) {
       remove_client(fd);
     }
   }
+
+  return true;
 }
 
 void Server::remove_client(int fd) {

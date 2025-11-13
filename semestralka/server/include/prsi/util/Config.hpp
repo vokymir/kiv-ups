@@ -8,9 +8,9 @@ namespace prsi::util {
 class Config {
 private:
   Config();
-  ~Config();
 
 public:
+  ~Config();
   static Config &instance() {
     static Config cfg;
     return cfg;
