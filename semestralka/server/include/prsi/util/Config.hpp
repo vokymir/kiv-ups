@@ -4,6 +4,8 @@
 
 namespace prsi::util {
 
+typedef int player_id;
+
 // singleton
 class Config {
 private:
