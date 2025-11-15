@@ -29,6 +29,7 @@ public:
   void add_player(int player_id, std::string nickname);
   void remove_player(int player_id);
   bool should_close() const; // if empty or game cannot continue
+  std::vector<int> get_leaderboard();
 };
 
 } // namespace prsi::game
