@@ -13,6 +13,7 @@ enum class Client_State {
 };
 
 class Client {
+public:
   int fd_;
   std::string nickname_;
   std::string read_buffer_;

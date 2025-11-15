@@ -21,8 +21,13 @@ enum class Suit {
 };
 
 class Card {
+private:
   Rank rank_;
   Suit suit_;
+
+public:
+  const Rank &rank() { return rank_; }
+  const Suit &suit() { return suit_; }
 };
 
 } // namespace prsi::game

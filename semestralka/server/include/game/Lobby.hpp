@@ -6,6 +6,7 @@
 namespace prsi::game {
 
 class Lobby {
+public:
   std::vector<Room> rooms_;
 };
 

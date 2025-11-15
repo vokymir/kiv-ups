@@ -7,6 +7,7 @@
 namespace prsi::game {
 
 class Player {
+public:
   int id_;
   std::string name_;
   std::vector<Card> hand_;

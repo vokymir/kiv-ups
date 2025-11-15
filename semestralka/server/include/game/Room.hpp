@@ -15,6 +15,7 @@ enum class Room_State {
 };
 
 class Room {
+public:
   int id_;
   std::vector<Player *> players_;
   std::unique_ptr<Prsi_Game> game_;
