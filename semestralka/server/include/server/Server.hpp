@@ -10,12 +10,14 @@ namespace prsi::server {
 
 class Server {
 private:
-  int epoll_fd_;
-  int listen_fd_;
+  int epoll_fd_ = -1;
+  int listen_fd_ = -1;
   std::map<int, Client> clients_;
   prsi::game::Lobby lobby_;
 
 public:
+  Server() = default;
+  ~Server() = default;
   void setup(const util::Config &cfg);
   void accept_connection();
   void handle_client_data(int fd);

@@ -8,9 +8,11 @@ namespace prsi::util {
 class Config {
 private:
   // TODO: all needed variables here
+  int port_;
 
 public:
   // TODO: all getters
+  int port() const;
 
 private: // ONLY private constructor
   explicit Config(const std::string &filename);
