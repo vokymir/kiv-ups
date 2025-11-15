@@ -24,6 +24,9 @@ private:
   std::chrono::steady_clock::time_point last_sent_;
 
 public:
+  Client(int fd) : fd_(fd) {}
+  ~Client() = default;
+
   int fd() const;
 
   void set_nickname(const std::string &nick);

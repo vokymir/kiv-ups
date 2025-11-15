@@ -187,8 +187,8 @@ void Server::handle_client_read(int fd) {
     return;
   }
 
-  client.read_buffer_.append(buffer, static_cast<unsigned long>(n));
-  client.last_received_ = std::chrono::steady_clock::now();
+  client.read_buffer().append(buffer, static_cast<unsigned long>(n));
+  client.set_last_received_now();
 
   try {
     client.process_complete_messages();
@@ -207,14 +207,14 @@ void Server::handle_client_write(int fd) {
     return; // clinet not found
   }
   Client &client = it->second;
+  auto &buffer = client.write_buffer();
 
-  if (client.write_buffer_.empty()) { // nothing to write
+  if (buffer.empty()) { // nothing to write
     set_epoll_events(fd, EPOLLIN);
     return;
   }
 
-  ssize_t n =
-      write(fd, client.write_buffer_.data(), client.write_buffer_.size());
+  ssize_t n = write(fd, buffer.data(), buffer.size());
 
   if (n == -1) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
@@ -226,11 +226,13 @@ void Server::handle_client_write(int fd) {
   }
 
   // remove sent data from buffer
-  client.write_buffer_.erase(0, static_cast<unsigned long>(n));
-  client.last_sent_ = std::chrono::steady_clock::now();
+  if (n > 0) {
+    buffer.erase(0, static_cast<size_t>(n));
+    client.set_last_sent_now();
+  }
 
   // if all data sent
-  if (client.write_buffer_.empty()) {
+  if (buffer.empty()) {
     set_epoll_events(fd, EPOLLIN);
   }
   // if not, will send next chunk of data next time
@@ -246,18 +248,19 @@ void Server::handle_client_disconnect(int fd) {
   }
 
   Client &client = it->second;
+  auto room = client.current_room();
 
   // if is in a room
-  if (client.current_room_ != nullptr) {
+  if (room != nullptr) {
     // notify others in room
-    broadcast_to_room(client.current_room_, SM_Someone_Disconnected{fd}, fd);
+    broadcast_to_room(room, SM_Someone_Disconnected{fd}, fd);
 
     // remove client from room
-    client.current_room_->remove_player(client.fd_);
+    room->remove_player(client.fd());
 
     // if room is empty or game cannot continue
-    if (client.current_room_->should_close()) {
-      lobby_.remove_room(client.current_room_->id());
+    if (room->should_close()) {
+      lobby_.remove_room(room->id());
     }
   }
 
@@ -266,7 +269,7 @@ void Server::handle_client_disconnect(int fd) {
   close(fd);
   clients_.erase(it);
   util::Logger::info("Client disconnected, fd={}, nickname={}", fd,
-                     client.nickname_);
+                     client.nickname());
 }
 
 void Server::check_timeouts() {
@@ -277,7 +280,7 @@ void Server::check_timeouts() {
   std::vector<int> to_disconnect;
 
   for (auto &[fd, client] : clients_) {
-    auto inactive_time = now - client.last_received_;
+    auto inactive_time = now - client.last_received();
 
     if (inactive_time > disconnect_time) { // DISCONNECT
       to_disconnect.push_back(fd);
@@ -288,10 +291,10 @@ void Server::check_timeouts() {
       continue;
     }
 
-    auto last_try = now - client.last_sent_;
+    auto last_try = now - client.last_sent();
     if (inactive_time > ping_time && last_try > ping_time) { // PING
       send_message(fd, SM_Ping{});
-      client.last_sent_ = now;
+      client.set_last_sent_now();
     }
   }
 
@@ -309,7 +312,7 @@ void Server::send_message(int fd, const Server_Message &msg) {
   }
   Client &client = it->second;
 
-  client.write_buffer_ += serialized;
+  client.write_buffer() += serialized;
   set_epoll_events(fd, EPOLLIN | EPOLLOUT);
 }
 
