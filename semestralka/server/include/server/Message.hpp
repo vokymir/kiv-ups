@@ -1,35 +1,18 @@
 #pragma once
 
-#include <string>
 #include <variant>
 
 namespace prsi::server {
 
-// TODO: these messages are just placeholders, only Client/Server_Message should
-// be used
-
 // ===== CLIENT MESSAGES =====
-struct CM_Connect {
-  int fd_;
-};
-
-struct CM_Nick {
-  int client_id_;
-  std::string name_;
-};
+struct CM_Pong {};
 
 // ===== SERVER MESSAGES =====
-struct SM_Accept {
-  int client_id_;
-};
-
-struct SM_Decline {};
+struct SM_Ping {};
 
 // ===== MESSAGES =====
-using Client_Message = std::variant<CM_Connect, CM_Nick>;
-using Server_Message = std::variant<SM_Accept, SM_Decline>;
-// TODO: is this even useful anywhere?
-using Message = std::variant<Client_Message, Server_Message>;
+using Client_Message = std::variant<CM_Pong>;
+using Server_Message = std::variant<SM_Ping>;
 
 /* HOW TO USE
 

@@ -14,6 +14,8 @@ private:
   int epoll_max_events_ = 32;
   int epoll_timeout_ms_ = 500;
   int max_clients_ = 10;
+  int ping_timeout_ms_ = 5'000;
+  int disconnect_timeout_ms_ = 30'000;
 
 public:
   // TODO: all getters
@@ -21,6 +23,8 @@ public:
   int epoll_max_events() const;
   int epoll_timeout_ms() const;
   size_t max_clients() const;
+  int ping_timeout_s() const;
+  int disconnect_timeout_s() const;
 
 private: // ONLY private constructor
   explicit Config(const std::string &filename);

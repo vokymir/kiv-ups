@@ -1,4 +1,7 @@
 #include "server/Server.hpp"
+#include "server/Client.hpp"
+#include "server/Message.hpp"
+#include "server/Protocol.hpp"
 #include "util/Config.hpp"
 #include "util/Logger.hpp"
 #include <asm-generic/socket.h>
@@ -11,55 +14,20 @@
 #include <netinet/in.h>
 #include <stdexcept>
 #include <stdlib.h>
+#include <string>
 #include <sys/epoll.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <sys/un.h>
 #include <unistd.h>
+#include <vector>
 
 using prsi::server::Server;
 
 Server::Server() {
   events_.reserve(static_cast<size_t>(cfg_.epoll_max_events()));
-}
-
-void Server::setup() {
-  // create socket
-  listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
-  if (listen_fd_ == -1)
-    throw std::runtime_error("Cannot create listen socket.");
-
-  // set socket options
-  int opt = 1;
-  if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
-    throw std::runtime_error("Cannot set socket options.");
-
-  // set non-blocking
-  int flags = fcntl(listen_fd_, F_GETFL, 0);
-  if (flags == -1)
-    throw std::runtime_error("fcntl F_GETFL failed");
-
-  if (fcntl(listen_fd_, F_SETFL, flags | O_NONBLOCK) == -1)
-    throw std::runtime_error("fcntl F_SETFL failed");
-
-  // bind
-  sockaddr_in addr{};
-  addr.sin_family = AF_INET;
-  addr.sin_port = htons(cfg_.port());
-  if (bind(listen_fd_, (sockaddr *)&addr, sizeof(addr)) != 0)
-    throw std::runtime_error("Cannot bind listen socket.");
-
-  if (listen(listen_fd_, SOMAXCONN) == -1)
-    throw std::runtime_error("Cannot listen.");
-
-  epoll_fd_ = epoll_create1(0);
-
-  epoll_event ev{};
-  ev.events = EPOLLIN;
-  ev.data.fd = listen_fd_;
-  if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, listen_fd_, &ev) == -1)
-    throw std::runtime_error("Cannot add listening to epoll.");
+  setup();
 }
 
 void Server::run() {
@@ -82,14 +50,74 @@ void Server::run() {
       if (ev.data.fd == listen_fd_) {
         accept_connection();
       } else if (ev.events & EPOLLIN) {
-        handle_client_data(ev.data.fd);
+        handle_client_read(ev.data.fd);
+      } else if (ev.events & EPOLLOUT) {
+        handle_client_write(ev.data.fd);
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) {
-        handle_clent_disconnect(ev.data.fd);
+        handle_client_disconnect(ev.data.fd);
       }
     }
 
     check_timeouts();
   }
+}
+
+void Server::setup() {
+  // create socket
+  listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+  if (listen_fd_ == -1)
+    throw std::runtime_error("Cannot create listen socket.");
+
+  // set socket options
+  int opt = 1;
+  if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1)
+    throw std::runtime_error("Cannot set socket options.");
+
+  // set non-blocking
+  if (!set_fd_nonblocking(listen_fd_)) {
+    throw std::runtime_error("Cannot set listen socket non-blocking.");
+  }
+
+  // bind
+  sockaddr_in addr{};
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(cfg_.port());
+  if (bind(listen_fd_, (sockaddr *)&addr, sizeof(addr)) != 0)
+    throw std::runtime_error("Cannot bind listen socket.");
+
+  if (listen(listen_fd_, SOMAXCONN) == -1)
+    throw std::runtime_error("Cannot listen.");
+
+  epoll_fd_ = epoll_create1(0);
+
+  if (!set_epoll_events(listen_fd_, EPOLLIN, true))
+    throw std::runtime_error("Cannot add listening to epoll.");
+}
+
+bool Server::set_fd_nonblocking(int fd) {
+  int flags = fcntl(fd, F_GETFL, 0);
+  if (flags == -1)
+    return false;
+
+  if (fcntl(fd, F_SETFL, flags | O_NONBLOCK) == -1)
+    return false;
+
+  return true;
+}
+
+bool Server::set_epoll_events(int fd, uint32_t events, bool creating_new) {
+  epoll_event ev{};
+  ev.events = events;
+  ev.data.fd = fd;
+
+  if (epoll_ctl(epoll_fd_, creating_new ? EPOLL_CTL_ADD : EPOLL_CTL_MOD, fd,
+                &ev) == -1) {
+    util::Logger::error(
+        ::fmt::format("Failed to modify epoll events for fd={}", fd));
+    return false;
+  }
+
+  return true;
 }
 
 void Server::accept_connection() {
@@ -134,7 +162,7 @@ void Server::accept_connection() {
   util::Logger::info(::fmt::format("New client connected, fd={}", client_fd));
 }
 
-void Server::handle_client_data(int fd) {
+void Server::handle_client_read(int fd) {
   auto it = clients_.find(fd);
   if (it == clients_.end()) {
     util::Logger::error(
@@ -154,17 +182,17 @@ void Server::handle_client_data(int fd) {
     }
     util::Logger::error(
         ::fmt::format("Read error, disconnect client, fd={}", fd));
-    handle_clent_disconnect(fd);
+    handle_client_disconnect(fd);
     return;
   }
 
   if (n == 0) { // client closed connection
-    handle_clent_disconnect(fd);
+    handle_client_disconnect(fd);
     return;
   }
 
   client.read_buffer_.append(buffer, static_cast<unsigned long>(n));
-  client.last_activity_ = std::chrono::steady_clock::now();
+  client.last_received_ = std::chrono::steady_clock::now();
 
   try {
     client.process_complete_messages();
@@ -172,7 +200,87 @@ void Server::handle_client_data(int fd) {
     util::Logger::error(::fmt::format("Client process complete messages error "
                                       ": '{}', disconnect client, fd={}",
                                       e.what(), fd));
-    handle_clent_disconnect(fd);
+    handle_client_disconnect(fd);
     return;
   }
+}
+
+void Server::handle_client_disconnect(int fd) {
+  auto it = clients_.find(fd);
+  if (it == clients_.end()) {
+    util::Logger::warn(::fmt::format(
+        "Tried to disconnect already disconnected/non-existing client, fd={}",
+        fd));
+    return; // client already removed
+  }
+
+  Client &client = it->second;
+
+  // if is in a room
+  if (client.current_room_ != nullptr) {
+    // notify others in room
+    broadcast_to_room(
+        client.current_room_,
+        "Here should rather be class message than raw string!!! TODO:", fd);
+
+    // remove client from room
+    client.current_room_->remove_player(client.fd_);
+
+    // if room is empty or game cannot continue
+    if (client.current_room_->should_close()) {
+      lobby_.remove_room(client.current_room_->id_);
+    }
+  }
+
+  // remove from epoll and close connection
+  epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
+  close(fd);
+  clients_.erase(it);
+  util::Logger::info(::fmt::format("Client disconnected, fd={}, nickname={}",
+                                   fd, client.nickname_));
+}
+
+void Server::check_timeouts() {
+  auto now = std::chrono::steady_clock::now();
+  auto ping_time = std::chrono::seconds(cfg_.ping_timeout_s());
+  auto disconnect_time = std::chrono::seconds(cfg_.disconnect_timeout_s());
+
+  std::vector<int> to_disconnect;
+
+  for (auto &[fd, client] : clients_) {
+    auto inactive_time = now - client.last_received_;
+
+    if (inactive_time > disconnect_time) { // DISCONNECT
+      to_disconnect.push_back(fd);
+      util::Logger::warn(::fmt::format(
+          "Client timeout, fd={}, inactive for {} seconds", fd,
+          std::chrono::duration_cast<std::chrono::seconds>(inactive_time)
+              .count()));
+      continue;
+    }
+
+    auto last_try = now - client.last_sent_;
+    if (inactive_time > ping_time && last_try > ping_time) { // PING
+      send_message(fd, SM_Ping{});
+      client.last_sent_ = now;
+    }
+  }
+
+  for (int fd : to_disconnect) {
+    handle_client_disconnect(fd);
+  }
+}
+
+void Server::send_message(int fd, Server_Message msg) {
+  std::string serialized = Protocol::serialize(msg);
+
+  auto it = clients_.find(fd);
+  if (it == clients_.end()) {
+    return; // client not found TODO: add warn maybe?
+  }
+  Client &client = it->second;
+
+  client.write_buffer_ += serialized;
+
+  client.last_sent_ = std::chrono::steady_clock::now();
 }

@@ -2,7 +2,9 @@
 
 #include "game/Lobby.hpp"
 #include "server/Client.hpp"
+#include "server/Message.hpp"
 #include "util/Config.hpp"
+#include <cstdint>
 #include <map>
 #include <string>
 #include <sys/epoll.h>
@@ -25,15 +27,20 @@ private:
 public:
   Server();
   ~Server() = default;
+  void run();
+
+private:
   void setup();
+  bool set_fd_nonblocking(int fd);
+  bool set_epoll_events(int fd, uint32_t events, bool creating_new = false);
   void accept_connection();
-  void handle_client_data(int fd);
-  void handle_clent_disconnect(int fd);
+  void handle_client_read(int fd);
+  void handle_client_write(int fd);
+  void handle_client_disconnect(int fd);
   void check_timeouts();
+  void send_message(int fd, Server_Message msg);
   void broadcast_to_room(prsi::game::Room *room, const std::string &msg,
                          int except_fd);
-
-  void run();
 };
 
 } // namespace prsi::server
