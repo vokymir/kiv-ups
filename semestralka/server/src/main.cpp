@@ -4,5 +4,5 @@
 int main() {
   auto &cfg = prsi::util::Config::instance("ano");
   auto server = prsi::server::Server();
-  server.setup(cfg);
+  server.setup();
 }

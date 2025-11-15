@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <stdexcept>
 #include <string>
 
@@ -8,11 +9,15 @@ namespace prsi::util {
 class Config {
 private:
   // TODO: all needed variables here
-  int port_;
+  uint16_t port_ = 10512;
+  int epoll_max_events_ = 32;
+  int epoll_timeout_ms_ = 500;
 
 public:
   // TODO: all getters
-  int port() const;
+  uint16_t port() const;
+  int epoll_max_events() const;
+  int epoll_timeout_ms() const;
 
 private: // ONLY private constructor
   explicit Config(const std::string &filename);
