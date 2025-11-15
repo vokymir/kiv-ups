@@ -21,6 +21,8 @@ public:
   prsi::game::Room *current_room_;
   Client_State state_;
   std::chrono::steady_clock::time_point last_activity_;
+
+  void process_complete_messages();
 };
 
 } // namespace prsi::server

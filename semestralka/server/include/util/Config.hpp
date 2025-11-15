@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 #include <stdexcept>
 #include <string>
@@ -12,12 +13,14 @@ private:
   uint16_t port_ = 10512;
   int epoll_max_events_ = 32;
   int epoll_timeout_ms_ = 500;
+  int max_clients_ = 10;
 
 public:
   // TODO: all getters
   uint16_t port() const;
   int epoll_max_events() const;
   int epoll_timeout_ms() const;
+  size_t max_clients() const;
 
 private: // ONLY private constructor
   explicit Config(const std::string &filename);
