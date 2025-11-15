@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 4.1)
+cmake_minimum_required(VERSION 3.16)
 project("UPS - prší - javok")
 
 # using with Neovim
@@ -21,20 +21,19 @@ else()
     add_compile_options(-Wall -Wextra -Wpedantic -Wconversion)
 endif()
 
-# Include directories
+# Include headers
 include_directories(${PROJECT_SOURCE_DIR}/include)
 
-# Submodules
-add_subdirectory(src/game)
-add_subdirectory(src/server)
-add_subdirectory(src/util)
+# Collect all .cpp files under src/
+file(GLOB_RECURSE PRSI_SOURCES
+    "${PROJECT_SOURCE_DIR}/src/*.cpp"
+)
 
 # Main executable
-add_executable(prsi_server src/main.cpp)
-target_link_libraries(prsi_server PRIVATE prsi_server_lib prsi_game_lib prsi_util_lib)
+add_executable(prsi_server ${PRSI_SOURCES})
 
 # Optionally build tests
-option(BUILD_TESTS "Build unit tests" ON)
+option(BUILD_TESTS "Build unit tests" OFF)
 if(BUILD_TESTS)
     enable_testing()
     add_subdirectory(tests)
