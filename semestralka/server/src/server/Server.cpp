@@ -192,7 +192,7 @@ void Server::handle_client_read(int fd) {
 
   try {
     client.process_complete_messages();
-  } catch (std::exception e) {
+  } catch (std::exception &e) {
     util::Logger::error("Client process complete messages error: '{}', "
                         "disconnect client, fd={}",
                         e.what(), fd);
