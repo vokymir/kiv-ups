@@ -9,10 +9,13 @@ struct CM_Pong {};
 
 // ===== SERVER MESSAGES =====
 struct SM_Ping {};
+struct SM_Someone_Disconnected {
+  int fd_; // who is disconnected
+};
 
 // ===== MESSAGES =====
 using Client_Message = std::variant<CM_Pong>;
-using Server_Message = std::variant<SM_Ping>;
+using Server_Message = std::variant<SM_Ping, SM_Someone_Disconnected>;
 
 /* HOW TO USE
 

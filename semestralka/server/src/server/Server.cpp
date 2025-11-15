@@ -201,6 +201,41 @@ void Server::handle_client_read(int fd) {
   }
 }
 
+void Server::handle_client_write(int fd) {
+  auto it = clients_.find(fd);
+  if (it == clients_.end()) {
+    return; // clinet not found
+  }
+  Client &client = it->second;
+
+  if (client.write_buffer_.empty()) { // nothing to write
+    set_epoll_events(fd, EPOLLIN);
+    return;
+  }
+
+  ssize_t n =
+      write(fd, client.write_buffer_.data(), client.write_buffer_.size());
+
+  if (n == -1) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return; // socket not ready, try later
+    }
+    // write error - disconnect
+    handle_client_disconnect(fd);
+    return;
+  }
+
+  // remove sent data from buffer
+  client.write_buffer_.erase(0, static_cast<unsigned long>(n));
+  client.last_sent_ = std::chrono::steady_clock::now();
+
+  // if all data sent
+  if (client.write_buffer_.empty()) {
+    set_epoll_events(fd, EPOLLIN);
+  }
+  // if not, will send next chunk of data next time
+}
+
 void Server::handle_client_disconnect(int fd) {
   auto it = clients_.find(fd);
   if (it == clients_.end()) {
@@ -215,16 +250,14 @@ void Server::handle_client_disconnect(int fd) {
   // if is in a room
   if (client.current_room_ != nullptr) {
     // notify others in room
-    broadcast_to_room(
-        client.current_room_,
-        "Here should rather be class message than raw string!!! TODO:", fd);
+    broadcast_to_room(client.current_room_, SM_Someone_Disconnected{fd}, fd);
 
     // remove client from room
     client.current_room_->remove_player(client.fd_);
 
     // if room is empty or game cannot continue
     if (client.current_room_->should_close()) {
-      lobby_.remove_room(client.current_room_->id_);
+      lobby_.remove_room(client.current_room_->id());
     }
   }
 
@@ -267,7 +300,7 @@ void Server::check_timeouts() {
   }
 }
 
-void Server::send_message(int fd, Server_Message msg) {
+void Server::send_message(int fd, const Server_Message &msg) {
   std::string serialized = Protocol::serialize(msg);
 
   auto it = clients_.find(fd);
@@ -277,6 +310,22 @@ void Server::send_message(int fd, Server_Message msg) {
   Client &client = it->second;
 
   client.write_buffer_ += serialized;
+  set_epoll_events(fd, EPOLLIN | EPOLLOUT);
+}
 
-  client.last_sent_ = std::chrono::steady_clock::now();
+void Server::broadcast_to_room(const prsi::game::Room *room,
+                               const prsi::server::Server_Message &msg,
+                               int except_fd) {
+  if (room == nullptr) {
+    return;
+  }
+
+  const auto &player_fds = room->get_player_fds();
+
+  for (int fd : player_fds) {
+    if (fd == except_fd) {
+      continue;
+    }
+    send_message(fd, msg);
+  }
 }
