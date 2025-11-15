@@ -132,7 +132,7 @@ void Server::accept_connection() {
   }
 
   // do we have space for new connection?
-  if (clients_.size() >= cfg_.max_clients()) {
+  if (clients_.size() >= static_cast<size_t>(cfg_.max_clients())) {
     close(client_fd);
     util::Logger::warn("Max clients reached, rejecting connection");
     return;

@@ -1,8 +1,6 @@
 #pragma once
 
-#include <cstddef>
 #include <cstdint>
-#include <stdexcept>
 #include <string>
 
 namespace prsi::util {
@@ -22,7 +20,7 @@ public:
   uint16_t port() const;
   int epoll_max_events() const;
   int epoll_timeout_ms() const;
-  size_t max_clients() const;
+  int max_clients() const;
   int ping_timeout_s() const;
   int disconnect_timeout_s() const;
 
@@ -33,19 +31,8 @@ private: // ONLY private constructor
 public: // make it SINGLETON
   Config(const Config &) = delete;
   Config &operator=(const Config &) = delete;
-
-  static const Config &instance(const std::string &filename = "") {
-    if (!initialized_) {
-      if (filename.empty()) {
-        throw std::runtime_error(
-            "First call of instance() MUST provide filename "
-            "to get configuration from.");
-      }
-      initialized_ = true;
-    }
-    static Config cfg(filename);
-    return cfg;
-  }
+  // can only get one instance of config, defined by filename in the first call
+  static const Config &instance(const std::string &filename = "");
 };
 
 } // namespace prsi::util
