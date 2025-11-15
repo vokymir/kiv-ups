@@ -26,7 +26,11 @@ void Server::setup(const util::Config &cfg) {
 
   // set non-blocking
   int flags = fcntl(listen_fd_, F_GETFL, 0);
-  fcntl(listen_fd_, F_SETFL, flags | O_NONBLOCK); // TODO: check
+  if (flags == -1)
+    throw std::runtime_error("fcntl F_GETFL failed");
+
+  if (fcntl(listen_fd_, F_SETFL, flags | O_NONBLOCK) == -1)
+    throw std::runtime_error("fcntl F_SETFL failed");
 
   // bind
   sockaddr_in addr{};
