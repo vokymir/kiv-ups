@@ -112,11 +112,9 @@ bool Server::set_epoll_events(int fd, uint32_t events, bool creating_new) {
 
   if (epoll_ctl(epoll_fd_, creating_new ? EPOLL_CTL_ADD : EPOLL_CTL_MOD, fd,
                 &ev) == -1) {
-    util::Logger::error(
-        ::fmt::format("Failed to modify epoll events for fd={}", fd));
+    util::Logger::error("Failed to modify epoll events for fd={}", fd);
     return false;
   }
-
   return true;
 }
 
@@ -159,14 +157,13 @@ void Server::accept_connection() {
 
   // create new client
   clients_.emplace(client_fd, Client(client_fd));
-  util::Logger::info(::fmt::format("New client connected, fd={}", client_fd));
+  util::Logger::info("New client connected, fd={}", client_fd);
 }
 
 void Server::handle_client_read(int fd) {
   auto it = clients_.find(fd);
   if (it == clients_.end()) {
-    util::Logger::error(
-        ::fmt::format("Client not found (shouldn't happen :( ), fd={})", fd));
+    util::Logger::error("Client not found (shouldn't happen :( ), fd={})", fd);
     return;
   }
 
@@ -180,8 +177,7 @@ void Server::handle_client_read(int fd) {
     if (errno == EAGAIN || errno == EWOULDBLOCK) {
       return;
     }
-    util::Logger::error(
-        ::fmt::format("Read error, disconnect client, fd={}", fd));
+    util::Logger::error("Read error, disconnect client, fd={}", fd);
     handle_client_disconnect(fd);
     return;
   }
@@ -197,9 +193,9 @@ void Server::handle_client_read(int fd) {
   try {
     client.process_complete_messages();
   } catch (std::exception e) {
-    util::Logger::error(::fmt::format("Client process complete messages error "
-                                      ": '{}', disconnect client, fd={}",
-                                      e.what(), fd));
+    util::Logger::error("Client process complete messages error: '{}', "
+                        "disconnect client, fd={}",
+                        e.what(), fd);
     handle_client_disconnect(fd);
     return;
   }
@@ -208,9 +204,9 @@ void Server::handle_client_read(int fd) {
 void Server::handle_client_disconnect(int fd) {
   auto it = clients_.find(fd);
   if (it == clients_.end()) {
-    util::Logger::warn(::fmt::format(
+    util::Logger::warn(
         "Tried to disconnect already disconnected/non-existing client, fd={}",
-        fd));
+        fd);
     return; // client already removed
   }
 
@@ -236,8 +232,8 @@ void Server::handle_client_disconnect(int fd) {
   epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
   close(fd);
   clients_.erase(it);
-  util::Logger::info(::fmt::format("Client disconnected, fd={}, nickname={}",
-                                   fd, client.nickname_));
+  util::Logger::info("Client disconnected, fd={}, nickname={}", fd,
+                     client.nickname_);
 }
 
 void Server::check_timeouts() {
@@ -252,10 +248,10 @@ void Server::check_timeouts() {
 
     if (inactive_time > disconnect_time) { // DISCONNECT
       to_disconnect.push_back(fd);
-      util::Logger::warn(::fmt::format(
+      util::Logger::warn(
           "Client timeout, fd={}, inactive for {} seconds", fd,
           std::chrono::duration_cast<std::chrono::seconds>(inactive_time)
-              .count()));
+              .count());
       continue;
     }
 
