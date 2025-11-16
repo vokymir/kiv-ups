@@ -191,7 +191,7 @@ void Server::handle_client_read(int fd) {
   client.set_last_received_now();
 
   try {
-    client.process_complete_messages();
+    client.process_complete_messages(*this);
   } catch (std::exception &e) {
     util::Logger::error("Client process complete messages error: '{}', "
                         "disconnect client, fd={}",

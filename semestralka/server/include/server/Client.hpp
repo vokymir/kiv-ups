@@ -5,6 +5,7 @@
 #include <string>
 
 namespace prsi::server {
+class Server;
 
 enum class Client_State {
   CLIENT_CONNECTING,
@@ -49,8 +50,9 @@ public:
   void set_last_sent_now();
   const std::chrono::steady_clock::time_point last_sent() const;
 
-  // TODO: here
-  void process_complete_messages();
+  // process messages and if they require sending somthing back to the client or
+  // broadcasting to the room, enqueue that using server
+  void process_complete_messages(Server &server);
 };
 
 } // namespace prsi::server
