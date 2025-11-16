@@ -24,6 +24,14 @@ private:
   size_t max_players_;
 
 public:
+  Room(int id) : id_(id) {}
+  ~Room() = default;
+  // enable move, disable copy
+  Room(const Room &) = delete;
+  Room &operator=(const Room &) = delete;
+  Room(Room &&) = default;
+  Room &operator=(Room &&) = default;
+
   int id() const;
   std::vector<int> get_player_fds() const;
   void add_player(int player_id, std::string nickname);

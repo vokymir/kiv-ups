@@ -14,6 +14,7 @@ private:
   int max_clients_ = 10;
   int ping_timeout_ms_ = 5'000;
   int disconnect_timeout_ms_ = 30'000;
+  int max_rooms_ = 10;
 
 public:
   // TODO: all getters
@@ -23,6 +24,7 @@ public:
   int max_clients() const;
   int ping_timeout_s() const;
   int disconnect_timeout_s() const;
+  int max_rooms() const;
 
 private: // ONLY private constructor
   explicit Config(const std::string &filename);
