@@ -46,7 +46,7 @@ void Room::remove_player(int player_id) {
 
 bool Room::should_close() const {
   if (players_.empty() ||
-      (state_ == Room_State::PLAYING && game_->still_playing_ <= 1)) {
+      (state_ == Room_State::PLAYING && game_->still_playing() <= 1)) {
     return true;
   }
 

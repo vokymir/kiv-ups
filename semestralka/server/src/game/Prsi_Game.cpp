@@ -1,8 +1,10 @@
 #include "game/Prsi_Game.hpp"
 #include "game/Card.hpp"
+#include "game/Player.hpp"
 #include <algorithm>
 #include <cstddef>
 #include <iterator>
+#include <stdexcept>
 
 namespace prsi::game {
 
@@ -41,7 +43,6 @@ void Prsi_Game::start_game() {
   top_effect_ = false;
 
   current_player_idx_ = 0;
-  still_playing_ = static_cast<int>(players_.size());
 }
 
 bool Prsi_Game::is_valid_play(const Card &card) const {
@@ -53,7 +54,51 @@ bool Prsi_Game::is_valid_play(const Card &card) const {
     }
   }
 
+  if (card.rank() == Rank::MENIC) {
+    return true;
+  }
+
   return top_.suit() == card.suit() || top_.rank() == card.rank();
+}
+
+void Prsi_Game::play_card(int player_id, const Card &card) {
+  if (players_[static_cast<size_t>(current_player_idx_)]->id_ != player_id) {
+    throw std::logic_error("Cannot play outside own turn");
+  }
+  if (!is_valid_play(card)) {
+    throw std::logic_error("Cannot play this card");
+  }
+  // find player
+  auto p_it = std::find_if(
+      players_.begin(), players_.end(),
+      [player_id](const Player *p) { return p->id_ == player_id; });
+  if (p_it == players_.end()) {
+    throw std::logic_error("Player doesn't exist");
+  }
+  // find card in hand
+  auto *player = *p_it;
+  auto c_it = std::find_if(player->hand_.begin(), player->hand_.end(),
+                           [&card](const Card &c) { return card == c; });
+  if (c_it == player->hand_.end()) {
+    throw std::logic_error("Player cannot play card which doesnt have");
+  }
+  // remove from hand
+  pile_.push_back(*c_it);
+  player->hand_.erase(c_it);
+  top_ = card;
+  if (card.rank() == Rank::SEDM || card.rank() == Rank::ESO) {
+    top_effect_ = true;
+  } else {
+    top_effect_ = false;
+  }
+
+  // already won?
+  if (player->hand_.empty()) {
+    leaderboard_.push_back(player);
+  }
+
+  // set next player
+  current_player_idx_ = get_next_player_idx();
 }
 
 } // namespace prsi::game

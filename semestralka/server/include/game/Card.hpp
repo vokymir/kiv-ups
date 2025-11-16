@@ -38,6 +38,10 @@ public:
   const Suit &suit() const { return suit_; }
 
   Card(Rank rank, Suit suit) : rank_(rank), suit_(suit) {}
+
+  bool operator==(const Card &other) const {
+    return rank_ == other.rank_ && suit_ == other.suit_;
+  }
 };
 
 } // namespace prsi::game

@@ -19,7 +19,6 @@ public:
   std::vector<Card> pile_;
   std::vector<Player *> players_;
   std::vector<Player *> leaderboard_;
-  int still_playing_ = -1;
   int current_player_idx_ = -1;
   // if the top card have effect (7, ace) only set true for next player
   bool top_effect_ = false;
@@ -35,12 +34,15 @@ public:
   void draw_card(int player_id);
   void pass(int player_id);
 
+  int still_playing();
   std::vector<Player *> get_leaderboard();
 
 private:
   void init_create_deck();
   void shuffle_deck();
   void init_deal_cards(const int hand_size = 5);
+  // skip all players with empty hand
+  int get_next_player_idx();
 };
 
 } // namespace prsi::game
