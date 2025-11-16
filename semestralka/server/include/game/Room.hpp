@@ -10,15 +10,15 @@
 namespace prsi::game {
 
 enum class Room_State {
-  ROOM_WAITING,
-  ROOM_PLAYING,
-  ROOM_FINISHED,
+  WAITING,
+  PLAYING,
+  FINISHED,
 };
 
 class Room {
 private:
   int id_;
-  std::vector<Player *> players_;
+  std::vector<Player> players_;
   std::unique_ptr<Prsi_Game> game_;
   Room_State state_;
   size_t max_players_;
@@ -34,10 +34,10 @@ public:
 
   int id() const;
   std::vector<int> get_player_fds() const;
-  void add_player(int player_id, std::string nickname);
+  // return false if player cannot be added
+  bool add_player(int player_id, std::string nickname);
   void remove_player(int player_id);
   bool should_close() const; // if empty or game cannot continue
-  std::vector<int> get_leaderboard();
 };
 
 } // namespace prsi::game

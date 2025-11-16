@@ -9,7 +9,9 @@ class Prsi_Game {
 public:
   std::vector<Card> deck_;
   std::vector<Card> pile_;
-  std::vector<Player> players_;
+  std::vector<Player *> players_;
+  std::vector<Player *> leaderboard_;
+  int still_playing_;
   int current_player_idx_;
 
 public:
