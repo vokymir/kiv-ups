@@ -1,7 +1,8 @@
 #include "util/Config.hpp"
 #include <cstdint>
 #include <stdexcept>
-using prsi::util::Config;
+
+namespace prsi::util {
 
 uint16_t Config::port() const { return port_; }
 
@@ -24,3 +25,5 @@ const Config &Config::instance(const std::string &filename) {
   static Config cfg(filename);
   return cfg;
 }
+
+} // namespace prsi::util

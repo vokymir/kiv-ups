@@ -23,7 +23,7 @@
 #include <unistd.h>
 #include <vector>
 
-using prsi::server::Server;
+namespace prsi::server {
 
 Server::Server() {
   events_.reserve(static_cast<size_t>(cfg_.epoll_max_events()));
@@ -332,3 +332,5 @@ void Server::broadcast_to_room(const prsi::game::Room *room,
     send_message(fd, msg);
   }
 }
+
+} // namespace prsi::server
