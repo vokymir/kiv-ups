@@ -34,8 +34,8 @@ private:
   Suit suit_;
 
 public:
-  const Rank &rank() { return rank_; }
-  const Suit &suit() { return suit_; }
+  const Rank &rank() const { return rank_; }
+  const Suit &suit() const { return suit_; }
 
   Card(Rank rank, Suit suit) : rank_(rank), suit_(suit) {}
 };

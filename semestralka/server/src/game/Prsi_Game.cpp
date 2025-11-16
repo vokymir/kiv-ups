@@ -36,7 +36,24 @@ void Prsi_Game::start_game() {
   shuffle_deck();
   init_deal_cards();
 
+  // have one card to start with
+  top_ = deck_.front();
+  top_effect_ = false;
+
   current_player_idx_ = 0;
+  still_playing_ = static_cast<int>(players_.size());
+}
+
+bool Prsi_Game::is_valid_play(const Card &card) const {
+  if (top_effect_) {
+    if (top_.rank() == Rank::SEDM) {
+      return card.rank() == Rank::SEDM;
+    } else if (top_.rank() == Rank::ESO) {
+      return card.rank() == Rank::ESO;
+    }
+  }
+
+  return top_.suit() == card.suit() || top_.rank() == card.rank();
 }
 
 } // namespace prsi::game
