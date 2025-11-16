@@ -1,7 +1,9 @@
 #pragma once
 
 #include "game/Room.hpp"
+#include "server/Message.hpp"
 #include <chrono>
+#include <optional>
 #include <string>
 
 namespace prsi::server {
@@ -53,6 +55,12 @@ public:
   // process messages and if they require sending somthing back to the client or
   // broadcasting to the room, enqueue that using server
   void process_complete_messages(Server &server);
+
+private:
+  // get next message from read_buffer_ and erase it from that
+  std::optional<std::string> extract_next_message();
+  // switch for all client messages, if needed send server message via server
+  void message_handler(Server &server, const Client_Message &msg);
 };
 
 } // namespace prsi::server

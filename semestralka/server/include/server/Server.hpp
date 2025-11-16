@@ -36,8 +36,10 @@ private:
   void accept_connection();
   void handle_client_read(int fd);
   void handle_client_write(int fd);
-  void handle_client_disconnect(int fd);
   void check_timeouts();
+
+public:
+  void handle_client_disconnect(int fd);
   void send_message(int fd, const Server_Message &msg);
   void broadcast_to_room(const prsi::game::Room *room,
                          const Server_Message &msg, int except_fd);
