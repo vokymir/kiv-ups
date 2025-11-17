@@ -96,7 +96,7 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
       [&](auto &&m) {
         using T = std::decay_t<decltype(m)>;
         if constexpr (std::is_same_v<T, CM_Pong>) {
-          handler_pong();
+          handle_pong();
         } else {
           util::Logger::error(
               "Client sent invalid message, disconnecting fd={}, nickname={}",
@@ -107,6 +107,6 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
       msg);
 }
 
-void Client::handler_pong() { connection_ = Client_Connection::OK; }
+void Client::handle_pong() { connection_ = Client_Connection::OK; }
 
 } // namespace prsi::server

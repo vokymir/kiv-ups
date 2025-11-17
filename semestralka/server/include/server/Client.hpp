@@ -80,7 +80,7 @@ private:
   std::optional<std::string> extract_next_message();
   // switch for all client messages, if needed send server message via server
   void message_handler(Server &server, const Client_Message &msg);
-  void handler_pong();
+  void handle_pong();
 };
 
 } // namespace prsi::server
