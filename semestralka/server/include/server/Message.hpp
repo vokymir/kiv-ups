@@ -12,6 +12,11 @@ namespace prsi::server {
 
 // ===== SERVER MESSAGES =====
 
+// == INITIAL ==
+struct SM_Configuration {
+  // defacto config DTO, so client knows timeouts, ...
+};
+
 // == PERIODIC ==
 // ping client
 struct SM_Ping {};
@@ -109,8 +114,8 @@ struct CM_Goto_Lobby {};
 
 // ===== MESSAGES =====
 using Server_Message =
-    std::variant<SM_Ping, SM_Want_Nick, SM_Rooms, SM_Room, SM_Game_Snapshot,
-                 SM_Game_Brief_Disconnect, SM_Game_Reconnect,
+    std::variant<SM_Ping, SM_Configuration, SM_Want_Nick, SM_Rooms, SM_Room,
+                 SM_Game_Snapshot, SM_Game_Brief_Disconnect, SM_Game_Reconnect,
                  SM_Game_Terminal_Disconnect, SM_Game_Played, SM_Game_Drew,
                  SM_Game_Passed, SM_Play, SM_Game_Finished>;
 using Client_Message =
