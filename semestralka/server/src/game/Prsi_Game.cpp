@@ -23,13 +23,26 @@ void Prsi_Game::shuffle_deck() {
   std::shuffle(deck_.begin(), deck_.end(), random_);
 }
 
+void Prsi_Game::deal_cards(const int player_id, const int how_many) {
+  // find player
+  auto p_it = std::find_if(
+      players_.begin(), players_.end(),
+      [player_id](const Player *p) { return p->id_ == player_id; });
+  if (p_it == players_.end()) {
+    throw std::logic_error("Player doesn't exist");
+  }
+  auto *player = *p_it;
+
+  std::move(deck_.end() - how_many, deck_.end(),
+            std::back_inserter(player->hand_));
+  deck_.erase(deck_.end() - how_many, deck_.end());
+}
+
 void Prsi_Game::init_deal_cards(const int hand_size) {
   for (auto &player : players_) {
     player->hand_.reserve(static_cast<size_t>(hand_size));
 
-    std::move(deck_.end() - hand_size, deck_.end(),
-              std::back_inserter(player->hand_));
-    deck_.erase(deck_.end() - hand_size, deck_.end());
+    deal_cards(player->id_, hand_size);
   }
 }
 
@@ -61,8 +74,12 @@ bool Prsi_Game::is_valid_play(const Card &card) const {
   return top_.suit() == card.suit() || top_.rank() == card.rank();
 }
 
+bool Prsi_Game::is_turn(int player_id) {
+  return players_[static_cast<size_t>(current_player_idx_)]->id_ == player_id;
+}
+
 void Prsi_Game::play_card(int player_id, const Card &card) {
-  if (players_[static_cast<size_t>(current_player_idx_)]->id_ != player_id) {
+  if (!is_turn(player_id)) {
     throw std::logic_error("Cannot play outside own turn");
   }
   if (!is_valid_play(card)) {
@@ -75,8 +92,8 @@ void Prsi_Game::play_card(int player_id, const Card &card) {
   if (p_it == players_.end()) {
     throw std::logic_error("Player doesn't exist");
   }
-  // find card in hand
   auto *player = *p_it;
+  // find card in hand
   auto c_it = std::find_if(player->hand_.begin(), player->hand_.end(),
                            [&card](const Card &c) { return card == c; });
   if (c_it == player->hand_.end()) {
@@ -88,6 +105,9 @@ void Prsi_Game::play_card(int player_id, const Card &card) {
   top_ = card;
   if (card.rank() == Rank::SEDM || card.rank() == Rank::ESO) {
     top_effect_ = true;
+    if (card.rank() == Rank::SEDM) {
+      draw_on_seven_ += 2;
+    }
   } else {
     top_effect_ = false;
   }
@@ -99,6 +119,73 @@ void Prsi_Game::play_card(int player_id, const Card &card) {
 
   // set next player
   current_player_idx_ = get_next_player_idx();
+}
+
+void Prsi_Game::draw_card(int player_id) {
+  if (!is_turn(player_id)) {
+    throw std::logic_error("Cannot draw when not players turn");
+  }
+  if (top_effect_) {
+    throw std::logic_error("Cannot draw card when some card have effect");
+  }
+
+  deal_cards(player_id, 1);
+}
+
+void Prsi_Game::pass(int player_id) {
+  if (!is_turn(player_id)) {
+    throw std::logic_error("Cannot pass if not their turn");
+  }
+  if (!top_effect_) {
+    throw std::logic_error("Cannot pass if no card in effect");
+  }
+
+  if (top_.rank() == Rank::SEDM) {
+    deal_cards(player_id, draw_on_seven_);
+    draw_on_seven_ = 0;
+  } else if (top_.rank() == Rank::ESO) {
+    return;
+  }
+
+  top_effect_ = false;
+}
+
+int Prsi_Game::still_playing() const {
+  int counter = 0;
+  for (auto player : players_) {
+    if (player == nullptr) {
+      continue;
+    }
+    if (player->hand_.size() > 0) {
+      counter++;
+    }
+  }
+  return counter;
+}
+
+std::vector<Player *> Prsi_Game::get_leaderboard() const {
+  return leaderboard_;
+}
+
+int Prsi_Game::get_next_player_idx() const {
+  if (still_playing() <= 1) {
+    return current_player_idx_;
+  }
+
+  int idx = current_player_idx_;
+  while (static_cast<size_t>(idx) < players_.size()) {
+    if (!players_[static_cast<size_t>(idx)]->hand_.empty()) {
+      return idx;
+    }
+  }
+  idx = 0;
+  while (idx < current_player_idx_) {
+    if (!players_[static_cast<size_t>(idx)]->hand_.empty()) {
+      return idx;
+    }
+  }
+  throw std::logic_error(
+      "There must have been someone playing, but cannot have index");
 }
 
 } // namespace prsi::game
