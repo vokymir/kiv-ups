@@ -10,9 +10,12 @@ namespace prsi::server {
 class Server;
 
 enum class Client_State {
-  CLIENT_CONNECTING,
-  CLIENT_IN_LOBBY,
-  CLIENT_PLAYING,
+  CONNECTED,
+  LOBBY,
+  ROOM,
+  WAIT_ON_TURN,
+  PLAYING,
+  GAME_FINISHED,
 };
 
 class Client {
