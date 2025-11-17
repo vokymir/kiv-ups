@@ -35,6 +35,7 @@ private:
   Client_Connection connection_;
   std::chrono::steady_clock::time_point last_received_;
   std::chrono::steady_clock::time_point last_sent_;
+  Client_Message last_sent_msg_;
 
 public:
   Client(int fd) : fd_(fd) {}
@@ -42,20 +43,25 @@ public:
 
   int fd() const;
 
+private: // should it even be there?
   void set_nickname(const std::string &nick);
+  void set_current_room(game::Room *room);
+  void set_state(Client_State state);
+
+public:
   const std::string &nickname() const;
 
   std::string &read_buffer();
   std::string &write_buffer();
 
-  void set_current_room(game::Room *room);
   game::Room *current_room() const;
 
-  void set_state(Client_State state);
   Client_State state() const;
 
-  void set_connection(Client_Connection connection);
+  void set_connection(const Client_Connection connection);
   Client_Connection connection() const;
+
+  void set_last_message(const Server_Message &message);
 
   void set_last_received(const std::chrono::steady_clock::time_point &when);
   void set_last_received_now();
@@ -74,6 +80,7 @@ private:
   std::optional<std::string> extract_next_message();
   // switch for all client messages, if needed send server message via server
   void message_handler(Server &server, const Client_Message &msg);
+  void handler_pong();
 };
 
 } // namespace prsi::server

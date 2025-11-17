@@ -38,6 +38,11 @@ game::Room *Client::current_room() const { return current_room_; }
 void Client::set_state(Client_State state) { state_ = state; }
 Client_State Client::state() const { return state_; }
 
+void Client::set_connection(Client_Connection connection) {
+  connection_ = connection;
+}
+Client_Connection Client::connection() const { return connection_; }
+
 void Client::set_last_received(
     const std::chrono::steady_clock::time_point &when) {
   if (when > last_received_) // allow only more recent times
@@ -91,7 +96,7 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
       [&](auto &&m) {
         using T = std::decay_t<decltype(m)>;
         if constexpr (std::is_same_v<T, CM_Pong>) {
-          // something
+          handler_pong();
         } else {
           util::Logger::error(
               "Client sent invalid message, disconnecting fd={}, nickname={}",
@@ -101,5 +106,7 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
       },
       msg);
 }
+
+void Client::handler_pong() { connection_ = Client_Connection::OK; }
 
 } // namespace prsi::server

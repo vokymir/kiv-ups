@@ -332,6 +332,7 @@ void Server::send_message(int fd, const Server_Message &msg) {
   }
   Client &client = it->second;
 
+  client.set_last_message(msg);
   client.write_buffer() += serialized;
   set_epoll_events(fd, EPOLLIN | EPOLLOUT);
 }
