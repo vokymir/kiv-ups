@@ -1,4 +1,5 @@
 #include "server/Server.hpp"
+#include "game/Lobby.hpp"
 #include "server/Client.hpp"
 #include "server/Message.hpp"
 #include "server/Protocol.hpp"
@@ -161,7 +162,7 @@ void Server::accept_connection() {
   }
 
   // create new client
-  clients_.emplace(client_fd, Client(client_fd));
+  clients_.emplace(client_fd, Client(client_fd, lobby_));
   util::Logger::info("New client connected, fd={}", client_fd);
 }
 
@@ -353,5 +354,7 @@ void Server::broadcast_to_room(const prsi::game::Room *room,
     send_message(fd, msg);
   }
 }
+
+const game::Lobby &Server::lobby() const { return lobby_; }
 
 } // namespace prsi::server

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "game/Lobby.hpp"
 #include "game/Room.hpp"
 #include "server/Message.hpp"
 #include <chrono>
@@ -30,7 +31,8 @@ private:
   std::string nickname_;
   std::string read_buffer_;
   std::string write_buffer_;
-  prsi::game::Room *current_room_;
+  game::Lobby &lobby_;
+  game::Room *current_room_;
   Client_State state_;
   Client_Connection connection_;
   std::chrono::steady_clock::time_point last_received_;
@@ -38,7 +40,7 @@ private:
   std::optional<Server_Message> last_sent_msg_;
 
 public:
-  Client(int fd) : fd_(fd) {}
+  Client(int fd, game::Lobby &lobby) : fd_(fd), lobby_(lobby) {}
   ~Client() = default;
 
   int fd() const;

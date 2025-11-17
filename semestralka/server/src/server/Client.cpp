@@ -69,6 +69,7 @@ const std::chrono::steady_clock::time_point Client::last_sent() const {
 void Client::process_complete_messages(Server &server) {
   while (auto message = extract_next_message()) {
     set_last_received_now();
+    connection_ = Client_Connection::OK;
 
     try {
       Client_Message msg = Protocol::parse(*message);
@@ -109,8 +110,9 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
       msg);
 }
 
-void Client::handle_pong() { connection_ = Client_Connection::OK; }
+void Client::handle_pong() {}
 
+// move client to lobby, sent back rooms
 void Client::handle_nick(Server &server, const CM_Nick &msg) {
   if (!last_sent_msg_was<SM_Want_Nick>()) {
     server.handle_client_disconnect(fd_);
@@ -118,8 +120,7 @@ void Client::handle_nick(Server &server, const CM_Nick &msg) {
   }
   set_nickname(msg.nick);
   set_state(Client_State::LOBBY);
-  // TODO: get rooms here
-  server.send_message(fd_, SM_Rooms{});
+  server.send_message(fd_, SM_Rooms{server.lobby().get_rooms()});
 }
 
 } // namespace prsi::server

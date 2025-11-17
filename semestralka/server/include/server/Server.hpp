@@ -43,6 +43,7 @@ public:
   void send_message(int fd, const Server_Message &msg);
   void broadcast_to_room(const prsi::game::Room *room,
                          const Server_Message &msg, int except_fd);
+  const game::Lobby &lobby() const;
 };
 
 } // namespace prsi::server

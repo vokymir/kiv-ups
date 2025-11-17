@@ -13,7 +13,7 @@ private:
   bool changed_ = false;
 
 public:
-  const std::vector<Room> &get_rooms() const;
+  std::vector<const Room *> get_rooms() const;
   const Room *get_room(int room_id) const;
   // return room id on success, -1 on failure
   int add_room();

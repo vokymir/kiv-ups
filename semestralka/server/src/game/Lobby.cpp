@@ -7,7 +7,14 @@
 #include <vector>
 namespace prsi::game {
 
-const std::vector<Room> &Lobby::get_rooms() const { return rooms_; }
+std::vector<const Room *> Lobby::get_rooms() const {
+  std::vector<const Room *> result;
+  result.reserve(rooms_.size());
+  for (const auto &room : rooms_) {
+    result.push_back(&room);
+  }
+  return result;
+}
 
 const Room *Lobby::get_room(int room_id) const {
   auto it =

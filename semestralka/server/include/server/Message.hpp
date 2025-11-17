@@ -25,7 +25,7 @@ struct SM_Want_Nick {};
 // may be sent multiple times before receiving response, because something
 // was updated (e.g. new room created)
 struct SM_Rooms {
-  std::vector<game::Room *> rooms;
+  std::vector<const game::Room *> rooms;
 };
 
 // == CLIENT ROOM ==
