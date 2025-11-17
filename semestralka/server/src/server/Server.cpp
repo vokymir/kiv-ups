@@ -170,6 +170,9 @@ void Server::accept_connection() {
   // create new client
   clients_.emplace(client_fd, Client(client_fd, lobby_));
   util::Logger::info("New client connected, fd={}", client_fd);
+
+  // send server configuration to client
+  send_message(client_fd, SM_Configuration{});
 }
 
 void Server::handle_client_read(int fd) {
@@ -339,7 +342,10 @@ void Server::send_message(int fd, const Server_Message &msg) {
   }
   Client &client = it->second;
 
-  client.set_last_message(msg);
+  if (!is_type<SM_Ping>(msg)) { // dont store that Ping was sent
+    client.set_last_message(msg);
+  }
+
   client.write_buffer() += serialized;
   set_epoll_events(fd, EPOLLIN | EPOLLOUT);
 }

@@ -122,4 +122,10 @@ using Client_Message =
     std::variant<CM_Pong, CM_Nick, CM_Join_Room, CM_Create_Room, CM_Leave_Room,
                  CM_Play, CM_Draw, CM_Pass, CM_Goto_Lobby>;
 
+// UTILITY functions
+
+template <typename T> bool is_type(const Server_Message &msg) {
+  return std::holds_alternative<T>(msg);
+}
+
 } // namespace prsi::server
