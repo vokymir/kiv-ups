@@ -97,6 +97,8 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
         using T = std::decay_t<decltype(m)>;
         if constexpr (std::is_same_v<T, CM_Pong>) {
           handle_pong();
+        } else if constexpr (std::is_same_v<T, CM_Nick>) {
+          handle_nick(server, m);
         } else {
           util::Logger::error(
               "Client sent invalid message, disconnecting fd={}, nickname={}",
@@ -108,5 +110,16 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
 }
 
 void Client::handle_pong() { connection_ = Client_Connection::OK; }
+
+void Client::handle_nick(Server &server, const CM_Nick &msg) {
+  if (!last_sent_msg_was<SM_Want_Nick>()) {
+    server.handle_client_disconnect(fd_);
+    return;
+  }
+  set_nickname(msg.nick);
+  set_state(Client_State::LOBBY);
+  // TODO: get rooms here
+  server.send_message(fd_, SM_Rooms{});
+}
 
 } // namespace prsi::server

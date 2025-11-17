@@ -35,7 +35,7 @@ private:
   Client_Connection connection_;
   std::chrono::steady_clock::time_point last_received_;
   std::chrono::steady_clock::time_point last_sent_;
-  Client_Message last_sent_msg_;
+  std::optional<Server_Message> last_sent_msg_;
 
 public:
   Client(int fd) : fd_(fd) {}
@@ -62,6 +62,10 @@ public:
   Client_Connection connection() const;
 
   void set_last_message(const Server_Message &message);
+  // check which type was the last sent message
+  template <typename T> bool last_sent_msg_was() const {
+    return last_sent_msg_ && std::holds_alternative<T>(*last_sent_msg_);
+  }
 
   void set_last_received(const std::chrono::steady_clock::time_point &when);
   void set_last_received_now();
@@ -81,6 +85,7 @@ private:
   // switch for all client messages, if needed send server message via server
   void message_handler(Server &server, const Client_Message &msg);
   void handle_pong();
+  void handle_nick(Server &server, const CM_Nick &msg);
 };
 
 } // namespace prsi::server
