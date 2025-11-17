@@ -18,6 +18,12 @@ enum class Client_State {
   GAME_FINISHED,
 };
 
+enum class Client_Connection {
+  OK,
+  BRIEF_DISCONNECT,
+  LONG_DISCONNECT,
+};
+
 class Client {
 private:
   int fd_;
@@ -26,6 +32,7 @@ private:
   std::string write_buffer_;
   prsi::game::Room *current_room_;
   Client_State state_;
+  Client_Connection connection_;
   std::chrono::steady_clock::time_point last_received_;
   std::chrono::steady_clock::time_point last_sent_;
 
@@ -46,6 +53,9 @@ public:
 
   void set_state(Client_State state);
   Client_State state() const;
+
+  void set_connection(Client_Connection connection);
+  Client_Connection connection() const;
 
   void set_last_received(const std::chrono::steady_clock::time_point &when);
   void set_last_received_now();

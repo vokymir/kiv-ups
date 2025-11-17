@@ -13,6 +13,7 @@ private:
   int epoll_timeout_ms_ = 500;
   int max_clients_ = 10;
   int ping_timeout_ms_ = 5'000;
+  int brief_disconnect_timeout_ms_ = 10'000;
   int disconnect_timeout_ms_ = 30'000;
   int max_rooms_ = 10;
 
@@ -23,6 +24,7 @@ public:
   int epoll_timeout_ms() const;
   int max_clients() const;
   int ping_timeout_s() const;
+  int brief_disconnect_timeout_s() const;
   int disconnect_timeout_s() const;
   int max_rooms() const;
 

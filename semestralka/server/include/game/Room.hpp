@@ -34,6 +34,7 @@ public:
 
   int id() const;
   std::vector<int> get_player_fds() const;
+  Player *get_player(int fd);
   // return false if player cannot be added
   bool add_player(int player_id, std::string nickname);
   void remove_player(int player_id);

@@ -58,6 +58,11 @@ void Server::run() {
       }
     }
 
+    if (lobby_.changed()) {
+      // TODO: broadcast to all lobby waiters that it changed
+      lobby_.is_not_changed();
+    }
+
     check_timeouts();
   }
 }
@@ -248,12 +253,14 @@ void Server::handle_client_disconnect(int fd) {
   }
 
   Client &client = it->second;
+  client.set_connection(Client_Connection::LONG_DISCONNECT);
   auto room = client.current_room();
 
   // if is in a room
   if (room != nullptr) {
     // notify others in room
-    broadcast_to_room(room, SM_Someone_Disconnected{fd}, fd);
+    broadcast_to_room(room, SM_Game_Terminal_Disconnect{room->get_player(fd)},
+                      fd);
 
     // remove client from room
     room->remove_player(client.fd());
@@ -261,6 +268,7 @@ void Server::handle_client_disconnect(int fd) {
     // if room is empty or game cannot continue
     if (room->should_close()) {
       lobby_.remove_room(room->id());
+      lobby_.is_changed();
     }
   }
 
@@ -275,6 +283,8 @@ void Server::handle_client_disconnect(int fd) {
 void Server::check_timeouts() {
   auto now = std::chrono::steady_clock::now();
   auto ping_time = std::chrono::seconds(cfg_.ping_timeout_s());
+  auto brief_disconnect_time =
+      std::chrono::seconds(cfg_.brief_disconnect_timeout_s());
   auto disconnect_time = std::chrono::seconds(cfg_.disconnect_timeout_s());
 
   std::vector<int> to_disconnect;
@@ -289,6 +299,16 @@ void Server::check_timeouts() {
           std::chrono::duration_cast<std::chrono::seconds>(inactive_time)
               .count());
       continue;
+    }
+
+    if (inactive_time > brief_disconnect_time &&
+        client.connection() == Client_Connection::OK) { // BRIEF DISCONNECT
+      client.set_connection(Client_Connection::BRIEF_DISCONNECT);
+      auto room = client.current_room();
+      if (room != nullptr) {
+        broadcast_to_room(room, SM_Game_Brief_Disconnect{room->get_player(fd)},
+                          fd);
+      }
     }
 
     auto last_try = now - client.last_sent();

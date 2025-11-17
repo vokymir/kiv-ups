@@ -11,6 +11,9 @@ int Config::epoll_timeout_ms() const { return epoll_timeout_ms_; }
 
 int Config::max_clients() const { return max_clients_; }
 int Config::ping_timeout_s() const { return ping_timeout_ms_ / 1000; }
+int Config::brief_disconnect_timeout_s() const {
+  return brief_disconnect_timeout_ms_ / 1000;
+}
 int Config::disconnect_timeout_s() const {
   return disconnect_timeout_ms_ / 1000;
 }
