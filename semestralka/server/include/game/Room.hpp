@@ -22,6 +22,7 @@ private:
   std::unique_ptr<Prsi_Game> game_;
   Room_State state_;
   size_t max_players_;
+  bool updated_ = false;
 
 public:
   Room(int id) : id_(id) {}
@@ -31,6 +32,10 @@ public:
   Room &operator=(const Room &) = delete;
   Room(Room &&) = default;
   Room &operator=(Room &&) = default;
+
+  void is_updated();
+  bool updated();
+  void is_not_updated();
 
   int id() const;
   std::vector<int> get_player_fds() const;

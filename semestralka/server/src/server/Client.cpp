@@ -100,7 +100,11 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
           handle_pong();
         } else if constexpr (std::is_same_v<T, CM_Nick>) {
           handle_nick(server, m);
-        } else {
+        } else if constexpr (std::is_same_v<T, CM_Join_Room>) {
+          handle_join_room(server, m);
+        }
+
+        else {
           util::Logger::error(
               "Client sent invalid message, disconnecting fd={}, nickname={}",
               fd_, nickname_);
@@ -112,7 +116,6 @@ void Client::message_handler(Server &server, const Client_Message &msg) {
 
 void Client::handle_pong() {}
 
-// move client to lobby, sent back rooms
 void Client::handle_nick(Server &server, const CM_Nick &msg) {
   if (!last_sent_msg_was<SM_Want_Nick>()) {
     server.handle_client_disconnect(fd_);
@@ -120,7 +123,24 @@ void Client::handle_nick(Server &server, const CM_Nick &msg) {
   }
   set_nickname(msg.nick);
   set_state(Client_State::LOBBY);
-  server.send_message(fd_, SM_Rooms{server.lobby().get_rooms()});
+  server.send_message(fd_, SM_Rooms{server.lobby().get_rooms_c()});
+}
+
+void Client::handle_join_room(Server &server, const CM_Join_Room &msg) {
+  if (!last_sent_msg_was<SM_Rooms>()) {
+    server.handle_client_disconnect(fd_);
+    return;
+  }
+  // need room to be actionable in client
+  auto *room = const_cast<game::Room *>(server.lobby().get_room(msg.room_id));
+  // add player to room
+  if (!room->add_player(fd_, nickname_)) {
+    server.handle_client_disconnect(fd_);
+    return;
+  }
+  set_current_room(room);
+  // set room to broadcast
+  room->is_updated();
 }
 
 } // namespace prsi::server

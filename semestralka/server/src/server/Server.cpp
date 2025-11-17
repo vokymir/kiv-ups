@@ -63,6 +63,12 @@ void Server::run() {
       // TODO: broadcast to all lobby waiters that it changed
       lobby_.is_not_changed();
     }
+    for (auto &room : lobby_.get_rooms()) {
+      if (room->updated()) {
+        broadcast_to_room(room, SM_Room{room}, -1);
+        room->is_not_updated();
+      }
+    }
 
     check_timeouts();
   }

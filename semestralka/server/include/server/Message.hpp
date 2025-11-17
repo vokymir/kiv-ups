@@ -56,7 +56,7 @@ struct SM_Game_Terminal_Disconnect {
 // incremental changes in game state
 // expects no response
 struct SM_Game_Played {
-  game::Card what;
+  game::Card card;
 };
 struct SM_Game_Drew {};
 struct SM_Game_Passed {
@@ -88,7 +88,7 @@ struct CM_Nick {
 
 // == CLIENT LOBBY ==
 struct CM_Join_Room {
-  int id;
+  int room_id;
 };
 struct CM_Create_Room {};
 

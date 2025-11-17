@@ -86,8 +86,11 @@ private:
   std::optional<std::string> extract_next_message();
   // switch for all client messages, if needed send server message via server
   void message_handler(Server &server, const Client_Message &msg);
+  // nothing
   void handle_pong();
+  // move client to lobby, sent back rooms
   void handle_nick(Server &server, const CM_Nick &msg);
+  void handle_join_room(Server &server, const CM_Join_Room &msg);
 };
 
 } // namespace prsi::server

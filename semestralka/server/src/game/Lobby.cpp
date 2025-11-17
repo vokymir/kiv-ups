@@ -7,7 +7,7 @@
 #include <vector>
 namespace prsi::game {
 
-std::vector<const Room *> Lobby::get_rooms() const {
+std::vector<const Room *> Lobby::get_rooms_c() const {
   std::vector<const Room *> result;
   result.reserve(rooms_.size());
   for (const auto &room : rooms_) {
