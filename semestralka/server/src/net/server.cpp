@@ -1,5 +1,12 @@
 #include "prsi/net/server.hpp"
+#include "prsi/net/error.hpp"
 #include "prsi/util/config.hpp"
+#include <asm-generic/socket.h>
+#include <fcntl.h>
+#include <netinet/in.h>
+#include <sys/epoll.h>
+#include <sys/socket.h>
+#include <unistd.h>
 
 namespace prsi::net {
 
@@ -11,6 +18,65 @@ Server::Server(const util::Config &cfg)
       death_timeout_ms_(cfg.death_timeout_ms_) {
   events_.reserve(epoll_max_events_);
   setup();
+}
+
+void Server::setup() {
+  // create socket
+  listen_fd_ = socket(AF_INET, SOCK_STREAM, 0);
+  if (listen_fd_ == -1) {
+    throw Net_Error("Cannot create listen socket.");
+  }
+
+  // set socket options
+  int opt = 1;
+  if (setsockopt(listen_fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) ==
+      -1) {
+    throw Net_Error("Cannot set socket options.");
+  }
+
+  // set non blocking
+  if (set_fd_nonblocking(listen_fd_) == -1) {
+    throw Net_Error("Cannot set listen socket non-blocking.");
+  }
+
+  // bind
+  sockaddr_in addr{};
+  addr.sin_family = AF_INET;
+  addr.sin_port = htons(port_);
+  if (bind(listen_fd_, (sockaddr *)&addr, sizeof(addr)) != 0) {
+    throw Net_Error("Cannot bind listen socket.");
+  }
+
+  if (listen(listen_fd_, SOMAXCONN) == -1) {
+    throw Net_Error("Cannot listen.");
+  }
+
+  epoll_fd_ = epoll_create(0);
+
+  if (set_epoll_events(listen_fd_, EPOLLIN, true) == -1) {
+    throw Net_Error("Cannot add listening socket to epoll.");
+  }
+}
+
+int Server::set_fd_nonblocking(int fd) {
+  int flags = fcntl(fd, F_GETFL, 0);
+  if (flags == -1) {
+    return -1;
+  }
+
+  // reuse return value
+  return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+}
+
+int Server::set_epoll_events(int fd, uint32_t events, bool creating) {
+  epoll_event ev{};
+  ev.events = events;
+  ev.data.fd = fd;
+
+  int opt = creating ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+
+  // reuse return value
+  return epoll_ctl(epoll_fd_, opt, fd, &ev);
 }
 
 } // namespace prsi::net

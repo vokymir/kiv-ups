@@ -1,13 +1,12 @@
 #pragma once
 
-#include <cstdint>
 #include <string>
 
 namespace prsi::util {
 
 class Config {
 public:
-  uint16_t port_ = 65'500;
+  int port_ = 65'500;
   int epoll_max_events_ = 32;
   int epoll_timeout_ms_ = 500;
   int max_clients_ = 10;

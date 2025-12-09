@@ -35,10 +35,14 @@ public:
 
 private:
   void setup();
+  // return -1 on failure
+  int set_fd_nonblocking(int fd);
+  // return -1 on failure
+  int set_epoll_events(int fd, uint32_t events, bool creating_new = false);
 
 private:
   // configuration
-  uint16_t port_;
+  int port_;
   int epoll_max_events_;
   int epoll_timeout_ms_;
   int max_clients_;
