@@ -6,7 +6,7 @@
 namespace prsi::net {
 
 // TODO:
-std::string String_Protocol::serialize(const mgr::In_Event &ev) {
+std::string String_Protocol::serialize(const mgr::Out_Event &ev) {
   return "TODO:";
 }
 
