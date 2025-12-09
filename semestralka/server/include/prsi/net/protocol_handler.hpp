@@ -2,6 +2,15 @@
 
 namespace prsi::net {
 
+// Ensure tags have the usings we require for Protocol_Handler.
+template <typename T>
+concept Protocol_Tag = requires {
+  typename T::Net_Msg_T;
+  typename T::In_Ev_T;
+  typename T::Out_Ev_T;
+  typename T::State_T;
+};
+
 // interface class for all protocols, to be easily interchangeable
 // using Template Specification in compile time:
 //
@@ -13,7 +22,7 @@ namespace prsi::net {
 // Out_Ev_T     = event specific for outgoing events server -> client
 // State_T      = client's state in a game for example
 //              used for validating incoming event if server isn't state-less
-template <typename Tag> class Protocol_Handler {
+template <Protocol_Tag Tag> class Protocol_Handler {
 public:
   using Net_Msg_T = typename Tag::Net_Msg_T;
   using In_Ev_T = typename Tag::In_Ev_T;
