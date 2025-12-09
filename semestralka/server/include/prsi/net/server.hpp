@@ -40,6 +40,8 @@ private:
   // return -1 on failure
   int set_epoll_events(int fd, uint32_t events, bool creating_new = false);
 
+  void accept_connection();
+
 private:
   // configuration
   int port_;

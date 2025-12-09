@@ -2,6 +2,7 @@
 #include "prsi/net/error.hpp"
 #include "prsi/util/config.hpp"
 #include <asm-generic/socket.h>
+#include <cerrno>
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/epoll.h>
@@ -18,6 +19,41 @@ Server::Server(const util::Config &cfg)
       death_timeout_ms_(cfg.death_timeout_ms_) {
   events_.reserve(epoll_max_events_);
   setup();
+}
+
+void Server::run() {
+  running_ = true;
+  while (running_) {
+    // wait for n events to happen, n it at most epoll_max_events_
+    int n = epoll_wait(epoll_fd_, events_.data(), epoll_max_events_,
+                       epoll_timeout_ms_);
+
+    if (n == -1) {
+      if (errno == EINTR) {
+        continue; // ignore interrupts
+      } // report anything else
+      throw Net_Error("epoll_wait failed.");
+    }
+
+    for (int i = 0; i < n; i++) {
+      epoll_event &ev = events_[i];
+
+      if (ev.data.fd == listen_fd_) {
+        accept_connection();
+      } else if (ev.events & EPOLLIN) {
+        // handle client read
+      } else if (ev.events & EPOLLOUT) {
+        // handle client write
+      } else if (ev.events & (EPOLLHUP | EPOLLERR)) {
+        // handle client disconnect
+      }
+    }
+
+    for (auto &sess : sessions_) {
+      // send if it wants
+      // check timeout
+    }
+  }
 }
 
 void Server::setup() {
