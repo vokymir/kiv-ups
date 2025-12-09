@@ -45,7 +45,7 @@ void Server::run() {
       } else if (ev.events & EPOLLOUT) {
         // handle client write
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) {
-        // handle client disconnect
+        handle_disconnect(ev.data.fd);
       }
     }
 
@@ -113,6 +113,15 @@ int Server::set_epoll_events(int fd, uint32_t events, bool creating) {
 
   // reuse return value
   return epoll_ctl(epoll_fd_, opt, fd, &ev);
+}
+
+void Server::handle_disconnect(int fd) {
+  auto it = sessions_.find(fd);
+  if (it == sessions_.end()) {
+    return;
+  }
+
+  // TODO:
 }
 
 } // namespace prsi::net

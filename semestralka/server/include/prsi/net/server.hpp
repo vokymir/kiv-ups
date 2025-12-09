@@ -41,6 +41,7 @@ private:
   int set_epoll_events(int fd, uint32_t events, bool creating_new = false);
 
   void accept_connection();
+  void handle_disconnect(int fd);
 
 private:
   // configuration
