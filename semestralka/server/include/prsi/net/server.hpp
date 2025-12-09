@@ -1,8 +1,39 @@
 #pragma once
 
+#include "prsi/mgr/game_manager.hpp"
+#include "prsi/net/session.hpp"
+#include "prsi/util/config.hpp"
+#include <map>
+#include <memory>
+#include <sys/epoll.h>
+#include <vector>
+
 namespace prsi::net {
 
 // Handle epoll, own sessions and game manager.
-class Server {};
+class Server {
+private:
+  // epoll
+  int epoll_fd_ = -1;
+  std::vector<epoll_event> events_;
+
+  // sockets
+  int listen_fd_ = -1;
+
+  // orchestration
+  bool running_ = false;
+
+  // owns
+  std::unique_ptr<mgr::Game_Manager> game_manager_;
+  std::map<int, std::shared_ptr<Session>> sessions_;
+
+public:
+  Server(const util::Config &config);
+  ~Server() = default;
+  void run();
+
+private:
+  void setup();
+};
 
 } // namespace prsi::net
