@@ -3,6 +3,7 @@
 #include "prsi/mgr/game_manager.hpp"
 #include "prsi/net/session.hpp"
 #include "prsi/util/config.hpp"
+#include <cstdint>
 #include <map>
 #include <memory>
 #include <sys/epoll.h>
@@ -34,6 +35,16 @@ public:
 
 private:
   void setup();
+
+private:
+  // configuration
+  uint16_t port_;
+  int epoll_max_events_;
+  int epoll_timeout_ms_;
+  int max_clients_;
+  int ping_timeout_ms_;
+  int sleep_timeout_ms_;
+  int death_timeout_ms_;
 };
 
 } // namespace prsi::net
