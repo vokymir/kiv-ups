@@ -4,8 +4,8 @@
 
 namespace prsi::mgr {
 
-struct Card_Event {};
+struct Card_Evin {};
 
-using Game_Event = std::variant<>;
+using Game_Evin = std::variant<Card_Evin>;
 
 } // namespace prsi::mgr

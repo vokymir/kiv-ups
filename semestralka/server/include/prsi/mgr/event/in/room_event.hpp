@@ -4,8 +4,8 @@
 
 namespace prsi::mgr {
 
-struct Leave_Room_Event {};
+struct Leave_Room_Evin {};
 
-using Room_Event = std::variant<Leave_Room_Event>;
+using Room_Evin = std::variant<Leave_Room_Evin>;
 
 } // namespace prsi::mgr

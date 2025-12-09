@@ -4,8 +4,8 @@
 
 namespace prsi::mgr {
 
-struct Join_Room_Evin {};
+struct Players_Evout {};
 
-using Lobby_Evin = std::variant<Join_Room_Evin>;
+using Room_Evout = std::variant<Players_Evout>;
 
 } // namespace prsi::mgr
