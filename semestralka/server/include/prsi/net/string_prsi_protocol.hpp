@@ -1,8 +1,8 @@
 #pragma once
 
-#include "i_protocol.hpp"
 #include "prsi/mgr/event/in_event.hpp"
 #include "prsi/mgr/event/out_event.hpp"
+#include "prsi/net/i_protocol.hpp"
 #include <string>
 
 namespace prsi::net {
