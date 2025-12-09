@@ -1,15 +1,23 @@
 #include "prsi/net/string_protocol.hpp"
-#include "prsi/net/protocol_handler.hpp"
+#include "prsi/mgr/event/in_event.hpp"
+#include "prsi/mgr/event/out_event.hpp"
+#include <string>
 
 namespace prsi::net {
 
-using Tag = String_Protocol_Tag;
-using Handler = Protocol_Handler<Tag>;
-
-template <> Tag::Net_Msg_T Handler::serialize(const Tag::Out_Ev_T &ev) {
-  return "Hello";
+// TODO:
+std::string String_Protocol::serialize(const mgr::In_Event &ev) {
+  return "TODO:";
 }
 
-template <> Tag::In_Ev_T Handler::parse(const Tag::Net_Msg_T &msg) {}
+// TODO:
+mgr::In_Event String_Protocol::parse(const std::string &msg) {
+  return mgr::In_Event{};
+}
+
+// TODO:
+bool String_Protocol::validate(const int &state, const mgr::In_Event &ev) {
+  return true;
+}
 
 } // namespace prsi::net
