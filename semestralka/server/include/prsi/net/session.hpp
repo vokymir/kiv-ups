@@ -21,7 +21,7 @@ enum Session_Status {
 class Session {
 public:
   Session(const util::Config &config);
-  ~Session() = default;
+  ~Session();
 
 private:
   int fd_;

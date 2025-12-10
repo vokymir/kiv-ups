@@ -1,6 +1,7 @@
 #include "prsi/net/server.hpp"
 #include "prsi/net/error.hpp"
 #include "prsi/util/config.hpp"
+#include "prsi/util/logger.hpp"
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <fcntl.h>
@@ -38,13 +39,16 @@ void Server::run() {
     for (int i = 0; i < n; i++) {
       epoll_event &ev = events_[i];
 
-      if (ev.data.fd == listen_fd_) {
+      auto sess = find_session(ev.data.fd);
+
+      if (ev.data.fd == listen_fd_) { // NEW CONNECTION
         accept_connection();
-      } else if (ev.events & EPOLLIN) {
-        // handle client read
-      } else if (ev.events & EPOLLOUT) {
-        // handle client write
-      } else if (ev.events & (EPOLLHUP | EPOLLERR)) {
+      } else if (ev.events & EPOLLIN) { // RECV
+        handle_session_read(sess);
+        handle_session_process(sess);
+      } else if (ev.events & EPOLLOUT) { // SEND
+        handle_session_send(sess);
+      } else if (ev.events & (EPOLLHUP | EPOLLERR)) { // DISCONNECT
         handle_disconnect(ev.data.fd);
       }
     }
@@ -115,13 +119,40 @@ int Server::set_epoll_events(int fd, uint32_t events, bool creating) {
   return epoll_ctl(epoll_fd_, opt, fd, &ev);
 }
 
+void Server::handle_session_read(std::weak_ptr<Session> session) {
+  auto s = session.lock();
+  if (!s) {
+    util::Logger::error("Session not found (expired weak_ptr).");
+    return;
+  }
+  s->receive();
+}
+
+void Server::handle_session_process(std::weak_ptr<Session> session) {
+  auto s = session.lock();
+  if (!s) {
+    util::Logger::error("Session not found (expired weak_ptr).");
+    return;
+  }
+  s->process();
+}
+
+void Server::handle_session_send(std::weak_ptr<Session> session) {
+  auto s = session.lock();
+  if (!s) {
+    util::Logger::error("Session not found (expired weak_ptr).");
+    return;
+  }
+  s->send();
+}
+
 void Server::handle_disconnect(int fd) {
   auto it = sessions_.find(fd);
   if (it == sessions_.end()) {
     return;
   }
 
-  // TODO:
+  sessions_.erase(it);
 }
 
 } // namespace prsi::net

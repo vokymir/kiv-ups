@@ -40,7 +40,20 @@ private:
   // return -1 on failure
   int set_epoll_events(int fd, uint32_t events, bool creating_new = false);
 
+  // accept new connection
   void accept_connection();
+
+  // find session by the file descriptor
+  std::weak_ptr<Session> find_session(int fd);
+
+  // session read message into its buffer
+  void handle_session_read(std::weak_ptr<Session> session);
+  // session process all complete messages inside its buffer
+  void handle_session_process(std::weak_ptr<Session> session);
+  // session send all messages inside its buffer
+  void handle_session_send(std::weak_ptr<Session> session);
+
+  // disconnect session from server
   void handle_disconnect(int fd);
 
 private:
