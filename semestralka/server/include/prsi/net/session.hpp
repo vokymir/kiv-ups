@@ -48,6 +48,18 @@ public:
   const std::string &nick() { return nick_; }
   std::weak_ptr<game::Room> room() { return room_; }
   void room(std::weak_ptr<game::Room> room) { room_ = std::move(room); }
+
+public:
+  // networking
+
+  // read incoming messages from fd
+  void receive();
+
+  // process complete messages from read_buffer_
+  void process();
+
+  // send what's inside write_buffer_ (if is anything)
+  void send();
 };
 
 } // namespace prsi::net
