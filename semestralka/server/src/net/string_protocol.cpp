@@ -5,6 +5,9 @@
 
 namespace prsi::net {
 
+String_Protocol::String_Protocol() {}
+String_Protocol::~String_Protocol() {}
+
 // TODO:
 std::string String_Protocol::serialize(const mgr::Out_Event &ev) {
   return "TODO:";
@@ -16,7 +19,8 @@ mgr::In_Event String_Protocol::parse(const std::string &msg) {
 }
 
 // TODO:
-bool String_Protocol::validate(const int &state, const mgr::In_Event &ev) {
+bool String_Protocol::validate(const Session_State &state,
+                               const mgr::In_Event &ev) {
   return true;
 }
 

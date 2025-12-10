@@ -2,6 +2,7 @@
 
 #include "prsi/game/room.hpp"
 #include "prsi/net/string_protocol.hpp"
+#include "prsi/util/config.hpp"
 #include <chrono>
 #include <memory>
 #include <string>
@@ -18,6 +19,10 @@ enum Session_Status {
 // Handle message recv/send buffers, pings.
 // Use protocol.
 class Session {
+public:
+  Session(const util::Config &config);
+  ~Session() = default;
+
 private:
   int fd_;
   std::string nick_;

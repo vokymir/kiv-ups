@@ -20,11 +20,13 @@ enum Session_State {
 // Only protocol in this project - uses string, no raw bytes.
 class String_Protocol : public I_Protocol<std::string, mgr::In_Event,
                                           mgr::Out_Event, Session_State> {
-
+public:
   std::string serialize(const mgr::Out_Event &ev) override;
   mgr::In_Event parse(const std::string &msg) override;
   bool validate(const Session_State &state, const mgr::In_Event &ev) override;
-  ~String_Protocol() override;
+
+  String_Protocol();
+  ~String_Protocol();
 };
 
 } // namespace prsi::net

@@ -11,7 +11,7 @@ namespace prsi::net {
 template <typename Net_Msg_T, typename In_Ev_T, typename Out_Ev_T,
           typename State_T>
 class I_Protocol {
-
+public:
   // translate game-server event to net message type
   virtual Net_Msg_T serialize(const Out_Ev_T &ev) = 0;
 
@@ -21,8 +21,6 @@ class I_Protocol {
   // validate the game-client event can be played with current state of client
   // return true if can, false if can not
   virtual bool validate(const State_T &state, const In_Ev_T &ev) = 0;
-
-  virtual ~I_Protocol() = default;
 };
 
 } // namespace prsi::net
