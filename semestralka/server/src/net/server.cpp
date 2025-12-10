@@ -53,8 +53,25 @@ void Server::run() {
       }
     }
 
+    // dispatch all out_evs in GM.out()
+    // and send them
+    auto out_evs = game_manager_->out();
+    while (!out_evs.empty()) {
+      auto extract_fd_visitor = [](auto &&inner_variant) -> int {
+        return std::visit(
+            [](auto &&specific_event_struct) -> int {
+              return specific_event_struct.fd;
+            },
+            inner_variant);
+      };
+      auto ev = out_evs.front();
+      int session_fd = std::visit(extract_fd_visitor, ev);
+
+      auto sess = find_session(session_fd).lock();
+      if (sess)
+    }
+
     for (auto &sess : sessions_) {
-      // send if it wants
       // check timeout
     }
   }
@@ -119,6 +136,14 @@ int Server::set_epoll_events(int fd, uint32_t events, bool creating) {
   return epoll_ctl(epoll_fd_, opt, fd, &ev);
 }
 
+std::weak_ptr<Session> Server::find_session(int fd) {
+  auto it = sessions_.find(fd);
+  if (it == sessions_.end()) {
+    return {};
+  }
+  return it->second;
+}
+
 void Server::handle_session_read(std::weak_ptr<Session> session) {
   auto s = session.lock();
   if (!s) {
@@ -134,7 +159,7 @@ void Server::handle_session_process(std::weak_ptr<Session> session) {
     util::Logger::error("Session not found (expired weak_ptr).");
     return;
   }
-  s->process();
+  s->process_incoming();
 }
 
 void Server::handle_session_send(std::weak_ptr<Session> session) {
@@ -152,6 +177,11 @@ void Server::handle_disconnect(int fd) {
     return;
   }
 
+  // let others know in send-loop
+  auto disconnect_evs = it->second->generate_disconnect_event();
+  game_manager_->process(disconnect_evs);
+
+  // disconnect
   sessions_.erase(it);
 }
 

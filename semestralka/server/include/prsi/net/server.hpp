@@ -1,9 +1,11 @@
 #pragma once
 
+#include "prsi/mgr/event/in_event.hpp"
 #include "prsi/mgr/game_manager.hpp"
 #include "prsi/net/session.hpp"
 #include "prsi/util/config.hpp"
 #include <cstdint>
+#include <deque>
 #include <map>
 #include <memory>
 #include <sys/epoll.h>
@@ -55,6 +57,11 @@ private:
 
   // disconnect session from server
   void handle_disconnect(int fd);
+
+  // Game Manager process these events and remove them from the queue
+  void gm_process(std::deque<mgr::In_Event> &evs);
+  // read Game Managers events and give them to sessions
+  void dispatch_gm_evs();
 
 private:
   // configuration

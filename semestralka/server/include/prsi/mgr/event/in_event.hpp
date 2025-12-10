@@ -10,4 +10,4 @@ namespace prsi::mgr {
 
 using In_Event = std::variant<Control_Evin, Lobby_Evin, Room_Evin, Game_Evin>;
 
-}
+} // namespace prsi::mgr
