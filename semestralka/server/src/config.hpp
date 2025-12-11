@@ -6,8 +6,9 @@ namespace prsi {
 
 class Config {
 public:
+  std::string ip_ = "127.0.0.1";
   int port_ = 65'500;
-  int epoll_max_events_ = 32;
+  int epoll_max_events_ = 32; // should be at least max_clients_ + 1 (listen)
   int epoll_timeout_ms_ = 500;
   int max_clients_ = 10;
   int ping_timeout_ms_ = 5'000;

@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <string>
 #include <sys/epoll.h>
 #include <vector>
 
@@ -31,7 +32,7 @@ private:
 
 public:
   Server(const Config &config);
-  ~Server() = default;
+  ~Server();
   void run();
 
   // net
@@ -69,8 +70,9 @@ private:
 
 private:
   // configuration
+  std::string ip_;
   int port_;
-  int epoll_max_events_;
+  int epoll_max_events_; // must be at least max_clients_ + 1 (listen socket)
   int epoll_timeout_ms_;
   int max_clients_;
   int ping_timeout_ms_;

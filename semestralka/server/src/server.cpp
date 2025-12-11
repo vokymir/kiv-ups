@@ -2,6 +2,7 @@
 #include "config.hpp"
 #include "logger.hpp"
 #include "player.hpp"
+#include <arpa/inet.h>
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <fcntl.h>
@@ -14,12 +15,19 @@
 
 namespace prsi {
 
+Server::~Server() {
+  // close all connections
+  // close listen socket
+  // close epoll socket
+}
+
 Server::Server(const Config &cfg)
     : port_(cfg.port_), epoll_max_events_(cfg.epoll_max_events_),
       epoll_timeout_ms_(cfg.epoll_timeout_ms_), max_clients_(cfg.max_clients_),
       ping_timeout_ms_(cfg.ping_timeout_ms_),
       sleep_timeout_ms_(cfg.sleep_timeout_ms_),
-      death_timeout_ms_(cfg.death_timeout_ms_) {
+      death_timeout_ms_(cfg.death_timeout_ms_), ip_(cfg.ip_) {
+
   events_.reserve(epoll_max_events_);
   setup();
 }
@@ -74,10 +82,16 @@ void Server::setup() {
     throw std::runtime_error("Cannot set listen socket non-blocking.");
   }
 
-  // bind
+  // bind configuration
   sockaddr_in addr{};
   addr.sin_family = AF_INET;
+  // set port
   addr.sin_port = htons(port_);
+  // set IP address
+  if (inet_pton(AF_INET, ip_.c_str(), &addr.sin_addr) <= 0) {
+    throw std::runtime_error("Invalid IP address format or conversion error.");
+  }
+
   if (bind(listen_fd_, (sockaddr *)&addr, sizeof(addr)) != 0) {
     throw std::runtime_error("Cannot bind listen socket.");
   }
@@ -86,11 +100,19 @@ void Server::setup() {
     throw std::runtime_error("Cannot listen.");
   }
 
-  epoll_fd_ = epoll_create(0);
+  epoll_fd_ = epoll_create1(0);
+
+  if (epoll_fd_ == -1) {
+    Logger::error("epoll_create failed. errno {}: {}", errno,
+                  std::strerror(errno));
+    throw std::runtime_error("Cannot create epoll.");
+  }
 
   if (set_epoll_events(listen_fd_, EPOLLIN, true) == -1) {
     throw std::runtime_error("Cannot add listening socket to epoll.");
   }
+
+  Logger::info("Server now listen on IP={}, PORT={}", ip_, port_);
 }
 
 int Server::set_fd_nonblocking(int fd) {
