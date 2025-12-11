@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace prsi::util {
+namespace prsi {
 
 class Config {
 public:
@@ -23,4 +23,4 @@ public:
   ~Config() = default;
 };
 
-} // namespace prsi::util
+} // namespace prsi

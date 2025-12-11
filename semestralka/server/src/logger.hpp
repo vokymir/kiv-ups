@@ -3,7 +3,7 @@
 #include <fmt/format.h>
 #include <string_view>
 
-namespace prsi::util {
+namespace prsi {
 
 // Helper so can use strings in later template
 template <size_t N> struct Log_Severity {
@@ -48,4 +48,4 @@ public:
   static inline constexpr Generic_Log<"EROR"> error{};
 };
 
-} // namespace prsi::util
+} // namespace prsi

@@ -10,18 +10,13 @@ set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-
-# Collect all .cpp files under src/
+# Collect all .cpp files
 file(GLOB_RECURSE SOURCES
     "${PROJECT_SOURCE_DIR}/src/*.cpp"
 )
 
 # Main executable
 add_executable(${PROJECT_NAME} ${SOURCES})
-
-target_include_directories(${PROJECT_NAME} PRIVATE
-${PROJECT_SOURCE_DIR}/include
-)
 
 # set binaries folder for output
 set_target_properties(${PROJECT_NAME} PROPERTIES
