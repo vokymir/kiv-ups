@@ -28,7 +28,7 @@ Server::Server(const Config &cfg)
       sleep_timeout_ms_(cfg.sleep_timeout_ms_),
       death_timeout_ms_(cfg.death_timeout_ms_), ip_(cfg.ip_) {
 
-  events_.reserve(epoll_max_events_);
+  events_.resize(epoll_max_events_);
   setup();
 }
 
