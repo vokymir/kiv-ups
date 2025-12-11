@@ -4,6 +4,14 @@
 #include <string>
 namespace prsi {
 
+// where the player is
+enum Player_State {
+  UNNAMED,
+  LOBBY,
+  ROOM,
+  GAME,
+};
+
 class Player {
 public:
   Player(int fd);

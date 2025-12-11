@@ -4,6 +4,8 @@
 #include "player.hpp"
 #include "room.hpp"
 #include <cstdint>
+#include <map>
+#include <memory>
 #include <sys/epoll.h>
 #include <vector>
 
@@ -23,15 +25,18 @@ private:
   bool running_ = false;
 
   // owns
-  std::vector<Room> rooms_;
-  std::vector<Player> lobby_;
+  std::vector<std::shared_ptr<Player>> unnamed_;
+  std::vector<std::shared_ptr<Player>> lobby_;
+  std::vector<std::shared_ptr<Room>> rooms_;
 
 public:
   Server(const Config &config);
   ~Server() = default;
   void run();
 
+  // net
 private:
+  // setup the server on construction
   void setup();
   // return -1 on failure
   int set_fd_nonblocking(int fd);
@@ -40,6 +45,16 @@ private:
 
   // accept new connection
   void accept_connection();
+
+  // game
+private:
+  // count all players everywhere
+  int count_players() const;
+  // count players in all states:
+  // unnamed: 2, lobby: 1, ...
+  std::map<Player_State, int> count_player_states();
+  // count all rooms
+  int count_rooms() const;
 
 private:
   // configuration

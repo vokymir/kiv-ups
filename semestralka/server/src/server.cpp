@@ -1,9 +1,13 @@
 #include "server.hpp"
 #include "config.hpp"
+#include "logger.hpp"
+#include "player.hpp"
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <fcntl.h>
+#include <memory>
 #include <netinet/in.h>
+#include <string>
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
@@ -110,6 +114,45 @@ int Server::set_epoll_events(int fd, uint32_t events, bool creating) {
   return epoll_ctl(epoll_fd_, opt, fd, &ev);
 }
 
-void Server::accept_connection() {}
+void Server::accept_connection() {
+
+  sockaddr_in client_addr{};
+  socklen_t addr_len = sizeof(client_addr);
+
+  int client_fd = accept(listen_fd_, (sockaddr *)&client_addr, &addr_len);
+  if (client_fd == -1) {
+    if (errno == EAGAIN || errno == EWOULDBLOCK) {
+      return;
+    }
+    Logger::error("accept() failed");
+    return;
+  }
+
+  // do we have space for new connection?
+  if (count_players() >= max_clients_) {
+    close(client_fd);
+    Logger::warn("Max clients reached, rejecting connection");
+    return;
+  }
+
+  // setup client socket
+  if (set_fd_nonblocking(client_fd))
+    throw std::runtime_error("set fd nonblocking failed for fd=" +
+                             std::to_string(client_fd));
+
+  // add to epoll
+  if (set_epoll_events(client_fd, EPOLLIN, true) == -1) {
+    close(client_fd);
+    Logger::error("Cannot add client to epoll, closing connection for fd={}",
+                  client_fd);
+    return;
+  }
+
+  // create new client
+  auto player = std::make_shared<Player>(client_fd);
+  unnamed_.emplace_back(player);
+
+  Logger::info("New client connected, fd={}", client_fd);
+}
 
 } // namespace prsi
