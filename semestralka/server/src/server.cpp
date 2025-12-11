@@ -110,4 +110,6 @@ int Server::set_epoll_events(int fd, uint32_t events, bool creating) {
   return epoll_ctl(epoll_fd_, opt, fd, &ev);
 }
 
+void Server::accept_connection() {}
+
 } // namespace prsi

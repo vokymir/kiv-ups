@@ -1,6 +1,7 @@
+
 #include "logger.hpp"
 
 int main(int argc, char **argv) {
-  prsi::util::Logger::info("Main started.");
+  prsi::Logger::info("Server started.");
   return 0;
 }

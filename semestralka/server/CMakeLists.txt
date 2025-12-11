@@ -18,6 +18,9 @@ file(GLOB_RECURSE SOURCES
 # Main executable
 add_executable(${PROJECT_NAME} ${SOURCES})
 
+# logger dependency
+target_link_libraries(ups PRIVATE fmt)
+
 # set binaries folder for output
 set_target_properties(${PROJECT_NAME} PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin

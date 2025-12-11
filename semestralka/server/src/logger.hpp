@@ -1,6 +1,7 @@
 #pragma once
 
 #include <fmt/format.h>
+#include <mutex>
 #include <string_view>
 
 namespace prsi {
@@ -40,6 +41,9 @@ private:
       Logger::log(Severity, fmt::format(fmt_str, std::forward<Args>(args)...));
     }
   };
+
+  // protect shared resource - the place which to log into
+  static std::mutex log_mutex_;
 
 public:
   // public interface

@@ -7,6 +7,10 @@
 
 namespace prsi {
 
+Player::Player(int fd) : fd_(fd) {}
+
+Player::~Player() {}
+
 void Player::receive() {
   char buff[1024];
   int flags = 0;
