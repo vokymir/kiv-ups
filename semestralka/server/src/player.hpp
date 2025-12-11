@@ -48,6 +48,9 @@ public:
     last_send_ = time;
   };
   std::chrono::steady_clock::time_point last_send() const { return last_send_; }
+
+  // get/set
+  int fd() const { return fd_; }
 };
 
 } // namespace prsi

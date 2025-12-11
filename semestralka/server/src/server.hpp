@@ -46,6 +46,14 @@ private:
   // accept new connection
   void accept_connection();
 
+  // net + game
+private:
+  // remove player from all rooms or lobby, notify others & disconnect player
+  // from server
+  void terminate_player(std::weak_ptr<Player> p);
+  // remove player from room/lobby + notify others
+  void remove_from_game(std::weak_ptr<Player> p);
+
   // game
 private:
   // count all players everywhere
@@ -55,6 +63,9 @@ private:
   std::map<Player_State, int> count_player_states();
   // count all rooms
   int count_rooms() const;
+
+  // at which state the player is
+  Player_State where_player(std::weak_ptr<Player> p);
 
 private:
   // configuration
