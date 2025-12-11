@@ -155,4 +155,24 @@ void Server::accept_connection() {
   Logger::info("New client connected, fd={}", client_fd);
 }
 
+int Server::count_players() const {
+  int count = 0;
+
+  for (const auto &p : unnamed_) {
+    count++;
+  }
+
+  for (const auto &p : lobby_) {
+    count++;
+  }
+
+  for (const auto &r : rooms_) {
+    for (const auto &p : r->players()) {
+      count++;
+    }
+  }
+
+  return count;
+}
+
 } // namespace prsi
