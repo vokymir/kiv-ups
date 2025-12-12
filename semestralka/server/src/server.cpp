@@ -581,6 +581,15 @@ void Server::handle_list_rooms(const std::vector<std::string> &msg,
     return;
   }
 
+  auto loc = where_player(p);
+  if (loc.state_ != Player_State::LOBBY) {
+    Logger::info(
+        "Player fd={} tried to list rooms while not in lobby, disconnecting.",
+        p->fd());
+    terminate_player(p);
+    return;
+  }
+
   p->append_msg(Protocol::ROOMS(rooms_));
 }
 
@@ -591,6 +600,16 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
     terminate_player(p);
     return;
   }
+
+  auto loc = where_player(p);
+  if (loc.state_ != Player_State::LOBBY) {
+    Logger::info(
+        "Player fd={} tried to join room while not in lobby, disconnecting.",
+        p->fd());
+    terminate_player(p);
+    return;
+  }
+
   int r_id = std::stoi(msg[1]);
 
   auto room_it =
@@ -620,6 +639,15 @@ void Server::handle_create_room(const std::vector<std::string> &msg,
                                 std::shared_ptr<Player> p) {
   if (msg.size() != 1) {
     Logger::error("{}", Logger::more("Invalid CREATE_ROOM", p));
+    terminate_player(p);
+    return;
+  }
+
+  auto loc = where_player(p);
+  if (loc.state_ != Player_State::LOBBY) {
+    Logger::info(
+        "Player fd={} tried to create room while not in lobby, disconnecting.",
+        p->fd());
     terminate_player(p);
     return;
   }
