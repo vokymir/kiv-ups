@@ -3,7 +3,6 @@
 #include "config.hpp"
 #include "room.hpp"
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <memory>
@@ -120,6 +119,8 @@ private:
                    std::shared_ptr<Player> p);
   void handle_list_rooms(const std::vector<std::string> &msg,
                          std::shared_ptr<Player> p);
+  void handle_join_room(const std::vector<std::string> &msg,
+                        std::shared_ptr<Player> p);
 
   // player manipulation
 private:
