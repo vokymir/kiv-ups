@@ -558,11 +558,14 @@ void Server::handle_name(const std::vector<std::string> &msg,
     // this is an existing player
   } else {
     // switch socket FD
+    int old_fd = existing->fd();
+
     existing->fd(p->fd());
     existing->append_msg(Protocol::OK_NAME());
 
     // erase this temporary player object
     erase_by_fd(unnamed_, p->fd());
+    close_connection(old_fd);
   }
 }
 
