@@ -11,7 +11,7 @@ public:
   int epoll_max_events_ = 32; // should be at least max_clients_ + 1 (listen)
   int epoll_timeout_ms_ = 500;
   int max_clients_ = 10;
-  int ping_timeout_ms_ = 5'000;
+  int ping_timeout_ms_ = 2'000;
   int sleep_timeout_ms_ = 10'000;
   int death_timeout_ms_ = 30'000;
   int max_rooms_ = 10;

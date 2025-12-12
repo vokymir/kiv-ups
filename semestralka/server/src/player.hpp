@@ -31,9 +31,12 @@ private:
   std::string read_buffer_;
   std::string write_buffer_;
 
-  std::chrono::steady_clock::time_point last_recv_;
-  std::chrono::steady_clock::time_point last_send_;
+  // time of last sent ping
   std::chrono::steady_clock::time_point last_ping_;
+  // time of last received pong
+  std::chrono::steady_clock::time_point last_pong_;
+  // how many sleep cycles were experienced without pong
+  int sleep_intensity_ = 0;
 
 public:
   // read from socket into read_buffer
@@ -44,30 +47,22 @@ public:
   void flush();
 
   // get/set time
-
-  void set_last_received(std::chrono::steady_clock::time_point time =
-                             std::chrono::steady_clock::now()) {
-    last_recv_ = time;
-  };
-  std::chrono::steady_clock::time_point get_last_received() const {
-    return last_recv_;
-  }
-  void set_last_send(std::chrono::steady_clock::time_point time =
-                         std::chrono::steady_clock::now()) {
-    last_send_ = time;
-  };
-  std::chrono::steady_clock::time_point get_last_send() const {
-    return last_send_;
-  }
-  // set last_send & last_ping time
   void set_last_ping(std::chrono::steady_clock::time_point time =
                          std::chrono::steady_clock::now()) {
-    last_send_ = time;
     last_ping_ = time;
   };
   std::chrono::steady_clock::time_point get_last_ping() const {
-    return last_send_;
+    return last_ping_;
   }
+  void set_last_pong(std::chrono::steady_clock::time_point time =
+                         std::chrono::steady_clock::now()) {
+    last_pong_ = time;
+  };
+  std::chrono::steady_clock::time_point get_last_pong() const {
+    return last_pong_;
+  }
+  int sleep_intensity() const { return sleep_intensity_; }
+  void sleep_intensity(int si) { sleep_intensity_ = si; }
 
   // get/set
   int fd() const { return fd_; }

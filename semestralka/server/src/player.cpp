@@ -8,7 +8,7 @@
 namespace prsi {
 
 Player::Player(int fd) : fd_(fd) {
-  set_last_received();
+  set_last_pong();
   set_last_ping();
 }
 
@@ -39,7 +39,6 @@ void Player::receive() {
     }
 
     Logger::info("Received {} bytes from fd={}", n, fd_);
-    set_last_received();
     Logger::info("fd={} have in recv buffer: '{}'", fd_,
                  read_buffer_); // TODO: remove
   }
