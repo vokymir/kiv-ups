@@ -26,8 +26,25 @@ public:
     return build_message(body);
   }
 
+  static std::string ROOM(std::shared_ptr<Room> r) {
+    std::string body = "ROOM " + std::to_string(r->id()) + " ";
+    body += to_string(r->state()) + " ";
+
+    body += "PLAYERS " + std::to_string(r->players().size());
+    for (const auto &p : r->players()) {
+      body += " " + p->nick();
+    }
+
+    return body;
+  }
+
   // = ok messages
   static std::string OK_NAME() { return build_message("OK NAME"); }
+
+  // = fail messages
+  static std::string FAIL_JOIN_ROOM() {
+    return build_message("FAIL JOIN_ROOM");
+  }
 
   // READ
 
