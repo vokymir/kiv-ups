@@ -9,7 +9,6 @@
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <chrono>
-#include <cstddef>
 #include <cstring>
 #include <exception>
 #include <fcntl.h>
@@ -217,8 +216,10 @@ void Server::receive(int fd) {
   auto weak_p = find_player(fd);
   auto p = weak_p.lock();
   if (!p) {
-    Logger::error("Player with id={} was not found anywhere.",
+    Logger::error("Receive: Player with id={} was not found anywhere.",
                   std::to_string(fd));
+    close_connection(fd);
+    return;
   }
 
   try { // player receive
@@ -253,7 +254,7 @@ void Server::server_send(int fd) {
   auto weak_p = find_player(fd);
   auto p = weak_p.lock();
   if (!p) {
-    Logger::error("Player with id={} was not found anywhere.", fd);
+    Logger::error("Send: Player with id={} was not found anywhere.", fd);
   }
 
   p->try_flush();
@@ -263,7 +264,7 @@ void Server::disconnect(int fd) {
   auto weak_p = find_player(fd);
   auto p = weak_p.lock();
   if (!p) {
-    Logger::error("Player with id={} was not found anywhere.", fd);
+    Logger::error("Disconnect: Player with id={} was not found anywhere.", fd);
   }
 
   terminate_player(p);
@@ -290,23 +291,27 @@ int Server::count_players() const {
 }
 
 void Server::terminate_player(std::shared_ptr<Player> p) {
-  remove_from_game(p);
-  Logger::info("Player {}, fd={}, removed from game.", p->nick(), p->fd());
+  remove_from_game_server(p);
+  Logger::info("Player {}, fd={}, removed from the whole game.", p->nick(),
+               p->fd());
+  close_connection(p->fd());
+}
 
+void Server::close_connection(int fd) {
   // remove from epoll
-  auto res = epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, p->fd(), nullptr);
-  Logger::info("Player {}, fd={}, removed from epoll.", p->nick(), p->fd());
+  auto res = epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, fd, nullptr);
+  Logger::info("fd={}, removed from epoll.", fd);
   if (res == -1) {
     Logger::error("Error when removing player from epoll: {}",
                   std::strerror(errno));
   }
 
   // close connection
-  close(p->fd());
-  Logger::info("Closed connection fd={}.", p->fd());
+  close(fd);
+  Logger::info("Closed connection fd={}.", fd);
 }
 
-void Server::remove_from_game(std::shared_ptr<Player> p) {
+void Server::remove_from_game_server(std::shared_ptr<Player> p) {
   // find where the player is & lock them down
   auto location = where_player(p);
 
@@ -326,30 +331,22 @@ void Server::remove_from_game(std::shared_ptr<Player> p) {
     break;
   case ROOM:
   case GAME:
-    // find room in rooms
-    auto it = std::find_if(rooms_.begin(), rooms_.end(),
-                           [location](const std::shared_ptr<Room> r) {
-                             return r->id() == location.room_id_;
-                           });
-    if (it == rooms_.end()) {
-      Logger::warn("Tried to remove player from room {}, but there is no room "
-                   "with that id.",
-                   location.room_id_);
-      return;
-    }
     // TODO: broadcast to other players in the room, end game or whatever, close
     // room, etc
 
-    owner = (*it)->players();
+    auto ownr = location.room_.lock();
+    if (!ownr) {
+      Logger::error("Room disappeared quickly.");
+      return;
+    }
+    owner = ownr->players();
     break;
   }
 
   // delete player from any owning vector
   auto &vec = owner.get();
-  auto it = std::find(vec.begin(), vec.end(), p);
-  if (it != vec.end()) {
-    vec.erase(it);
-  }
+  auto fd = p->fd();
+  erase_by_fd(vec, fd);
 }
 
 std::vector<std::shared_ptr<Player>> Server::list_players() {
@@ -428,7 +425,7 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
       }
 
       // found room, what is its state
-      l.room_id_ = r->id();
+      l.room_ = r;
       switch (r->state()) {
       case OPEN:
       case FULL:
@@ -445,7 +442,7 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
   }
 
   // not found
-  Logger::error("Player not found anywhere on server.");
+  Logger::error("Where-Player: Player not found anywhere on server.");
   l.state_ = NON_EXISTING;
   return l;
 }
@@ -550,20 +547,19 @@ void Server::handle_name(const std::vector<std::string> &msg,
   p->nick(msg[1]);
   p->append_msg(Protocol::OK_NAME());
 
-  // TODO: here may be check on reconnect
-  // must:
-  // 1. find player by that name
-  // 2. on fail = this is new player
-  // 3. on found = swap that player for this - or just change the fd?
-
+  // RECONNECT
   auto weak_existing = find_player(p->nick());
   auto existing = weak_existing.lock();
+
   if (!existing) { // this is a new player
     move_player_by_fd(p->fd(), unnamed_, lobby_);
+
+    // this is existing player
   } else {
+    // switch socket FD
     existing->fd(p->fd());
-    auto it = std::find(unnamed_.begin(), unnamed_.end(), p);
-    unnamed_.erase(it);
+    // erase this temporary player object
+    erase_by_fd(unnamed_, p->fd());
   }
 }
 

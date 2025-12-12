@@ -1,10 +1,12 @@
 #pragma once
 
 #include <chrono>
+#include <memory>
 #include <stdexcept>
 #include <string>
 #include <vector>
 namespace prsi {
+class Room; // forward declaring
 
 // where the player is
 enum Player_State {
@@ -18,7 +20,7 @@ enum Player_State {
 
 struct Player_Location {
   Player_State state_;
-  int room_id_; // only valid if state==room/game
+  std::weak_ptr<Room> room_; // only valid if state==room/game
 };
 
 class Server; // forward declare

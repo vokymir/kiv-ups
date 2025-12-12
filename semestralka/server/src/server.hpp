@@ -78,7 +78,10 @@ private:
   void terminate_player(std::shared_ptr<Player> p);
   // remove player from room/lobby + notify others
   // WARN: it will erase the owning shared_ptr
-  void remove_from_game(std::shared_ptr<Player> p); // TODO: not done
+  // TODO: not done
+  void remove_from_game_server(std::shared_ptr<Player> p);
+  // disconnect client behind FD from server
+  void close_connection(int fd);
 
   // game
 private:
@@ -116,7 +119,7 @@ private:
   void handle_name(const std::vector<std::string> &msg,
                    std::shared_ptr<Player> p);
 
-  // moving
+  // player manipulation
 private:
   template <typename Pred>
   void move_player(Pred pred, std::vector<std::shared_ptr<Player>> &from,
@@ -135,6 +138,13 @@ private:
   void move_player_by_nick(const std::string &nick,
                            std::vector<std::shared_ptr<Player>> &from,
                            std::vector<std::shared_ptr<Player>> &to);
+
+  // erase from any vector
+  void erase_by_fd(std::vector<std::shared_ptr<Player>> &v, int fd) {
+    v.erase(std::remove_if(v.begin(), v.end(),
+                           [&](auto &sp) { return sp->fd() == fd; }),
+            v.end());
+  }
 
 private:
   // configuration
