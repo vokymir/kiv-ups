@@ -51,6 +51,8 @@ private:
   // accept new connection
   void accept_connection();
   void receive(int fd);
+  // categorize message, do what is appropriate for it
+  void process_message(std::vector<std::string> &msg);
   // try flushing message to the socket
   void server_send(int fd); // TODO: placeholder
   void disconnect(int fd);

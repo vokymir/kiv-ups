@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include <string>
+#include <vector>
 namespace prsi {
 
 // where the player is
@@ -76,9 +77,10 @@ public:
 
   // helper
 
-  // return complete received message or empty string
+  // return complete received message splitted by whitespaces or empty vector
   // remove that message from recv buffer
-  std::string complete_recv_msg();
+  // throw error if msg is buffer is invalid
+  std::vector<std::string> complete_recv_msg();
 };
 
 } // namespace prsi

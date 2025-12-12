@@ -4,7 +4,6 @@
 #include <bits/types/wint_t.h>
 #include <cctype>
 #include <cstddef>
-#include <cwctype>
 #include <memory>
 #include <string>
 #include <string_view>
@@ -31,6 +30,7 @@ public:
 
   // return a message split by whitespaces into vector,
   // if no complete message, return empty vector
+  // remove found messafge from mutable_string
   static std::vector<std::string> extract_message(std::string &mutable_string) {
     // find if any message exists
     auto delim_start = mutable_string.find(DELIM);

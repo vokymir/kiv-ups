@@ -1,5 +1,6 @@
 #include "player.hpp"
 #include "logger.hpp"
+#include "protocol.hpp"
 #include "server.hpp"
 #include <cerrno>
 #include <memory>
@@ -71,6 +72,14 @@ void Player::try_flush() {
   } else {
     server_.terminate_player(std::make_shared<Player>(*this));
   }
+}
+
+std::vector<std::string> Player::complete_recv_msg() {
+  if (!Protocol::valid(read_buffer_)) {
+    throw std::runtime_error("Not a valid protocol message.");
+  }
+
+  return Protocol::extract_message(read_buffer_);
 }
 
 } // namespace prsi

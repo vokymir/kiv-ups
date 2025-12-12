@@ -212,13 +212,24 @@ void Server::receive(int fd) {
 
   try { // player receive
     p->receive();
-  } catch (const std::exception &ex) { // any exception = terminate
+
+    // any exception = terminate
+  } catch (const std::exception &ex) {
     Logger::error("Cannot receive from client fd={}, because: '{}'.", p->fd(),
                   ex.what());
     terminate_player(p);
   }
 
-  if ()
+  try { // process message
+    auto msg = p->complete_recv_msg();
+    process_message(msg);
+
+    // received invalid message - doesn't start with magic
+  } catch (const std::exception &ex) {
+    Logger::error("Invalid message received from fd={}, what? {}", p->fd(),
+                  ex.what());
+    terminate_player(p);
+  }
 }
 
 void Server::server_send(int fd) {
