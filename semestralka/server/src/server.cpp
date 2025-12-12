@@ -220,9 +220,16 @@ void Server::receive(int fd) {
     terminate_player(p);
   }
 
-  try { // process message
-    auto msg = p->complete_recv_msg();
-    process_message(msg);
+  try { // process messages
+    while (true) {
+      auto msg = p->complete_recv_msg();
+      if (msg.size() == 0) {
+        break;
+      }
+
+      Logger::info("message size: {}", msg.size());
+      process_message(msg);
+    }
 
     // received invalid message - doesn't start with magic
   } catch (const std::exception &ex) {
