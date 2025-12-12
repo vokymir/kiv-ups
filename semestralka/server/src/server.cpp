@@ -544,17 +544,18 @@ void Server::handle_name(const std::vector<std::string> &msg,
     return;
   }
 
-  // RECONNECT
+  // RECONNECT strategy
   auto weak_existing = find_player(msg[1]);
   auto existing = weak_existing.lock();
 
-  if (!existing) { // this is a new player
+  // this is a new player
+  if (!existing) {
     p->nick(msg[1]);
     p->append_msg(Protocol::OK_NAME());
 
     move_player_by_fd(p->fd(), unnamed_, lobby_);
 
-    // this is existing player
+    // this is an existing player
   } else {
     // switch socket FD
     existing->fd(p->fd());
