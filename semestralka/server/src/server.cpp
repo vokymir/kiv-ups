@@ -544,20 +544,22 @@ void Server::handle_name(const std::vector<std::string> &msg,
     return;
   }
 
-  p->nick(msg[1]);
-  p->append_msg(Protocol::OK_NAME());
-
   // RECONNECT
-  auto weak_existing = find_player(p->nick());
+  auto weak_existing = find_player(msg[1]);
   auto existing = weak_existing.lock();
 
   if (!existing) { // this is a new player
+    p->nick(msg[1]);
+    p->append_msg(Protocol::OK_NAME());
+
     move_player_by_fd(p->fd(), unnamed_, lobby_);
 
     // this is existing player
   } else {
     // switch socket FD
     existing->fd(p->fd());
+    existing->append_msg(Protocol::OK_NAME());
+
     // erase this temporary player object
     erase_by_fd(unnamed_, p->fd());
   }
