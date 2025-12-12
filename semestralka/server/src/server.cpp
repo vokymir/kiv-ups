@@ -9,6 +9,7 @@
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <chrono>
+#include <cstddef>
 #include <cstring>
 #include <exception>
 #include <fcntl.h>
@@ -27,6 +28,7 @@ namespace prsi {
 
 const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"PONG", &Server::handle_pong},
+    {"NAME", &Server::handle_name},
 };
 
 // other
@@ -509,13 +511,48 @@ void Server::process_message(const std::vector<std::string> &msg,
 
 void Server::handle_pong(const std::vector<std::string> &msg,
                          std::shared_ptr<Player> p) {
-  if (msg.size() > 1) {
-    Logger::error("Invalid PONG have size more than one ({})", msg.size());
+  if (msg.size() != 1) {
+    Logger::error("{}", Logger::more("Invalid PONG", p));
     terminate_player(p);
     return;
   }
 
   p->set_last_pong();
+}
+
+void Server::handle_name(const std::vector<std::string> &msg,
+                         std::shared_ptr<Player> p) {
+  if (msg.size() != 2) {
+    Logger::error("{}", Logger::more("Invalid NAME, number of words", p));
+    terminate_player(p);
+    return;
+  }
+
+  auto location = where_player(p);
+  if (location.state_ != UNNAMED) {
+    Logger::error("{}", Logger::more("Invalid NAME, player isn't unnamed", p));
+    terminate_player(p);
+    return;
+  }
+
+  p->nick(msg[1]);
+  p->append_msg(Protocol::OK_NAME());
+
+  // TODO: here may be check on reconnect
+  // must:
+  // 1. find player by that name
+  // 2. on fail = this is new player
+  // 3. on found = swap that player for this - or just change the fd?
+
+  auto weak_existing = find_player(p->nick());
+  auto existing = weak_existing.lock();
+  if (!existing) { // this is a new player
+    move_player_by_fd(p->fd(), unnamed_, lobby_);
+  } else {
+    existing->fd(p->fd());
+    auto it = std::find(unnamed_.begin(), unnamed_.end(), p);
+    unnamed_.erase(it);
+  }
 }
 
 } // namespace prsi
