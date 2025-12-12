@@ -8,6 +8,7 @@
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <cstring>
+#include <exception>
 #include <fcntl.h>
 #include <functional>
 #include <memory>
@@ -55,7 +56,23 @@ void Server::run() {
 
       if (ev.data.fd == listen_fd_) { // NEW CONNECTION
         accept_connection();
-      } else if (ev.events & EPOLLIN) {               // RECV
+      } else if (ev.events & EPOLLIN) { // RECV
+        auto weak_p = find_player(ev.data.fd);
+        auto p = weak_p.lock();
+        if (!p) {
+          Logger::error("Player with id={} was not found anywhere.",
+                        std::to_string(ev.data.fd));
+        }
+        try {
+
+          p->receive();
+        } catch (const std::exception &ex) {
+          Logger::error("Cannot receive from client fd={}, because of {}",
+                        p->fd(), ex.what());
+          terminate_player(p);
+        }
+        // TODO: process receive maybe? or maybe sometime after, who knows
+
       } else if (ev.events & EPOLLOUT) {              // SEND
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) { // DISCONNECT
         auto weak_p = find_player(ev.data.fd);
@@ -68,8 +85,6 @@ void Server::run() {
       }
     }
 
-    // dispatch all out_evs in GM.out()
-    // and send them
     // check for timeouts
   }
 }
@@ -224,6 +239,7 @@ void Server::terminate_player(std::shared_ptr<Player> p) {
   close(p->fd());
   Logger::info("Closed connection fd={}.", p->fd());
 }
+
 void Server::remove_from_game(std::shared_ptr<Player> p) {
   // find where the player is & lock them down
   auto location = where_player(p);
