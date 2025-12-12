@@ -47,26 +47,33 @@ Server::Server(const Config &cfg)
 void Server::run() {
   running_ = true;
   while (running_) {
-    // wait for n events to happen, n it at most epoll_max_events_
+    // wait for n events to happen
+    // n it at most epoll_max_events_
+    // if dont have enough events before timeout, stops either
     int n = epoll_wait(epoll_fd_, events_.data(), epoll_max_events_,
                        epoll_timeout_ms_);
 
+    // some fail in epoll_wait
     if (n == -1) {
       if (errno == EINTR) {
-        continue; // ignore interrupts
+        continue; // ignoring interrupts
       } // report anything else
       throw std::runtime_error("epoll_wait failed.");
     }
 
+    // check all happened events
     for (int i = 0; i < n; i++) {
       epoll_event &ev = events_[i];
 
       if (ev.data.fd == listen_fd_) { // NEW CONNECTION
         accept_connection();
+
       } else if (ev.events & EPOLLIN) { // RECV
         receive(ev.data.fd);
+
       } else if (ev.events & EPOLLOUT) { // SEND
         send(ev.data.fd);
+
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) { // DISCONNECT
         disconnect(ev.data.fd);
       }
@@ -76,6 +83,11 @@ void Server::run() {
     for (auto &p : list_players()) {
       maybe_ping(p);
       check_pong(p);
+    }
+
+    // make sure all prepared messages are sent if possible
+    for (auto &p : list_players()) {
+      p->flush();
     }
   }
 }
