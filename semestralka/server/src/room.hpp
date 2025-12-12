@@ -27,7 +27,7 @@ class Room {
 private:
   int id_;
   std::vector<std::shared_ptr<Player>> players_;
-  Room_State state_;
+  Room_State state_ = Room_State::OPEN;
 
 public:
   Room(int id) : id_(id) {};
