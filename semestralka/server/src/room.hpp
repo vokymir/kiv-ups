@@ -35,8 +35,6 @@ public:
   Room_State state() const { return state_; }
 
   std::vector<std::shared_ptr<Player>> &players() { return players_; }
-  void add_player(std::shared_ptr<Player> p);
-  void remove_player(std::weak_ptr<Player> p);
 };
 
 } // namespace prsi

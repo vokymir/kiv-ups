@@ -607,8 +607,7 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
   }
 
   // move to room & remove from lobby
-  room->add_player(p);
-  erase_by_fd(lobby_, p->fd());
+  move_player_by_fd(p->fd(), lobby_, room->players());
 
   p->append_msg(Protocol::ROOM(room));
 
