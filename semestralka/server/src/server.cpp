@@ -74,43 +74,8 @@ void Server::run() {
 
     // check for timeouts
     for (auto &p : list_players()) {
-
-      // PING always
-      auto ping_diff = std::chrono::steady_clock::now() - p->get_last_ping();
-      auto ping_diff_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(ping_diff)
-              .count();
-
-      if (ping_diff_ms > ping_timeout_ms_) {
-        p->send(Protocol::PING);
-      }
-
-      // when was the last PONG received
-      auto pong_diff = std::chrono::steady_clock::now() - p->get_last_ping();
-      auto pong_diff_ms =
-          std::chrono::duration_cast<std::chrono::milliseconds>(pong_diff)
-              .count();
-
-      if (pong_diff_ms > death_timeout_ms_) { // long inactivity
-        Logger::error(
-            "Terminating player fd={}: didn't respond for {} seconds.", p->fd(),
-            pong_diff_ms / 1000);
-        terminate_player(p);
-      } else if (pong_diff_ms > sleep_timeout_ms_) { // short inacitvity
-        // only do this periodically after sleep timeout
-        int run = pong_diff_ms / sleep_timeout_ms_;
-        bool new_age = run > p->sleep_intensity();
-        if (new_age) {
-          p->sleep_intensity(run);
-          Logger::warn("Player fd={} didn't respond for {} seconds.", p->fd(),
-                       pong_diff_ms / 1000);
-
-          if (run == 1) {
-            Logger::info("notify room that fd={} is sleeping", p->fd());
-            // TODO: if is in room, notify the room - multiple times even
-          }
-        }
-      }
+      maybe_ping(p);
+      check_pong(p);
     }
   }
 }
@@ -429,6 +394,49 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
   Logger::error("Player not found anywhere on server.");
   l.state_ = NON_EXISTING;
   return l;
+}
+
+void Server::maybe_ping(std::shared_ptr<Player> p) {
+  auto ping_diff = std::chrono::steady_clock::now() - p->get_last_ping();
+  auto ping_diff_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(ping_diff).count();
+
+  if (ping_diff_ms > ping_timeout_ms_) {
+    p->send(Protocol::PING);
+  }
+}
+
+void Server::check_pong(std::shared_ptr<Player> p) {
+  // when was the last PONG received
+  auto pong_diff = std::chrono::steady_clock::now() - p->get_last_ping();
+  auto pong_diff_ms =
+      std::chrono::duration_cast<std::chrono::milliseconds>(pong_diff).count();
+
+  // long inactivity
+  if (pong_diff_ms > death_timeout_ms_) {
+    Logger::error("Terminating player fd={}: didn't respond for {} seconds.",
+                  p->fd(), pong_diff_ms / 1000);
+    terminate_player(p);
+
+    // short inactivity
+  } else if (pong_diff_ms > sleep_timeout_ms_) {
+    // how many sleeps did we missed already
+    int n_sleeps = pong_diff_ms / sleep_timeout_ms_;
+    bool new_sleep = n_sleeps > p->sleep_intensity();
+
+    // only do this periodically on sleep timeout multipliers
+    if (new_sleep) {
+      // only notify room once
+      if (p->sleep_intensity() == 0) {
+        Logger::info("notify room that fd={} is sleeping", p->fd());
+        // TODO: if is in room, notify the room - multiple times even
+      }
+
+      p->sleep_intensity(n_sleeps);
+      Logger::warn("Player fd={} didn't respond for {} seconds.", p->fd(),
+                   pong_diff_ms / 1000);
+    }
+  }
 }
 
 } // namespace prsi

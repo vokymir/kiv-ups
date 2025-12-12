@@ -51,6 +51,9 @@ private:
   void send(int fd); // TODO: placeholder
   void disconnect(int fd);
 
+  void maybe_ping(std::shared_ptr<Player> p);
+  void check_pong(std::shared_ptr<Player> p);
+
   // net + game
 private:
   // remove player from all rooms or lobby, notify others & disconnect player
