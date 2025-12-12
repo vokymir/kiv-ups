@@ -44,6 +44,7 @@ public:
   static std::string OK_CREATE_ROOM() {
     return build_message("OK CREATE_ROOM");
   }
+  static std::string OK_LEAVE_ROOM() { return build_message("OK LEAVE_ROOM"); }
 
   // = fail messages
   static std::string FAIL_JOIN_ROOM() {
