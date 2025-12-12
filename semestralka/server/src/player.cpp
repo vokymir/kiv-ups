@@ -1,6 +1,8 @@
 #include "player.hpp"
 #include "logger.hpp"
+#include "server.hpp"
 #include <cerrno>
+#include <memory>
 #include <stdexcept>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -49,6 +51,26 @@ void Player::append_msg(const std::string &msg) {
   try_flush();
 }
 
-void Player::try_flush() {}
+void Player::try_flush() {
+  ssize_t sent = send(fd_, write_buffer_.data(), write_buffer_.size(), 0);
+
+  if (sent > 0) { // success
+    write_buffer_.erase(0, sent);
+
+    if (write_buffer_.empty()) { // writen everything
+      server_.disable_sending(fd_);
+    } else { // something needs to be retried
+      server_.enable_sending(fd_);
+    }
+
+    // socket is working, but dont have time or what
+  } else if (sent < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+    server_.enable_sending(fd_); // retry next time
+
+    // socket is not a friend anymore
+  } else {
+    server_.terminate_player(std::make_shared<Player>(*this));
+  }
+}
 
 } // namespace prsi
