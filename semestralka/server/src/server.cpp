@@ -67,7 +67,7 @@ void Server::run() {
 
           p->receive();
         } catch (const std::exception &ex) {
-          Logger::error("Cannot receive from client fd={}, because of {}",
+          Logger::error("Cannot receive from client fd={}, because of: '{}'.",
                         p->fd(), ex.what());
           terminate_player(p);
         }

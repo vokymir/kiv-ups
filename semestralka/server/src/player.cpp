@@ -35,6 +35,7 @@ void Player::receive() {
       throw std::runtime_error("Too long message buffer, probably an attack.");
     }
 
+    Logger::info("Received {} bytes from fd={}", n, fd_);
     last_received();
   }
 }
