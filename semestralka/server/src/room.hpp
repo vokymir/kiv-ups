@@ -7,10 +7,21 @@ namespace prsi {
 
 enum Room_State {
   OPEN,
-  FULL,
   PLAYING,
   FINISHED,
 };
+
+constexpr std::string to_string(Room_State s) {
+  switch (s) {
+  case Room_State::OPEN:
+    return "OPEN";
+  case Room_State::PLAYING:
+    return "PLAYING";
+  case Room_State::FINISHED:
+    return "FINISHED";
+  }
+  return "UNKNOWN";
+}
 
 class Room {
 private:
