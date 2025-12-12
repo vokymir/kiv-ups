@@ -471,4 +471,6 @@ void Server::enable_sending(int fd) {
 
 void Server::disable_sending(int fd) { set_epoll_events(fd, EPOLLIN); }
 
+void Server::process_message(std::vector<std::string> &msg) {}
+
 } // namespace prsi
