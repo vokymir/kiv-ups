@@ -29,6 +29,7 @@ const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"PONG", &Server::handle_pong},
     {"NAME", &Server::handle_name},
     {"LIST_ROOMS", &Server::handle_list_rooms},
+    {"JOIN_ROOM", &Server::handle_join_room},
 };
 
 // other
@@ -319,19 +320,19 @@ void Server::remove_from_game_server(std::shared_ptr<Player> p) {
   // find players owning vector
   std::reference_wrapper<std::vector<std::shared_ptr<Player>>> owner = unnamed_;
   switch (location.state_) {
-  case NON_EXISTING: // should not happen
+  case Player_State::NON_EXISTING: // should not happen
     Logger::error(
         "There is player with no related socekt on the server with id={}",
         p->fd());
     return;
-  case UNNAMED:
+  case Player_State::UNNAMED:
     owner = unnamed_;
     break;
-  case LOBBY:
+  case Player_State::LOBBY:
     owner = lobby_;
     break;
-  case ROOM:
-  case GAME:
+  case Player_State::ROOM:
+  case Player_State::GAME:
     // TODO: broadcast to other players in the room, end game or whatever, close
     // room, etc
 
@@ -398,7 +399,7 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
                              return pp->fd() == p->fd();
                            });
     if (it != unnamed_.end()) {
-      l.state_ = UNNAMED;
+      l.state_ = Player_State::UNNAMED;
       return l;
     }
   }
@@ -409,7 +410,7 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
                              return pp->fd() == p->fd();
                            });
     if (it != lobby_.end()) {
-      l.state_ = LOBBY;
+      l.state_ = Player_State::LOBBY;
       return l;
     }
   }
@@ -428,12 +429,12 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
       // found room, what is its state
       l.room_ = r;
       switch (r->state()) {
-      case OPEN:
-        l.state_ = ROOM;
+      case Room_State::OPEN:
+        l.state_ = Player_State::ROOM;
         break;
-      case PLAYING:
-      case FINISHED:
-        l.state_ = GAME;
+      case Room_State::PLAYING:
+      case Room_State::FINISHED:
+        l.state_ = Player_State::GAME;
         break;
       }
 
@@ -443,7 +444,7 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
 
   // not found
   Logger::error("Where-Player: Player not found anywhere on server.");
-  l.state_ = NON_EXISTING;
+  l.state_ = Player_State::NON_EXISTING;
   return l;
 }
 
@@ -539,7 +540,7 @@ void Server::handle_name(const std::vector<std::string> &msg,
   }
 
   auto location = where_player(p);
-  if (location.state_ != UNNAMED) {
+  if (location.state_ != Player_State::UNNAMED) {
     Logger::error("{}", Logger::more("Invalid NAME, player isn't unnamed", p));
     terminate_player(p);
     return;
@@ -579,6 +580,39 @@ void Server::handle_list_rooms(const std::vector<std::string> &msg,
   }
 
   p->append_msg(Protocol::ROOMS(rooms_));
+}
+
+void Server::handle_join_room(const std::vector<std::string> &msg,
+                              std::shared_ptr<Player> p) {
+  if (msg.size() != 2) {
+    Logger::error("{}", Logger::more("Invalid JOIN_ROOM", p));
+    terminate_player(p);
+    return;
+  }
+  int r_id = std::stoi(msg[1]);
+
+  auto room_it =
+      std::find_if(rooms_.begin(), rooms_.end(),
+                   [r_id](const auto &r) { return r->id() == r_id; });
+  if (room_it == rooms_.end()) { // cannot find room
+    p->append_msg(Protocol::FAIL_JOIN_ROOM());
+    return;
+  }
+
+  std::shared_ptr<Room> room = *room_it;
+
+  if (room->state() != Room_State::OPEN) { // room full
+    p->append_msg(Protocol::FAIL_JOIN_ROOM());
+    return;
+  }
+
+  // move to room & remove from lobby
+  room->add_player(p);
+  erase_by_fd(lobby_, p->fd());
+
+  p->append_msg(Protocol::ROOM(room));
+
+  // TODO: what if the room is full & game should start?
 }
 
 void Server::move_player_by_fd(int fd,
