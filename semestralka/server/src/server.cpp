@@ -437,12 +437,12 @@ void Server::check_pong(std::shared_ptr<Player> p) {
   } else if (pong_diff_ms > sleep_timeout_ms_) {
     // how many sleeps did we missed already
     int n_sleeps = pong_diff_ms / sleep_timeout_ms_;
-    bool new_sleep = n_sleeps > p->sleep_intensity();
+    bool new_sleep = n_sleeps > p->did_sleep_times();
 
     // only do this periodically on sleep timeout multipliers
     if (new_sleep) {
       // only notify room once
-      if (p->sleep_intensity() == 0) {
+      if (p->did_sleep_times() == 0) {
         Logger::info("notify room that fd={} is sleeping", p->fd());
         // TODO: if is in room, notify the room - multiple times even
       }
