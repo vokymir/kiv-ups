@@ -54,7 +54,7 @@ private:
   // categorize message, do what is appropriate for it
   void process_message(std::vector<std::string> &msg);
   // try flushing message to the socket
-  void server_send(int fd); // TODO: placeholder
+  void server_send(int fd);
   void disconnect(int fd);
 
   void maybe_ping(std::shared_ptr<Player> p);
