@@ -402,7 +402,7 @@ void Server::maybe_ping(std::shared_ptr<Player> p) {
       std::chrono::duration_cast<std::chrono::milliseconds>(ping_diff).count();
 
   if (ping_diff_ms > ping_timeout_ms_) {
-    p->send(Protocol::PING);
+    p->send(Protocol::PING());
   }
 }
 
