@@ -11,6 +11,7 @@ namespace prsi {
 
 class Protocol {
 public:
+  // WRITE
   static std::string PING() { return build_message("PING"); }
 
   // TODO: this is only proof of concept
@@ -25,6 +26,11 @@ public:
     return build_message(body);
   }
 
+  // = ok messages
+  static std::string OK_NAME() { return build_message("OK NAME"); }
+
+  // READ
+
   // return a message split by whitespaces into vector,
   // if no complete message, return empty vector
   // remove found messafge from mutable_string
@@ -38,6 +44,7 @@ public:
   static bool valid(const std::string &msg);
 
 private:
+  // WRITE
   static inline const std::string MAGIC = "PRSI";
   static inline const std::string DELIM = "|";
 
