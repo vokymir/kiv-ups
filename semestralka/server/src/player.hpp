@@ -1,6 +1,7 @@
 #pragma once
 
 #include <chrono>
+#include <stdexcept>
 #include <string>
 #include <vector>
 namespace prsi {
@@ -73,8 +74,17 @@ public:
   void sleep_intensity(int si) { sleep_intensity_ = si; }
 
   // get/set
+public:
   int fd() const { return fd_; }
+  void fd(int new_fd) { fd_ = new_fd; }
+
   const std::string &nick() const { return nick_; }
+  void nick(const std::string &nick) {
+    if (!nick_.empty()) {
+      throw std::runtime_error("Cannot rename player.");
+    }
+    nick_ = nick;
+  }
 
   // helper
 
