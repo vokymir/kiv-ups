@@ -221,14 +221,13 @@ void Server::receive(int fd) {
   }
 
   try { // process messages
-    while (true) {
-      auto msg = p->complete_recv_msg();
-      if (msg.size() == 0) {
-        break;
-      }
 
+    auto msg = p->complete_recv_msg();
+    while (!msg.empty()) {
       Logger::info("message size: {}", msg.size());
       process_message(msg);
+
+      msg = p->complete_recv_msg();
     }
 
     // received invalid message - doesn't start with magic

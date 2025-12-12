@@ -75,6 +75,10 @@ void Player::try_flush() {
 }
 
 std::vector<std::string> Player::complete_recv_msg() {
+  if (!Protocol::could_validate(read_buffer_)) {
+    return {};
+  }
+
   if (!Protocol::valid(read_buffer_)) {
     throw std::runtime_error("Not a valid protocol message.");
   }
