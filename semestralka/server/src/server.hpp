@@ -2,9 +2,12 @@
 
 #include "config.hpp"
 #include "room.hpp"
+#include <algorithm>
+#include <cstddef>
 #include <cstdint>
 #include <map>
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <sys/epoll.h>
 #include <unordered_map>
@@ -92,6 +95,7 @@ private:
 
   // find player anywhere on server & return weak ptr to them
   std::weak_ptr<Player> find_player(int fd);
+  std::weak_ptr<Player> find_player(const std::string &nick);
   // at which state the player is
   Player_Location where_player(std::shared_ptr<Player> p);
 
@@ -100,6 +104,7 @@ private:
   // handler for any incoming message
   using Handler = void (Server::*)(const std::vector<std::string> &,
                                    std::shared_ptr<Player>);
+  // lookup table
   // store all handlers for incoming messages
   // all handlers have the capability to terminate player, if invoked
   // incorrectly = bad time / bad syntax
@@ -108,6 +113,27 @@ private:
   // set last pong
   void handle_pong(const std::vector<std::string> &msg,
                    std::shared_ptr<Player> p);
+  void handle_name(const std::vector<std::string> &msg,
+                   std::shared_ptr<Player> p);
+
+  // moving
+private:
+  template <typename Pred>
+  void move_player(Pred pred, std::vector<std::shared_ptr<Player>> &from,
+                   std::vector<std::shared_ptr<Player>> &to) {
+    auto it = std::find_if(from.begin(), from.end(), pred);
+    if (it == from.end()) {
+      throw std::runtime_error("Cannot move player - wasn't found.");
+    }
+    to.push_back(std::move(*it));
+    from.erase(it);
+  }
+
+  void move_player_by_fd(int fd, std::vector<std::shared_ptr<Player>> &from,
+                         std::vector<std::shared_ptr<Player>> &to);
+  void move_player_by_nick(const std::string &nick,
+                           std::vector<std::shared_ptr<Player>> &from,
+                           std::vector<std::shared_ptr<Player>> &to);
 
 private:
   // configuration
