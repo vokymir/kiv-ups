@@ -129,6 +129,7 @@ private:
     from.erase(it);
   }
 
+  // convenience functions for moving player
   void move_player_by_fd(int fd, std::vector<std::shared_ptr<Player>> &from,
                          std::vector<std::shared_ptr<Player>> &to);
   void move_player_by_nick(const std::string &nick,

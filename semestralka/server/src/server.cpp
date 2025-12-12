@@ -567,4 +567,15 @@ void Server::handle_name(const std::vector<std::string> &msg,
   }
 }
 
+void Server::move_player_by_fd(int fd,
+                               std::vector<std::shared_ptr<Player>> &from,
+                               std::vector<std::shared_ptr<Player>> &to) {
+  move_player([fd](const auto &p) { return p->fd() == fd; }, from, to);
+}
+void Server::move_player_by_nick(const std::string &nick,
+                                 std::vector<std::shared_ptr<Player>> &from,
+                                 std::vector<std::shared_ptr<Player>> &to) {
+  move_player([&nick](const auto &p) { return p->nick() == nick; }, from, to);
+}
+
 } // namespace prsi
