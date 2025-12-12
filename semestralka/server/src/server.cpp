@@ -30,6 +30,7 @@ const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"NAME", &Server::handle_name},
     {"LIST_ROOMS", &Server::handle_list_rooms},
     {"JOIN_ROOM", &Server::handle_join_room},
+    {"CREATE_ROOM", &Server::handle_create_room},
 };
 
 // other
@@ -50,7 +51,8 @@ Server::Server(const Config &cfg)
       epoll_timeout_ms_(cfg.epoll_timeout_ms_), max_clients_(cfg.max_clients_),
       ping_timeout_ms_(cfg.ping_timeout_ms_),
       sleep_timeout_ms_(cfg.sleep_timeout_ms_),
-      death_timeout_ms_(cfg.death_timeout_ms_), ip_(cfg.ip_) {
+      death_timeout_ms_(cfg.death_timeout_ms_), ip_(cfg.ip_),
+      max_rooms_(cfg.max_rooms_) {
 
   events_.resize(epoll_max_events_);
   setup();
@@ -612,6 +614,29 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
   p->append_msg(Protocol::ROOM(room));
 
   // TODO: what if the room is full & game should start?
+}
+
+void Server::handle_create_room(const std::vector<std::string> &msg,
+                                std::shared_ptr<Player> p) {
+  if (msg.size() != 1) {
+    Logger::error("{}", Logger::more("Invalid CREATE_ROOM", p));
+    terminate_player(p);
+    return;
+  }
+
+  if (rooms_.size() >= max_rooms_) { // already limit of rooms
+    p->append_msg(Protocol::FAIL_CREATE_ROOM());
+    return;
+  }
+
+  // create new room
+  rooms_.emplace_back();
+  auto room = rooms_.back();
+
+  // move to room & remove from lobby
+  move_player_by_fd(p->fd(), lobby_, room->players());
+
+  p->append_msg(Protocol::ROOM(room));
 }
 
 void Server::move_player_by_fd(int fd,
