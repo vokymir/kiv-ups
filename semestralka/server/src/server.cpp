@@ -31,6 +31,7 @@ const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"LIST_ROOMS", &Server::handle_list_rooms},
     {"JOIN_ROOM", &Server::handle_join_room},
     {"CREATE_ROOM", &Server::handle_create_room},
+    {"LEAVE_ROOM", &Server::handle_leave_room},
 };
 
 // other
@@ -665,6 +666,48 @@ void Server::handle_create_room(const std::vector<std::string> &msg,
   move_player_by_fd(p->fd(), lobby_, room->players());
 
   p->append_msg(Protocol::OK_CREATE_ROOM());
+}
+
+void Server::handle_leave_room(const std::vector<std::string> &msg,
+                               std::shared_ptr<Player> p) {
+  if (msg.size() != 1) {
+    Logger::error("{}", Logger::more("Invalid LEAVE_ROOM", p));
+    terminate_player(p);
+    return;
+  }
+
+  auto loc = where_player(p);
+  if (loc.state_ != Player_State::ROOM || loc.state_ != Player_State::GAME) {
+    Logger::info(
+        "Player fd={} tried to leave room while not in one, disconnecting.",
+        p->fd());
+    terminate_player(p);
+    return;
+  }
+
+  auto room = loc.room_.lock();
+  if (!room) {
+    Logger::warn("Player fd={} tried to leave non-existing room? disconnecting",
+                 p->fd());
+    terminate_player(p);
+    return;
+  }
+
+  // move to lobby & remove from room
+  move_player_by_fd(p->fd(), room->players(), lobby_);
+
+  // TODO: broadcast this info to all players in room
+  //
+  // TODO: maybe this is end of game?
+
+  // remove empty room
+  if (room->players().size() == 0) {
+    rooms_.erase(
+        std::find_if(rooms_.begin(), rooms_.end(),
+                     [&room](const auto &r) { return room->id() == r->id(); }));
+  }
+
+  p->append_msg(Protocol::OK_LEAVE_ROOM());
 }
 
 void Server::move_player_by_fd(int fd,
