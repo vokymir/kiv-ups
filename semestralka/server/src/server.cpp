@@ -82,7 +82,7 @@ void Server::run() {
               .count();
 
       if (ping_diff_ms > ping_timeout_ms_) {
-        p->send(ping_message);
+        p->send(Protocol::PING);
       }
 
       // how long haven't heard from player
@@ -91,9 +91,14 @@ void Server::run() {
           std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
 
       if (diff_ms > death_timeout_ms_) { // long inactivity
+        Logger::error(
+            "Terminating player fd={}: didn't respond for {} seconds.", p->fd(),
+            diff_ms / 1000);
         terminate_player(p);
       } else if (diff_ms > sleep_timeout_ms_) { // short inacitvity
-        // TODO: if is in room, notify the room
+        Logger::warn("Player fd={} didn't respond for {} seconds.", p->fd(),
+                     diff_ms / 1000);
+        // TODO: if is in room, notify the room - multiple times even
       }
     }
   }
