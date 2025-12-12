@@ -58,6 +58,7 @@ public:
 
   // get/set
   int fd() const { return fd_; }
+  const std::string &nick() const { return nick_; }
 };
 
 } // namespace prsi

@@ -7,6 +7,7 @@
 #include <arpa/inet.h>
 #include <asm-generic/socket.h>
 #include <cerrno>
+#include <cstring>
 #include <fcntl.h>
 #include <functional>
 #include <memory>
@@ -209,12 +210,19 @@ int Server::count_players() const {
 
 void Server::terminate_player(std::shared_ptr<Player> p) {
   remove_from_game(p);
+  Logger::info("Player {}, fd={}, removed from game.", p->nick(), p->fd());
 
   // remove from epoll
-  epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, p->fd(), nullptr);
+  auto res = epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, p->fd(), nullptr);
+  Logger::info("Player {}, fd={}, removed from epoll.", p->nick(), p->fd());
+  if (res == -1) {
+    Logger::error("Error when removing player from epoll: {}",
+                  std::strerror(errno));
+  }
 
   // close connection
   close(p->fd());
+  Logger::info("Closed connection fd={}.", p->fd());
 }
 void Server::remove_from_game(std::shared_ptr<Player> p) {
   // find where the player is & lock them down
