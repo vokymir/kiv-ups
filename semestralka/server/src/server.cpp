@@ -2,10 +2,13 @@
 #include "config.hpp"
 #include "logger.hpp"
 #include "player.hpp"
+#include "room.hpp"
+#include <algorithm>
 #include <arpa/inet.h>
 #include <asm-generic/socket.h>
 #include <cerrno>
 #include <fcntl.h>
+#include <functional>
 #include <memory>
 #include <netinet/in.h>
 #include <string>
@@ -54,6 +57,13 @@ void Server::run() {
       } else if (ev.events & EPOLLIN) {               // RECV
       } else if (ev.events & EPOLLOUT) {              // SEND
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) { // DISCONNECT
+        auto weak_p = find_player(ev.data.fd);
+        auto p = weak_p.lock();
+        if (!p) {
+          Logger::error("Player with id={} was not found anywhere.",
+                        std::to_string(ev.data.fd));
+        }
+        terminate_player(p);
       }
     }
 
@@ -195,6 +205,147 @@ int Server::count_players() const {
   }
 
   return count;
+}
+
+void Server::terminate_player(std::shared_ptr<Player> p) {
+  remove_from_game(p);
+
+  // remove from epoll
+  epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, p->fd(), nullptr);
+
+  // close connection
+  close(p->fd());
+}
+void Server::remove_from_game(std::shared_ptr<Player> p) {
+  // find where the player is & lock them down
+  auto location = where_player(p);
+
+  // find players owning vector
+  std::reference_wrapper<std::vector<std::shared_ptr<Player>>> owner = unnamed_;
+  switch (location.state_) {
+  case NON_EXISTING: // should not happen
+    Logger::error(
+        "There is player with no related socekt on the server with id={}",
+        p->fd());
+    return;
+  case UNNAMED:
+    owner = unnamed_;
+    break;
+  case LOBBY:
+    owner = lobby_;
+    break;
+  case ROOM:
+  case GAME:
+    // find room in rooms
+    auto it = std::find_if(rooms_.begin(), rooms_.end(),
+                           [location](const std::shared_ptr<Room> r) {
+                             return r->id() == location.room_id_;
+                           });
+    if (it == rooms_.end()) {
+      Logger::warn("Tried to remove player from room {}, but there is no room "
+                   "with that id.",
+                   location.room_id_);
+      return;
+    }
+    // TODO: broadcast to other players in the room, end game or whatever, close
+    // room, etc
+
+    owner = (*it)->players();
+    break;
+  }
+
+  // delete player from any owning vector
+  auto vec = owner.get();
+  auto it = std::find(vec.begin(), vec.end(), p);
+  if (it != vec.end()) {
+    vec.erase(it);
+  }
+}
+
+std::vector<std::shared_ptr<Player>> Server::list_players() {
+  std::vector<std::shared_ptr<Player>> result;
+  result.reserve(max_clients_);
+
+  result.insert(unnamed_.begin(), unnamed_.end(), result.end());
+  result.insert(lobby_.begin(), lobby_.end(), result.end());
+
+  for (auto &r : rooms_) {
+    auto p = r->players();
+    result.insert(p.begin(), p.end(), result.end());
+  }
+
+  return result;
+}
+
+std::weak_ptr<Player> Server::find_player(int fd) {
+  auto all = list_players();
+
+  auto it = std::find_if(
+      all.begin(), all.end(),
+      [fd](const std::shared_ptr<Player> &p) { return p->fd() == fd; });
+  if (it == all.end()) {
+    return {};
+  }
+  return *it;
+}
+
+Player_Location Server::where_player(std::shared_ptr<Player> p) {
+  Player_Location l;
+
+  { // UNNAMED
+    auto it = std::find_if(unnamed_.begin(), unnamed_.end(),
+                           [&p](const std::shared_ptr<Player> &pp) {
+                             return pp->fd() == p->fd();
+                           });
+    if (it != unnamed_.end()) {
+      l.state_ = UNNAMED;
+      return l;
+    }
+  }
+
+  { // LOBBY
+    auto it = std::find_if(lobby_.begin(), lobby_.end(),
+                           [&p](const std::shared_ptr<Player> &pp) {
+                             return pp->fd() == p->fd();
+                           });
+    if (it != lobby_.end()) {
+      l.state_ = LOBBY;
+      return l;
+    }
+  }
+
+  { // ROOM/GAME
+    for (const auto &r : rooms_) {
+      auto players = r->players();
+      auto it = std::find_if(players.begin(), players.end(),
+                             [&p](const std::shared_ptr<Player> &pp) {
+                               return pp->fd() == p->fd();
+                             });
+      if (it == lobby_.end()) {
+        continue;
+      }
+
+      // found room, what is its state
+      l.room_id_ = r->id();
+      switch (r->state()) {
+      case OPEN:
+      case FULL:
+        l.state_ = ROOM;
+        break;
+      case PLAYING:
+      case FINISHED:
+        l.state_ = GAME;
+        break;
+      }
+
+      return l;
+    }
+  }
+
+  // not found
+  Logger::error("Player not found anywhere on server.");
+  l.state_ = NON_EXISTING;
+  return l;
 }
 
 } // namespace prsi

@@ -33,6 +33,7 @@ private:
 public:
   Server(const Config &config);
   ~Server();
+  // the main server loop - wait on epoll socket events & handle them
   void run();
 
   // net
@@ -51,22 +52,28 @@ private:
 private:
   // remove player from all rooms or lobby, notify others & disconnect player
   // from server
-  void terminate_player(std::weak_ptr<Player> p);
+  void terminate_player(std::shared_ptr<Player> p);
   // remove player from room/lobby + notify others
-  void remove_from_game(std::weak_ptr<Player> p);
+  // WARN: it will erase the owning shared_ptr
+  void remove_from_game(std::shared_ptr<Player> p);
 
   // game
 private:
+  // list all players on the server
+  std::vector<std::shared_ptr<Player>> list_players();
   // count all players everywhere
   int count_players() const;
   // count players in all states:
   // unnamed: 2, lobby: 1, ...
-  std::map<Player_State, int> count_player_states();
+  // NOTE: is it even useful? its really unefficient
+  std::map<Player_State, int> count_players_by_state();
   // count all rooms
   int count_rooms() const;
 
+  // find player anywhere on server & return weak ptr to them
+  std::weak_ptr<Player> find_player(int fd);
   // at which state the player is
-  Player_State where_player(std::weak_ptr<Player> p);
+  Player_Location where_player(std::shared_ptr<Player> p);
 
 private:
   // configuration

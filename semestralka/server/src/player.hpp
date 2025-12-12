@@ -10,6 +10,13 @@ enum Player_State {
   LOBBY,
   ROOM,
   GAME,
+  NON_EXISTING, // if the player exist on server but have no relation to any
+                // socket
+};
+
+struct Player_Location {
+  Player_State state_;
+  int room_id_; // only valid if state==room/game
 };
 
 class Player {
