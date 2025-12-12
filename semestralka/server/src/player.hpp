@@ -33,28 +33,41 @@ private:
 
   std::chrono::steady_clock::time_point last_recv_;
   std::chrono::steady_clock::time_point last_send_;
+  std::chrono::steady_clock::time_point last_ping_;
 
 public:
   // read from socket into read_buffer
   void receive();
   // add something to write_buffer
-  void send(std::string &msg);
+  void send(const std::string &msg);
   // push to socket what is in write_buffer
   void flush();
 
   // get/set time
-  void last_received(std::chrono::steady_clock::time_point time =
-                         std::chrono::steady_clock::now()) {
+
+  void set_last_received(std::chrono::steady_clock::time_point time =
+                             std::chrono::steady_clock::now()) {
     last_recv_ = time;
   };
-  std::chrono::steady_clock::time_point last_received() const {
+  std::chrono::steady_clock::time_point get_last_received() const {
     return last_recv_;
   }
-  void last_send(std::chrono::steady_clock::time_point time =
-                     std::chrono::steady_clock::now()) {
+  void set_last_send(std::chrono::steady_clock::time_point time =
+                         std::chrono::steady_clock::now()) {
     last_send_ = time;
   };
-  std::chrono::steady_clock::time_point last_send() const { return last_send_; }
+  std::chrono::steady_clock::time_point get_last_send() const {
+    return last_send_;
+  }
+  // set last_send & last_ping time
+  void set_last_ping(std::chrono::steady_clock::time_point time =
+                         std::chrono::steady_clock::now()) {
+    last_send_ = time;
+    last_ping_ = time;
+  };
+  std::chrono::steady_clock::time_point get_last_ping() const {
+    return last_send_;
+  }
 
   // get/set
   int fd() const { return fd_; }

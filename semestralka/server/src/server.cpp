@@ -2,11 +2,13 @@
 #include "config.hpp"
 #include "logger.hpp"
 #include "player.hpp"
+#include "protocol.hpp"
 #include "room.hpp"
 #include <algorithm>
 #include <arpa/inet.h>
 #include <asm-generic/socket.h>
 #include <cerrno>
+#include <chrono>
 #include <cstring>
 #include <exception>
 #include <fcntl.h>
@@ -22,8 +24,13 @@ namespace prsi {
 
 Server::~Server() {
   // close all connections
+  for (auto &p : list_players()) {
+    terminate_player(p);
+  }
   // close listen socket
+  close(listen_fd_);
   // close epoll socket
+  close(epoll_fd_);
 }
 
 Server::Server(const Config &cfg)
@@ -66,6 +73,29 @@ void Server::run() {
     }
 
     // check for timeouts
+    for (auto &p : list_players()) {
+
+      // PING always
+      auto ping_diff = std::chrono::steady_clock::now() - p->get_last_ping();
+      auto ping_diff_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(ping_diff)
+              .count();
+
+      if (ping_diff_ms > ping_timeout_ms_) {
+        p->send(ping_message);
+      }
+
+      // how long haven't heard from player
+      auto diff = std::chrono::steady_clock::now() - p->get_last_received();
+      auto diff_ms =
+          std::chrono::duration_cast<std::chrono::milliseconds>(diff).count();
+
+      if (diff_ms > death_timeout_ms_) { // long inactivity
+        terminate_player(p);
+      } else if (diff_ms > sleep_timeout_ms_) { // short inacitvity
+        // TODO: if is in room, notify the room
+      }
+    }
   }
 }
 

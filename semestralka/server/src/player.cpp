@@ -7,7 +7,10 @@
 
 namespace prsi {
 
-Player::Player(int fd) : fd_(fd) {}
+Player::Player(int fd) : fd_(fd) {
+  set_last_received();
+  set_last_ping();
+}
 
 Player::~Player() {}
 
@@ -36,11 +39,13 @@ void Player::receive() {
     }
 
     Logger::info("Received {} bytes from fd={}", n, fd_);
-    last_received();
+    set_last_received();
+    Logger::info("fd={} have in recv buffer: '{}'", fd_,
+                 read_buffer_); // TODO: remove
   }
 }
 
-void Player::send(std::string &msg) {}
+void Player::send(const std::string &msg) { write_buffer_.append(msg); }
 
 void Player::flush() {}
 
