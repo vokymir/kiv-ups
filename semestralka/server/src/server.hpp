@@ -123,6 +123,8 @@ private:
                         std::shared_ptr<Player> p);
   void handle_create_room(const std::vector<std::string> &msg,
                           std::shared_ptr<Player> p);
+  void handle_leave_room(const std::vector<std::string> &msg,
+                         std::shared_ptr<Player> p);
 
   // player manipulation
 private:
