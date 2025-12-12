@@ -101,8 +101,11 @@ private:
   using Handler = void (Server::*)(const std::vector<std::string> &,
                                    std::shared_ptr<Player>);
   // store all handlers for incoming messages
+  // all handlers have the capability to terminate player, if invoked
+  // incorrectly = bad time / bad syntax
   static const std::unordered_map<std::string, Handler> handlers_;
 
+  // set last pong
   void handle_pong(const std::vector<std::string> &msg,
                    std::shared_ptr<Player> p);
 
