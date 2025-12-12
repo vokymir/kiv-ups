@@ -379,6 +379,18 @@ std::weak_ptr<Player> Server::find_player(int fd) {
   return *it;
 }
 
+std::weak_ptr<Player> Server::find_player(const std::string &nick) {
+  auto all = list_players();
+
+  auto it = std::find_if(
+      all.begin(), all.end(),
+      [&nick](const std::shared_ptr<Player> &p) { return p->nick() == nick; });
+  if (it == all.end()) {
+    return {};
+  }
+  return *it;
+}
+
 Player_Location Server::where_player(std::shared_ptr<Player> p) {
   Player_Location l;
 
