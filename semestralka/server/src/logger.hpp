@@ -1,7 +1,11 @@
 #pragma once
 
+#include "player.hpp"
+#include <cstddef>
 #include <fmt/format.h>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <string_view>
 
 namespace prsi {
@@ -50,6 +54,22 @@ public:
   static inline constexpr Generic_Log<"INFO"> info{};
   static inline constexpr Generic_Log<"WARN"> warn{};
   static inline constexpr Generic_Log<"EROR"> error{};
+
+  // easily show more info about something
+
+  // more info about player
+  static inline const std::string more(const std::string &msg,
+                                       std::shared_ptr<Player> p) {
+    std::string response = "Player ";
+    if (!p->nick().empty()) {
+      response += p->nick() + " ";
+    }
+    response += "fd=" + std::to_string(p->fd()) + ": ";
+
+    response += msg;
+
+    return response;
+  }
 };
 
 } // namespace prsi
