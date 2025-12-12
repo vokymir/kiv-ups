@@ -27,7 +27,8 @@ private:
   static std::string build_message(const std::string &body) {
     static const std::string MAGIC = "PRSI";
     static const std::string DELIM = "|";
-    return MAGIC + " " + body + " " + DELIM;
+    // better having more white spaces than less
+    return " " + MAGIC + " " + body + " " + DELIM + "\n";
   }
 };
 
