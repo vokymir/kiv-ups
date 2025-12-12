@@ -423,7 +423,7 @@ void Server::maybe_ping(std::shared_ptr<Player> p) {
 
 void Server::check_pong(std::shared_ptr<Player> p) {
   // when was the last PONG received
-  auto pong_diff = std::chrono::steady_clock::now() - p->get_last_ping();
+  auto pong_diff = std::chrono::steady_clock::now() - p->get_last_pong();
   auto pong_diff_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(pong_diff).count();
 
