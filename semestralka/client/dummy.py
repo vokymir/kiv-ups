@@ -184,6 +184,11 @@ class SimpleClient:
             name_msg = create_message(NAME_CMD, "MyPythonClient")
             self.send_message(name_msg)
 
+            time.sleep(1)
+
+            list_msg = create_message("LIST_ROOMS")
+            self.send_message(list_msg)
+
             while self.running:
                 time.sleep(1)
 
