@@ -121,6 +121,8 @@ private:
                          std::shared_ptr<Player> p);
   void handle_join_room(const std::vector<std::string> &msg,
                         std::shared_ptr<Player> p);
+  void handle_create_room(const std::vector<std::string> &msg,
+                          std::shared_ptr<Player> p);
 
   // player manipulation
 private:
@@ -156,6 +158,7 @@ private:
   int epoll_max_events_; // must be at least max_clients_ + 1 (listen socket)
   int epoll_timeout_ms_;
   int max_clients_;
+  int max_rooms_;
   int ping_timeout_ms_;
   int sleep_timeout_ms_;
   int death_timeout_ms_;
