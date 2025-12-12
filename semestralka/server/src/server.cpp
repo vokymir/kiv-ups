@@ -630,7 +630,7 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
   // move to room & remove from lobby
   move_player_by_fd(p->fd(), lobby_, room->players());
 
-  p->append_msg(Protocol::ROOM(room));
+  p->append_msg(Protocol::OK_JOIN_ROOM());
 
   // TODO: what if the room is full & game should start?
 }
@@ -664,7 +664,7 @@ void Server::handle_create_room(const std::vector<std::string> &msg,
   // move to room & remove from lobby
   move_player_by_fd(p->fd(), lobby_, room->players());
 
-  p->append_msg(Protocol::ROOM(room));
+  p->append_msg(Protocol::OK_CREATE_ROOM());
 }
 
 void Server::move_player_by_fd(int fd,

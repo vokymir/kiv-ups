@@ -40,6 +40,10 @@ public:
 
   // = ok messages
   static std::string OK_NAME() { return build_message("OK NAME"); }
+  static std::string OK_JOIN_ROOM() { return build_message("OK JOIN_ROOM"); }
+  static std::string OK_CREATE_ROOM() {
+    return build_message("OK CREATE_ROOM");
+  }
 
   // = fail messages
   static std::string FAIL_JOIN_ROOM() {
