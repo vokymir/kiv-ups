@@ -47,6 +47,9 @@ private:
 
   // accept new connection
   void accept_connection();
+  void receive(int fd);
+  void send(int fd); // TODO: placeholder
+  void disconnect(int fd);
 
   // net + game
 private:
@@ -55,7 +58,7 @@ private:
   void terminate_player(std::shared_ptr<Player> p);
   // remove player from room/lobby + notify others
   // WARN: it will erase the owning shared_ptr
-  void remove_from_game(std::shared_ptr<Player> p);
+  void remove_from_game(std::shared_ptr<Player> p); // TODO: not done
 
   // game
 private:
@@ -66,7 +69,7 @@ private:
   // count players in all states:
   // unnamed: 2, lobby: 1, ...
   // NOTE: is it even useful? its really unefficient
-  std::map<Player_State, int> count_players_by_state();
+  std::map<Player_State, int> count_players_by_state(); // TODO: not done
   // count all rooms
   int count_rooms() const;
 

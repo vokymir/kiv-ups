@@ -57,31 +57,11 @@ void Server::run() {
       if (ev.data.fd == listen_fd_) { // NEW CONNECTION
         accept_connection();
       } else if (ev.events & EPOLLIN) { // RECV
-        auto weak_p = find_player(ev.data.fd);
-        auto p = weak_p.lock();
-        if (!p) {
-          Logger::error("Player with id={} was not found anywhere.",
-                        std::to_string(ev.data.fd));
-        }
-        try {
-
-          p->receive();
-        } catch (const std::exception &ex) {
-          Logger::error("Cannot receive from client fd={}, because: '{}'.",
-                        p->fd(), ex.what());
-          terminate_player(p);
-        }
-        // TODO: process receive maybe? or maybe sometime after, who knows
-
-      } else if (ev.events & EPOLLOUT) {              // SEND
+        receive(ev.data.fd);
+      } else if (ev.events & EPOLLOUT) { // SEND
+        send(ev.data.fd);
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) { // DISCONNECT
-        auto weak_p = find_player(ev.data.fd);
-        auto p = weak_p.lock();
-        if (!p) {
-          Logger::error("Player with id={} was not found anywhere.",
-                        std::to_string(ev.data.fd));
-        }
-        terminate_player(p);
+        disconnect(ev.data.fd);
       }
     }
 
@@ -201,6 +181,39 @@ void Server::accept_connection() {
   unnamed_.emplace_back(player);
 
   Logger::info("New client connected, fd={}", client_fd);
+}
+
+void Server::receive(int fd) {
+  auto weak_p = find_player(fd);
+  auto p = weak_p.lock();
+  if (!p) {
+    Logger::error("Player with id={} was not found anywhere.",
+                  std::to_string(fd));
+  }
+
+  try { // player receive
+    p->receive();
+  } catch (const std::exception &ex) { // any exception = terminate
+    Logger::error("Cannot receive from client fd={}, because: '{}'.", p->fd(),
+                  ex.what());
+    terminate_player(p);
+  }
+
+  // TODO: process receive maybe? or maybe sometime after, who knows
+}
+
+void Server::send(int fd) {
+  Logger::error("Server::send() is not implemented yet!");
+}
+
+void Server::disconnect(int fd) {
+  auto weak_p = find_player(fd);
+  auto p = weak_p.lock();
+  if (!p) {
+    Logger::error("Player with id={} was not found anywhere.", fd);
+  }
+
+  terminate_player(p);
 }
 
 int Server::count_players() const {
