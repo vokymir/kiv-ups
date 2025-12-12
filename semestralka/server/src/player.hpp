@@ -73,6 +73,12 @@ public:
   // get/set
   int fd() const { return fd_; }
   const std::string &nick() const { return nick_; }
+
+  // helper
+
+  // return complete received message or empty string
+  // remove that message from recv buffer
+  std::string complete_recv_msg();
 };
 
 } // namespace prsi

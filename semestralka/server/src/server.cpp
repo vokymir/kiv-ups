@@ -218,7 +218,7 @@ void Server::receive(int fd) {
     terminate_player(p);
   }
 
-  // TODO: process receive maybe? or maybe sometime after, who knows
+  if ()
 }
 
 void Server::server_send(int fd) {
