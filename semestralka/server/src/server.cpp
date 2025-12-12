@@ -279,7 +279,7 @@ void Server::remove_from_game(std::shared_ptr<Player> p) {
   }
 
   // delete player from any owning vector
-  auto vec = owner.get();
+  auto &vec = owner.get();
   auto it = std::find(vec.begin(), vec.end(), p);
   if (it != vec.end()) {
     vec.erase(it);
@@ -290,12 +290,12 @@ std::vector<std::shared_ptr<Player>> Server::list_players() {
   std::vector<std::shared_ptr<Player>> result;
   result.reserve(max_clients_);
 
-  result.insert(unnamed_.begin(), unnamed_.end(), result.end());
-  result.insert(lobby_.begin(), lobby_.end(), result.end());
+  result.insert(result.end(), unnamed_.begin(), unnamed_.end());
+  result.insert(result.end(), lobby_.begin(), lobby_.end());
 
   for (auto &r : rooms_) {
     auto p = r->players();
-    result.insert(p.begin(), p.end(), result.end());
+    result.insert(result.end(), p.begin(), p.end());
   }
 
   return result;
@@ -345,7 +345,7 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
                              [&p](const std::shared_ptr<Player> &pp) {
                                return pp->fd() == p->fd();
                              });
-      if (it == lobby_.end()) {
+      if (it == players.end()) {
         continue;
       }
 
