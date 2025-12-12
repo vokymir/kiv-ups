@@ -44,14 +44,37 @@ public:
 
     // split into parts, by whitespaces
     std::vector<std::string> result;
-    ssize_t i = 0;
+    size_t i = 0;
     while (i < msg_view.size()) {
       // skip whitespaces
-      while (i < msg_view.size() && std::isspace(msg_view[i])) {
+      while (i < msg_view.size() &&
+             std::isspace(static_cast<unsigned char>(msg_view[i]))) {
         i++;
       }
-      // TODO: continue here
+      // the whole msg only whitespaces - shouldn't happen, we have delim
+      if (i >= msg_view.size()) {
+        break;
+      }
+
+      size_t word_start = i;
+      while (i < msg_view.size() &&
+             !std::isspace(static_cast<unsigned char>(msg_view[i]))) {
+        i++;
+      }
+
+      // extract word
+      auto word = msg_view.substr(word_start, i - word_start);
+
+      // dont include magic and delim in result
+      if (MAGIC.compare(word) != 0 && DELIM.compare(word) != 0) {
+        result.emplace_back(word);
+      }
     }
+
+    // erase from input string
+    mutable_string.erase(0, delim_start + DELIM.size());
+
+    return result;
   }
 
   // validate any string without mutating
@@ -59,8 +82,7 @@ public:
     size_t i = 0;
 
     // skip whitespaces on the beginning
-    // TODO: why iswspace?
-    while (i < msg.size() && std::iswspace(static_cast<wint_t>(msg[i]))) {
+    while (i < msg.size() && std::isspace(msg[i])) {
       i++;
     }
 
