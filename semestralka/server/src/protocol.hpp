@@ -1,6 +1,7 @@
 #pragma once
 
 #include "player.hpp"
+#include "room.hpp"
 #include <bits/types/wint_t.h>
 #include <memory>
 #include <string>
@@ -14,13 +15,12 @@ public:
   // WRITE
   static std::string PING() { return build_message("PING"); }
 
-  // TODO: this is only proof of concept
-  // Can do dynamic thingies
-  static std::string CARDS(std::shared_ptr<Player> p) {
-    std::string body = "CARDS " + std::to_string(p->fd());
+  static std::string ROOMS(std::vector<std::shared_ptr<Room>> &rs) {
+    std::string body = "ROOMS " + std::to_string(rs.size());
 
-    for (auto i : {10, 20}) {
-      body += " " + std::to_string(i);
+    for (const auto &r : rs) {
+      body += " " + std::to_string(r->id());
+      body += " " + to_string(r->state());
     }
 
     return build_message(body);
