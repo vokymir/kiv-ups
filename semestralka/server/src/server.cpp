@@ -513,7 +513,8 @@ void Server::process_message(const std::vector<std::string> &msg,
     (this->*fn)(msg, p);
 
     // unknown command = player ends
-  } else {
+    // every OK message is not invalid
+  } else if (cmd != "OK") {
     terminate_player(p);
   }
 }
