@@ -24,13 +24,20 @@ constexpr std::string to_string(Room_State s) {
 }
 
 class Room {
+  static int new_room_id_;
+
 private:
-  int id_;
+  int id_ = -1;
   std::vector<std::shared_ptr<Player>> players_;
   Room_State state_ = Room_State::OPEN;
 
 public:
-  Room(int id) : id_(id) {};
+  Room(int id = -1) : id_(id) {
+    if (id_ == -1) {
+      id_ = new_room_id_++;
+    }
+  };
+
   int id() const { return id_; }
   Room_State state() const { return state_; }
 
