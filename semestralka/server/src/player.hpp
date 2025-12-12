@@ -19,15 +19,18 @@ struct Player_Location {
   int room_id_; // only valid if state==room/game
 };
 
+class Server; // forward declare
+
 class Player {
 public:
-  Player(int fd);
+  Player(Server &server, int socket_file_descriptor);
   ~Player();
 
 private:
   int fd_;
   std::string nick_;
 
+  Server &server_;
   std::string read_buffer_;
   std::string write_buffer_;
 
@@ -42,9 +45,12 @@ public:
   // read from socket into read_buffer
   void receive();
   // add something to write_buffer
-  void send(const std::string &msg);
+  // and try flushing the buffer
+  void append_msg(const std::string &msg);
   // push to socket what is in write_buffer
-  void flush();
+  // if cannot the whole message, will set EPOLLOUT,
+  // so it will be retried afterwards
+  void try_flush();
 
   // get/set time
   void set_last_ping(std::chrono::steady_clock::time_point time =

@@ -1,7 +1,6 @@
 #pragma once
 
 #include "config.hpp"
-#include "player.hpp"
 #include "room.hpp"
 #include <cstdint>
 #include <map>
@@ -14,6 +13,8 @@ namespace prsi {
 
 // Handle epoll, own sessions and game manager.
 class Server {
+  friend class Player; // forward declare & befriend
+
 private:
   // epoll
   int epoll_fd_ = -1;
@@ -50,11 +51,18 @@ private:
   // accept new connection
   void accept_connection();
   void receive(int fd);
-  void send(int fd); // TODO: placeholder
+  // try flushing message to the socket
+  void server_send(int fd); // TODO: placeholder
   void disconnect(int fd);
 
   void maybe_ping(std::shared_ptr<Player> p);
   void check_pong(std::shared_ptr<Player> p);
+
+  // friendly functions
+  // enable EPOLLOUT for a socket
+  void enable_sending(int fd);
+  // disable EPOLLOUT for a socket
+  void disable_sending(int fd);
 
   // net + game
 private:

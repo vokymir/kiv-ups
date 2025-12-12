@@ -72,7 +72,7 @@ void Server::run() {
         receive(ev.data.fd);
 
       } else if (ev.events & EPOLLOUT) { // SEND
-        send(ev.data.fd);
+        server_send(ev.data.fd);
 
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) { // DISCONNECT
         disconnect(ev.data.fd);
@@ -83,11 +83,6 @@ void Server::run() {
     for (auto &p : list_players()) {
       maybe_ping(p);
       check_pong(p);
-    }
-
-    // make sure all prepared messages are sent if possible
-    for (auto &p : list_players()) {
-      p->flush();
     }
   }
 }
@@ -168,7 +163,6 @@ int Server::set_epoll_events(int fd, uint32_t events, bool creating) {
 }
 
 void Server::accept_connection() {
-
   sockaddr_in client_addr{};
   socklen_t addr_len = sizeof(client_addr);
 
@@ -202,7 +196,7 @@ void Server::accept_connection() {
   }
 
   // create new client
-  auto player = std::make_shared<Player>(client_fd);
+  auto player = std::make_shared<Player>(*this, client_fd);
   unnamed_.emplace_back(player);
 
   Logger::info("New client connected, fd={}", client_fd);
@@ -227,8 +221,14 @@ void Server::receive(int fd) {
   // TODO: process receive maybe? or maybe sometime after, who knows
 }
 
-void Server::send(int fd) {
-  Logger::error("Server::send() is not implemented yet!");
+void Server::server_send(int fd) {
+  auto weak_p = find_player(fd);
+  auto p = weak_p.lock();
+  if (!p) {
+    Logger::error("Player with id={} was not found anywhere.", fd);
+  }
+
+  p->try_flush();
 }
 
 void Server::disconnect(int fd) {
@@ -416,7 +416,7 @@ void Server::maybe_ping(std::shared_ptr<Player> p) {
       std::chrono::duration_cast<std::chrono::milliseconds>(ping_diff).count();
 
   if (ping_diff_ms > ping_timeout_ms_) {
-    p->send(Protocol::PING());
+    p->append_msg(Protocol::PING());
   }
 }
 
@@ -452,5 +452,11 @@ void Server::check_pong(std::shared_ptr<Player> p) {
     }
   }
 }
+
+void Server::enable_sending(int fd) {
+  set_epoll_events(fd, EPOLLIN | EPOLLOUT);
+}
+
+void Server::disable_sending(int fd) { set_epoll_events(fd, EPOLLIN); }
 
 } // namespace prsi

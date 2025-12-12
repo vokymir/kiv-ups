@@ -7,7 +7,7 @@
 
 namespace prsi {
 
-Player::Player(int fd) : fd_(fd) {
+Player::Player(Server &s, int fd) : server_(s), fd_(fd) {
   set_last_pong();
   set_last_ping();
 }
@@ -44,8 +44,11 @@ void Player::receive() {
   }
 }
 
-void Player::send(const std::string &msg) { write_buffer_.append(msg); }
+void Player::append_msg(const std::string &msg) {
+  write_buffer_.append(msg);
+  try_flush();
+}
 
-void Player::flush() {}
+void Player::try_flush() {}
 
 } // namespace prsi
