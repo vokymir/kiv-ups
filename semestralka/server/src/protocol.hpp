@@ -45,6 +45,9 @@ public:
   static std::string FAIL_JOIN_ROOM() {
     return build_message("FAIL JOIN_ROOM");
   }
+  static std::string FAIL_CREATE_ROOM() {
+    return build_message("FAIL CREATE_ROOM");
+  }
 
   // READ
 
