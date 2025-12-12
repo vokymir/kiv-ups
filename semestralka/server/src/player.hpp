@@ -63,6 +63,7 @@ public:
   }
   void set_last_pong(std::chrono::steady_clock::time_point time =
                          std::chrono::steady_clock::now()) {
+    sleep_intensity_ = 0;
     last_pong_ = time;
   };
   std::chrono::steady_clock::time_point get_last_pong() const {

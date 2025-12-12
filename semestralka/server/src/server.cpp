@@ -508,6 +508,13 @@ void Server::process_message(const std::vector<std::string> &msg,
 }
 
 void Server::handle_pong(const std::vector<std::string> &msg,
-                         std::shared_ptr<Player> p) {}
+                         std::shared_ptr<Player> p) {
+  if (msg.size() > 1) {
+    terminate_player(p);
+    return;
+  }
+
+  p->set_last_pong();
+}
 
 } // namespace prsi
