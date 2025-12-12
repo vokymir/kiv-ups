@@ -7,6 +7,7 @@
 #include <memory>
 #include <string>
 #include <sys/epoll.h>
+#include <unordered_map>
 #include <vector>
 
 namespace prsi {
@@ -52,7 +53,8 @@ private:
   void accept_connection();
   void receive(int fd);
   // categorize message, do what is appropriate for it
-  void process_message(std::vector<std::string> &msg);
+  void process_message(const std::vector<std::string> &msg,
+                       std::shared_ptr<Player> p);
   // try flushing message to the socket
   void server_send(int fd);
   void disconnect(int fd);
@@ -92,6 +94,17 @@ private:
   std::weak_ptr<Player> find_player(int fd);
   // at which state the player is
   Player_Location where_player(std::shared_ptr<Player> p);
+
+  // handlers
+private:
+  // handler for any incoming message
+  using Handler = void (Server::*)(const std::vector<std::string> &,
+                                   std::shared_ptr<Player>);
+  // store all handlers for incoming messages
+  static const std::unordered_map<std::string, Handler> handlers_;
+
+  void handle_pong(const std::vector<std::string> &msg,
+                   std::shared_ptr<Player> p);
 
 private:
   // configuration

@@ -19,8 +19,17 @@
 #include <sys/epoll.h>
 #include <sys/socket.h>
 #include <unistd.h>
+#include <unordered_map>
 
 namespace prsi {
+
+// static part
+
+const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
+    {"PONG", &Server::handle_pong},
+};
+
+// other
 
 Server::~Server() {
   // close all connections
@@ -225,7 +234,7 @@ void Server::receive(int fd) {
     auto msg = p->complete_recv_msg();
     while (!msg.empty()) {
       Logger::info("message size: {}", msg.size());
-      process_message(msg);
+      process_message(msg, p);
 
       msg = p->complete_recv_msg();
     }
@@ -477,6 +486,28 @@ void Server::enable_sending(int fd) {
 
 void Server::disable_sending(int fd) { set_epoll_events(fd, EPOLLIN); }
 
-void Server::process_message(std::vector<std::string> &msg) {}
+void Server::process_message(const std::vector<std::string> &msg,
+                             std::shared_ptr<Player> p) {
+  if (msg.size() < 1) {
+    return;
+  }
+
+  // the first part of msg is command
+  const auto &cmd = msg[0];
+  auto it = handlers_.find(cmd);
+
+  // find & execute command
+  if (it != handlers_.end()) {
+    auto fn = it->second;
+    (this->*fn)(msg, p);
+
+    // unknown command = player ends
+  } else {
+    terminate_player(p);
+  }
+}
+
+void Server::handle_pong(const std::vector<std::string> &msg,
+                         std::shared_ptr<Player> p) {}
 
 } // namespace prsi
