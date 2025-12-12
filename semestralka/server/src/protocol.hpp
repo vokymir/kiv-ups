@@ -1,3 +1,5 @@
+#pragma once
+
 #include "player.hpp"
 #include <memory>
 #include <string>
