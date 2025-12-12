@@ -31,6 +31,7 @@ private:
   std::vector<std::shared_ptr<Room>> rooms_;
 
 public:
+  // initialize member variables
   Server(const Config &config);
   ~Server();
   // the main server loop - wait on epoll socket events & handle them
@@ -40,10 +41,11 @@ public:
 private:
   // setup the server on construction
   void setup();
+  // must set all fd as non-blocking to work well pseudo-parallel
   // return -1 on failure
   int set_fd_nonblocking(int fd);
   // return -1 on failure
-  int set_epoll_events(int fd, uint32_t events, bool creating_new = false);
+  int set_epoll_events(int fd, uint32_t events, bool creating_new_ev = false);
 
   // accept new connection
   void accept_connection();

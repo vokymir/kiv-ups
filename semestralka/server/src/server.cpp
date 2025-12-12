@@ -125,10 +125,12 @@ void Server::setup() {
     throw std::runtime_error("Cannot bind listen socket.");
   }
 
+  // set listen to only hardware limited number of connections
   if (listen(listen_fd_, SOMAXCONN) == -1) {
     throw std::runtime_error("Cannot listen.");
   }
 
+  // NOTE: is used create1, because is newer & better
   epoll_fd_ = epoll_create1(0);
 
   if (epoll_fd_ == -1) {
