@@ -417,6 +417,7 @@ void Server::maybe_ping(std::shared_ptr<Player> p) {
 
   if (ping_diff_ms > ping_timeout_ms_) {
     p->append_msg(Protocol::PING());
+    p->set_last_ping();
   }
 }
 
