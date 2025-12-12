@@ -118,6 +118,8 @@ private:
                    std::shared_ptr<Player> p);
   void handle_name(const std::vector<std::string> &msg,
                    std::shared_ptr<Player> p);
+  void handle_list_rooms(const std::vector<std::string> &msg,
+                         std::shared_ptr<Player> p);
 
   // player manipulation
 private:

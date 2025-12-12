@@ -28,6 +28,7 @@ namespace prsi {
 const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"PONG", &Server::handle_pong},
     {"NAME", &Server::handle_name},
+    {"LIST_ROOMS", &Server::handle_list_rooms},
 };
 
 // other
@@ -428,7 +429,6 @@ Player_Location Server::where_player(std::shared_ptr<Player> p) {
       l.room_ = r;
       switch (r->state()) {
       case OPEN:
-      case FULL:
         l.state_ = ROOM;
         break;
       case PLAYING:
@@ -567,6 +567,17 @@ void Server::handle_name(const std::vector<std::string> &msg,
     erase_by_fd(unnamed_, p->fd());
     close_connection(old_fd);
   }
+}
+
+void Server::handle_list_rooms(const std::vector<std::string> &msg,
+                               std::shared_ptr<Player> p) {
+  if (msg.size() != 1) {
+    Logger::error("{}", Logger::more("Invalid LIST_ROOMS", p));
+    terminate_player(p);
+    return;
+  }
+
+  p->append_msg(Protocol::ROOMS(rooms_));
 }
 
 void Server::move_player_by_fd(int fd,
