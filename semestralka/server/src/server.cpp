@@ -694,7 +694,7 @@ void Server::handle_leave_room(const std::vector<std::string> &msg,
   }
 
   auto loc = where_player(p);
-  if (loc.state_ != Player_State::ROOM || loc.state_ != Player_State::GAME) {
+  if (loc.state_ != Player_State::ROOM && loc.state_ != Player_State::GAME) {
     Logger::info("{} tried to leave room while not in one, disconnecting.",
                  Logger::more(p));
 
