@@ -2,6 +2,7 @@
 #include "card.hpp"
 #include "logger.hpp"
 #include <array>
+#include <memory>
 #include <random>
 #include <vector>
 
@@ -140,6 +141,19 @@ bool Room::play_card(const Card &c) {
   pile_.emplace(c);
   current_player_idx_++;
   return true;
+}
+
+std::weak_ptr<Player> Room::get_winner() {
+  std::weak_ptr<Player> winner;
+
+  for (auto &p : players_) {
+    if (p->hand().size() == 0) {
+      winner = p;
+      break;
+    }
+  }
+
+  return winner;
 }
 
 } // namespace prsi
