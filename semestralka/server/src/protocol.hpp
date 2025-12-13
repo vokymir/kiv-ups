@@ -142,10 +142,10 @@ public:
     return build_message("DRAWED " + p->nick() + " " + std::to_string(count));
   }
   static std::string CARDS(const std::vector<Card> &cards) {
-    std::string body = "CARDS ";
+    std::string body = "CARDS " + std::to_string(cards.size());
 
     for (const auto &c : cards) {
-      body += c.to_string() + " ";
+      body += " " + c.to_string();
     }
 
     return build_message(body);
