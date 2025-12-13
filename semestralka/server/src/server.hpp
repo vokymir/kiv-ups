@@ -128,6 +128,8 @@ private:
                          std::shared_ptr<Player> p);
   void handle_room_info(const std::vector<std::string> &msg,
                         std::shared_ptr<Player> p);
+  void handle_state(const std::vector<std::string> &msg,
+                    std::shared_ptr<Player> p);
 
   // player manipulation
 private:

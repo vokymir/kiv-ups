@@ -33,6 +33,7 @@ const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"CREATE_ROOM", &Server::handle_create_room},
     {"LEAVE_ROOM", &Server::handle_leave_room},
     {"ROOM_INFO", &Server::handle_room_info},
+    {"STATE", &Server::handle_state},
 };
 
 // other
@@ -788,6 +789,18 @@ void Server::handle_room_info(const std::vector<std::string> &msg,
 
   p->append_msg(Protocol::ROOM(room));
   Logger::info("{} sent room info.", Logger::more(p));
+}
+
+void Server::handle_state(const std::vector<std::string> &msg,
+                          std::shared_ptr<Player> p) {
+  if (msg.size() != 1) {
+    Logger::error("{} Invalid STATE", Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  p->append_msg(Protocol::STATE(*this, p));
+  Logger::info("{} sent state.", Logger::more(p));
 }
 
 void Server::move_player_by_fd(int fd,
