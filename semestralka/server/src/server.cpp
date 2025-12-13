@@ -882,6 +882,8 @@ void Server::handle_play(const std::vector<std::string> &msg,
     // send it to people
     np->append_msg(Protocol::CARDS({c1, c2}));
     broadcast_to_room(room, Protocol::DRAWED(np, 2), {np->fd()});
+    // skip the player
+    room->advance_player();
   }
 
   // next turn
