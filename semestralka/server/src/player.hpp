@@ -65,15 +65,12 @@ public:
     return last_ping_;
   }
   void set_last_pong(std::chrono::steady_clock::time_point time =
-                         std::chrono::steady_clock::now()) {
-    sleep_intensity_ = 0;
-    last_pong_ = time;
-  };
+                         std::chrono::steady_clock::now());
   std::chrono::steady_clock::time_point get_last_pong() const {
     return last_pong_;
   }
   int did_sleep_times() const { return sleep_intensity_; }
-  void sleep_intensity(int si) { sleep_intensity_ = si; }
+  void did_sleep_times(int si) { sleep_intensity_ = si; }
 
   // get/set
 public:

@@ -496,7 +496,7 @@ void Server::check_pong(std::shared_ptr<Player> p) {
         }
       }
 
-      p->sleep_intensity(n_sleeps);
+      p->did_sleep_times(n_sleeps);
       Logger::warn("Player fd={} didn't respond for {} seconds.", p->fd(),
                    pong_diff_ms / 1000);
     }
