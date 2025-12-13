@@ -51,6 +51,8 @@ void Room::generate_deck() {
       deck_.emplace(s, r);
     }
   }
+
+  shuffle_deck();
 }
 
 Card Room::deal_card() {

@@ -69,6 +69,7 @@ public:
   Turn current_turn();
 
   void shuffle_deck();
+  // generate shuffled deck
   void generate_deck();
 
   // remove card from deck, ensure there exist at least one, otherwise shuffle
