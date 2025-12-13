@@ -61,9 +61,9 @@ public:
         body += "BAD_STATE=ROOM_NOT_FOUND";
         break;
       }
-      body += "GAME";
-      body += strip(ROOM(room));
-      body += strip(HAND(p));
+      body += "GAME \n";
+      body += strip(ROOM(room)) + "\n";
+      body += strip(HAND(p) + "\n");
       body += strip(TURN(room->current_turn()));
       break;
     }
