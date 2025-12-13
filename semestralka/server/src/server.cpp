@@ -675,7 +675,7 @@ void Server::handle_create_room(const std::vector<std::string> &msg,
   }
 
   // create new room
-  rooms_.emplace_back();
+  rooms_.emplace_back(std::make_shared<Room>());
   auto room = rooms_.back();
   Logger::info("{} New room id={} was created and joined", Logger::more(p),
                room->id());
