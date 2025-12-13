@@ -940,6 +940,7 @@ void Server::handle_draw(const std::vector<std::string> &msg,
   broadcast_to_room(room, Protocol::DRAWED(p, 1), {p->fd()});
 
   // next turn
+  room->advance_player();
   broadcast_to_room(room, Protocol::TURN(room->current_turn()), {});
 }
 
