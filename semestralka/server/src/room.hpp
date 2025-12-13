@@ -66,11 +66,11 @@ public:
 
   // safe wrapper
   int current_player_idx() { return current_player_idx_ % players_.size(); }
-  Turn current_turn(); // TODO:
+  Turn current_turn();
 
   void shuffle_deck(); // TODO:
 
-  void generate_deck(); // TODO:
+  void generate_deck();
 
   // remove card from deck, ensure there exist at least one, otherwise shuffle
   // from pile

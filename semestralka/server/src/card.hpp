@@ -6,6 +6,9 @@ struct Card {
   char rank_;
   char suit_;
 
+  Card() {}
+  Card(char suit, char rank) : rank_(rank), suit_(suit) {}
+
   bool is_valid() {
     bool valid_rank = false;
     switch (rank_) {

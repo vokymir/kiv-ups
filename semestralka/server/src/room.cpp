@@ -1,4 +1,6 @@
 #include "room.hpp"
+#include <array>
+#include <vector>
 
 namespace prsi {
 
@@ -36,6 +38,17 @@ Turn Room::current_turn() {
   t.card_.suit_ = top.suit_;
 
   return t;
+}
+
+void Room::generate_deck() {
+  std::array<char, 8> ranks{'7', '8', '9', '0', 'J', 'Q', 'K', 'A'};
+  std::array<char, 4> suits{'Z', 'L', 'K', 'S'};
+
+  for (const auto &r : ranks) {
+    for (const auto &s : suits) {
+      deck_.emplace(s, r);
+    }
+  }
 }
 
 } // namespace prsi
