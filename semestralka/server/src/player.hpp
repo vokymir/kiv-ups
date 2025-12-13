@@ -25,7 +25,7 @@ struct Player_Location {
 
 class Server; // forward declare
 
-class Player {
+class Player : public std::enable_shared_from_this<Player> {
 public:
   Player(Server &server, int socket_file_descriptor);
   ~Player();

@@ -86,7 +86,7 @@ std::vector<std::string> Player::complete_recv_msg() {
 void Player::set_last_pong(std::chrono::steady_clock::time_point time) {
   if (did_sleep_times_ > 0) {
     // if is in room, tell others that now i am awake
-    std::shared_ptr<Player> p{this};
+    auto p = shared_from_this();
     auto loc = server_.where_player(p);
     auto r = loc.room_.lock();
     if (r) {
