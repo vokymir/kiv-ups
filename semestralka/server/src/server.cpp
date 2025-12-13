@@ -246,7 +246,6 @@ void Server::receive(int fd) {
 
     auto msg = p->complete_recv_msg();
     while (!msg.empty()) {
-      Logger::info("message size: {}", msg.size());
       process_message(msg, p);
 
       msg = p->complete_recv_msg();
