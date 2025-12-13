@@ -1,8 +1,10 @@
 #pragma once
 
+#include "card.hpp"
 #include "player.hpp"
 #include <cstddef>
 #include <memory>
+#include <queue>
 #include <string>
 #include <vector>
 namespace prsi {
@@ -27,7 +29,7 @@ constexpr std::string to_string(Room_State s) {
 
 struct Turn {
   std::string name_;
-  // TODO: top card
+  Card card_;
 };
 
 class Room {
@@ -37,6 +39,10 @@ private:
   int id_ = -1;
   std::vector<std::shared_ptr<Player>> players_;
   Room_State state_ = Room_State::OPEN;
+
+  std::queue<Card> deck_; // drawing deck
+  std::queue<Card> pile_; // throw-away pile
+  int current_player_idx_ = -1;
 
 public:
   Room(int id = -1) : id_(id) {
@@ -56,9 +62,19 @@ public:
   }
 
   // prepare game = deal cards & prepare pile/deck
-  void setup_game(); // TODO:
+  void setup_game();
 
+  // safe wrapper
+  int current_player_idx() { return current_player_idx_ % players_.size(); }
   Turn current_turn(); // TODO:
+
+  void shuffle_deck(); // TODO:
+
+  void generate_deck(); // TODO:
+
+  // remove card from deck, ensure there exist at least one, otherwise shuffle
+  // from pile
+  Card deal_card();
 };
 
 } // namespace prsi
