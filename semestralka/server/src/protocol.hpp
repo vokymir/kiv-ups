@@ -135,6 +135,9 @@ public:
 
     return build_message(body);
   }
+  static std::string SKIP(std::shared_ptr<Player> p) {
+    return build_message("SKIP " + p->nick());
+  }
 
   static std::string WIN() { return build_message("WIN"); }
 

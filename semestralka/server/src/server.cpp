@@ -859,6 +859,21 @@ void Server::handle_play(const std::vector<std::string> &msg,
   broadcast_to_room(room, Protocol::PLAYED(p, c), {p->fd()});
 
   Logger::info("{} played card={}", Logger::more(p), c.to_string());
+
+  if (c.rank_ == 'A') {
+    // next player = is theoretically current, because play_card advanced
+    auto np = room->current_player();
+    broadcast_to_room(room, Protocol::SKIP(np), {});
+    // really skip the player
+    room->advance_player();
+
+  } else if (c.rank_ == '7') {
+    auto np = room->current_player();
+    // draw
+  }
+
+  // next turn
+  broadcast_to_room(room, Protocol::TURN(room->current_turn()), {});
 }
 
 void Server::move_player_by_fd(int fd,
