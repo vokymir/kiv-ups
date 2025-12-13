@@ -55,8 +55,14 @@ public:
 
     return body;
   }
+  static std::string LEAVE(std::shared_ptr<Player> p) {
+    std::string body = "LEAVE " + p->nick();
+
+    return build_message(body);
+  }
 
   // = game messages
+  static std::string WIN() { return build_message("WIN"); }
 
   // = ok messages
   static std::string OK_NAME() { return build_message("OK NAME"); }

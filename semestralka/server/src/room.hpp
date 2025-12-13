@@ -40,6 +40,7 @@ public:
 
   int id() const { return id_; }
   Room_State state() const { return state_; }
+  void state(Room_State s) { state_ = s; }
 
   std::vector<std::shared_ptr<Player>> &players() { return players_; }
 };

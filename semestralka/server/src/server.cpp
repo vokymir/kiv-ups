@@ -324,9 +324,7 @@ void Server::remove_from_game_server(std::shared_ptr<Player> p) {
   std::reference_wrapper<std::vector<std::shared_ptr<Player>>> owner = unnamed_;
   switch (location.state_) {
   case Player_State::NON_EXISTING: // should not happen
-    Logger::error(
-        "There is player with no related socekt on the server with id={}",
-        p->fd());
+    Logger::error("{} have no related socekt on the server", Logger::more(p));
     return;
   case Player_State::UNNAMED:
     owner = unnamed_;
@@ -336,16 +334,23 @@ void Server::remove_from_game_server(std::shared_ptr<Player> p) {
     break;
   case Player_State::ROOM:
   case Player_State::GAME:
-    // TODO: broadcast to other players in the room, end game or whatever, close
-    // room, etc
-
-    auto ownr = location.room_.lock();
-    if (!ownr) {
-      Logger::error("Room disappeared quickly.");
+    auto room = location.room_.lock();
+    if (!room) {
+      Logger::error("{} is in not-existing room.", Logger::more(p));
       return;
     }
-    owner = ownr->players();
-    break;
+
+    try {
+      // move player from room to lobby
+      leave_room(p, room);
+      owner = lobby_;
+
+    } catch (const std::exception &ex) {
+      Logger::error("{} Error: {}", Logger::more(p), ex.what());
+      // do nothing, because the player is still being terminated & is not in
+      // the room, simply erased by chance
+      return;
+    }
   }
 
   // delete player from any owning vector
@@ -484,8 +489,11 @@ void Server::check_pong(std::shared_ptr<Player> p) {
     if (new_sleep) {
       // only notify room once
       if (p->did_sleep_times() == 0) {
-        Logger::info("notify room that fd={} is sleeping", p->fd());
-        // TODO: if is in room, notify the room - multiple times even
+        auto loc = where_player(p);
+        auto room = loc.room_.lock();
+        if (room) {
+          broadcast_to_room(room, Protocol::SLEEP(p), {p->fd()});
+        }
       }
 
       p->sleep_intensity(n_sleeps);
@@ -702,21 +710,37 @@ void Server::handle_leave_room(const std::vector<std::string> &msg,
     return;
   }
 
-  // move to lobby & remove from room
-  move_player_by_fd(p->fd(), room->players(), lobby_);
-  p->append_msg(Protocol::OK_LEAVE_ROOM());
-  Logger::info("{} left room id={}.", Logger::more(p), room->id());
+  try {
+    leave_room(p, room);
+  } catch (const std::exception &ex) {
+    Logger::error("Error: {}", ex.what());
+    terminate_player(p);
+  }
+}
 
-  // TODO: broadcast this info to all players in room
-  //
-  // TODO: maybe this is end of game?
+void Server::leave_room(std::shared_ptr<Player> p, std::shared_ptr<Room> r) {
+
+  // move to lobby & remove from room
+  // may throw
+  move_player_by_fd(p->fd(), r->players(), lobby_);
+
+  p->append_msg(Protocol::OK_LEAVE_ROOM());
+  Logger::info("{} left room id={}.", Logger::more(p), r->id());
+
+  // tell others in room
+  broadcast_to_room(r, Protocol::LEAVE(p), {p->fd()});
 
   // remove empty room
-  if (room->players().size() == 0) {
+  if (r->players().size() == 0) {
     rooms_.erase(
         std::find_if(rooms_.begin(), rooms_.end(),
-                     [&room](const auto &r) { return room->id() == r->id(); }));
-    Logger::info("Empty room id={} was closed.", room->id());
+                     [&r](const auto &rr) { return r->id() == rr->id(); }));
+    Logger::info("Empty room id={} was closed.", r->id());
+
+    // end game because someone left
+  } else if (r->state() == Room_State::PLAYING) {
+    broadcast_to_room(r, Protocol::WIN(), {});
+    r->state(Room_State::FINISHED);
   }
 }
 
@@ -729,6 +753,19 @@ void Server::move_player_by_nick(const std::string &nick,
                                  std::vector<std::shared_ptr<Player>> &from,
                                  std::vector<std::shared_ptr<Player>> &to) {
   move_player([&nick](const auto &p) { return p->nick() == nick; }, from, to);
+}
+
+void Server::broadcast_to_room(std::shared_ptr<Room> r, const std::string &msg,
+                               const std::vector<int> &except_fds) {
+  // for every player
+  for (auto &p : r->players()) {
+    // look if isn't in except vector
+    auto here = std::find(except_fds.begin(), except_fds.end(), p->fd());
+    // isn't => send message
+    if (here == except_fds.end()) {
+      p->append_msg(msg);
+    }
+  }
 }
 
 } // namespace prsi

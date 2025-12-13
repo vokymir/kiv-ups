@@ -81,6 +81,12 @@ private:
   void remove_from_game_server(std::shared_ptr<Player> p);
   // disconnect client behind FD from server
   void close_connection(int fd);
+  // broadcast to room with the exception of players with given fds
+  void broadcast_to_room(std::shared_ptr<Room> r, const std::string &msg,
+                         const std::vector<int> &except_fds);
+  // do everything what is needed on leaving room - send all messages, notify
+  // roommates. if player is not in room, throw
+  void leave_room(std::shared_ptr<Player> p, std::shared_ptr<Room> r);
 
   // game
 private:
