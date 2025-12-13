@@ -55,6 +55,11 @@ public:
 
     return build_message(body);
   }
+  static std::string JOIN(std::shared_ptr<Player> p) {
+    std::string body = "JOIN " + p->nick();
+
+    return build_message(body);
+  }
   static std::string LEAVE(std::shared_ptr<Player> p) {
     std::string body = "LEAVE " + p->nick();
 

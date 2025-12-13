@@ -646,6 +646,7 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
   // move to room & remove from lobby
   move_player_by_fd(p->fd(), lobby_, room->players());
   p->append_msg(Protocol::OK_JOIN_ROOM());
+  broadcast_to_room(room, Protocol::JOIN(p), {p->fd()});
 
   Logger::info("{} joined room id={}.", Logger::more(p), room->id());
 

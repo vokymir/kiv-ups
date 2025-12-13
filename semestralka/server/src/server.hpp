@@ -77,7 +77,6 @@ private:
   void terminate_player(std::shared_ptr<Player> p);
   // remove player from room/lobby + notify others
   // WARN: it will erase the owning shared_ptr
-  // TODO: not done
   void remove_from_game_server(std::shared_ptr<Player> p);
   // disconnect client behind FD from server
   void close_connection(int fd);
@@ -94,10 +93,6 @@ private:
   std::vector<std::shared_ptr<Player>> list_players();
   // count all players everywhere
   int count_players() const;
-  // count players in all states:
-  // unnamed: 2, lobby: 1, ...
-  // NOTE: is it even useful? its really unefficient
-  std::map<Player_State, int> count_players_by_state(); // TODO: not done
   // count all rooms
   int count_rooms() const;
 
