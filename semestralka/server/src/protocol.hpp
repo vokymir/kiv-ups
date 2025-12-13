@@ -2,6 +2,7 @@
 
 #include "player.hpp"
 #include "room.hpp"
+#include "server.hpp"
 #include <bits/types/wint_t.h>
 #include <memory>
 #include <string>
@@ -27,6 +28,42 @@ public:
   }
   static std::string AWAKE(std::shared_ptr<Player> p) {
     std::string body = "AWAKE " + p->nick();
+
+    return build_message(body);
+  }
+  static std::string STATE(Server &s, std::shared_ptr<Player> p) {
+    auto loc = s.where_player(p);
+    std::string body;
+    switch (loc.state_) {
+    case Player_State::NON_EXISTING:
+      body += "UNKNOWN";
+      break;
+    case Player_State::UNNAMED:
+      body += "UNNAMED";
+      break;
+    case Player_State::LOBBY:
+      body += "LOBBY";
+      break;
+    case Player_State::ROOM:
+      body += "ROOM";
+      break;
+    case Player_State::GAME:
+      auto room = loc.room_.lock();
+      if (!room) {
+        // some garbage
+        body += "BAD_STATE=ROOM_NOT_FOUND";
+        break;
+      }
+      // need to fake the message, will send multiple messages which together
+      // creates the whole state
+      body += "GAME " + DELIM + " ";
+      body += ROOM(room);
+      body += HAND(p);
+      body += TURN(room->current_turn());
+      // just a dumb OK message so it's not an empty message
+      body += " " + MAGIC + "OK" + " ";
+      break;
+    }
 
     return build_message(body);
   }

@@ -16,6 +16,7 @@ namespace prsi {
 // Handle epoll, own sessions and game manager.
 class Server {
   friend class Player; // forward declare & befriend
+  friend class Protocol;
 
 private:
   // epoll
