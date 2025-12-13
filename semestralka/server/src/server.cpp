@@ -861,6 +861,18 @@ void Server::handle_play(const std::vector<std::string> &msg,
 
   Logger::info("{} played card={}", Logger::more(p), c.to_string());
 
+  // is this end of game?
+  auto w = room->get_winner();
+  auto win = w.lock();
+  if (win) {
+    win->append_msg(Protocol::WIN());
+    broadcast_to_room(room, Protocol::LOSE(), {win->fd()});
+    room->state(Room_State::FINISHED);
+
+    // return control to clients
+    return;
+  }
+
   if (c.rank_ == 'A') {
     // next player = is theoretically current, because play_card advanced
     auto np = room->current_player();

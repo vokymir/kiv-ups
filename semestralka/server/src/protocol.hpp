@@ -152,6 +152,7 @@ public:
   }
 
   static std::string WIN() { return build_message("WIN"); }
+  static std::string LOSE() { return build_message("LOSE"); }
 
   // = ok messages
   static std::string OK_NAME() { return build_message("OK NAME"); }

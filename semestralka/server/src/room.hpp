@@ -85,6 +85,9 @@ public:
   // change current_player
   // WARN: WON'T evaluate A/7
   bool play_card(const Card &c);
+
+  // if game is over, return winner. otherwise return pointer
+  std::weak_ptr<Player> get_winner();
 };
 
 } // namespace prsi
