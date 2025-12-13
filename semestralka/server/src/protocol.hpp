@@ -34,6 +34,8 @@ public:
   static std::string STATE(Server &s, std::shared_ptr<Player> p) {
     auto loc = s.where_player(p);
     std::string body;
+
+    auto room = loc.room_.lock();
     switch (loc.state_) {
     case Player_State::NON_EXISTING:
       body += "UNKNOWN";
@@ -45,23 +47,23 @@ public:
       body += "LOBBY";
       break;
     case Player_State::ROOM:
-      body += "ROOM";
-      break;
-    case Player_State::GAME:
-      auto room = loc.room_.lock();
       if (!room) {
         // some garbage
         body += "BAD_STATE=ROOM_NOT_FOUND";
         break;
       }
-      // need to fake the message, will send multiple messages which together
-      // creates the whole state
-      body += "GAME " + DELIM + " ";
-      body += ROOM(room);
-      body += HAND(p);
-      body += TURN(room->current_turn());
-      // just a dumb OK message so it's not an empty message
-      body += " " + MAGIC + "OK" + " ";
+      // just send normal room info
+      return ROOM(room);
+    case Player_State::GAME:
+      if (!room) {
+        // some garbage
+        body += "BAD_STATE=ROOM_NOT_FOUND";
+        break;
+      }
+      body += "GAME";
+      body += strip(ROOM(room));
+      body += strip(HAND(p));
+      body += strip(TURN(room->current_turn()));
       break;
     }
 
@@ -168,6 +170,22 @@ private:
     // better having more white spaces than less
     // because in this protocol white spaces are ignored
     return " " + MAGIC + " " + body + " " + DELIM + "\n";
+  }
+
+  // used in STATE message
+  static std::string strip(const std::string &s) {
+    auto start = s.find(MAGIC);
+    if (start == std::string::npos) {
+      start = 0;
+    } else {
+      start += MAGIC.size();
+    }
+
+    auto end = s.rfind(DELIM);
+    if (end == std::string::npos || end <= start)
+      return {};
+
+    return s.substr(start, end - start);
   }
 };
 
