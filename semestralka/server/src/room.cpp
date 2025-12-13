@@ -1,5 +1,7 @@
 #include "room.hpp"
+#include "card.hpp"
 #include <array>
+#include <random>
 #include <vector>
 
 namespace prsi {
@@ -48,6 +50,63 @@ void Room::generate_deck() {
     for (const auto &s : suits) {
       deck_.emplace(s, r);
     }
+  }
+}
+
+Card Room::deal_card() {
+  if (deck_.size() > 0) {
+    Card ret = deck_.front();
+    deck_.pop();
+    return ret;
+  }
+
+  // needs pile reshuffleing
+
+  if (pile_.size() < 1) {
+    // default return something - shouldn't happen, so have fun
+    return Card('H', '7');
+  }
+  // save top
+  Card top = pile_.front();
+  pile_.pop();
+
+  while (pile_.size() > 0) {
+    deck_.emplace(pile_.front());
+    pile_.pop();
+  }
+
+  // save top
+  pile_.emplace(top);
+
+  shuffle_deck();
+
+  if (deck_.size() < 0) {
+    // just another dummy card - shouldn't happen, 4fun
+    return Card('Z', 'K');
+  }
+
+  // retry with shuffled deck
+  return deal_card();
+}
+
+void Room::shuffle_deck() {
+  // temporary move cards to somewhere 'shuffeable'
+  std::vector<Card> tmp;
+  tmp.reserve(deck_.size());
+
+  while (!deck_.empty()) {
+    tmp.push_back(deck_.front());
+    deck_.pop();
+  }
+
+  // shuffle
+  static std::random_device rd;
+  static std::mt19937 gen(rd());
+  std::shuffle(tmp.begin(), tmp.end(), gen);
+
+  // move back
+  for (auto &c : tmp) {
+    deck_.push(c);
   }
 }
 
