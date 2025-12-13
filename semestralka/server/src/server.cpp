@@ -36,6 +36,7 @@ const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"ROOM_INFO", &Server::handle_room_info},
     {"STATE", &Server::handle_state},
     {"PLAY", &Server::handle_play},
+    {"DRAW", &Server::handle_draw},
 };
 
 // other
@@ -882,6 +883,61 @@ void Server::handle_play(const std::vector<std::string> &msg,
     np->append_msg(Protocol::CARDS({c1, c2}));
     broadcast_to_room(room, Protocol::DRAWED(np, 2), {np->fd()});
   }
+
+  // next turn
+  broadcast_to_room(room, Protocol::TURN(room->current_turn()), {});
+}
+
+void Server::handle_draw(const std::vector<std::string> &msg,
+                         std::shared_ptr<Player> p) {
+  if (msg.size() != 1) {
+    Logger::error("{} Invalid DRAW", Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  auto loc = where_player(p);
+  if (loc.state_ != Player_State::GAME) {
+    Logger::info(
+        "{} tried to draw card when not in game state => disconnecting.",
+        Logger::more(p));
+
+    terminate_player(p);
+    return;
+  }
+
+  auto room = loc.room_.lock();
+  if (!room) {
+    Logger::warn("{} tried to draw in non-existing room? disconnecting",
+                 Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  if (room->state() != Room_State::PLAYING) {
+    Logger::warn("{} tried to draw in room which is not playing, disconnecting",
+                 Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  if (room->current_turn().name_ != p->nick()) {
+    Logger::warn("{} tried to draw when not on turn, disconnecting",
+                 Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  // draw card
+  auto c = room->deal_card();
+
+  // give them to player
+  auto &hand = p->hand();
+  hand.push_back(c);
+
+  // send it to people
+  p->append_msg(Protocol::CARDS({c}));
+  broadcast_to_room(room, Protocol::DRAWED(p, 1), {p->fd()});
 
   // next turn
   broadcast_to_room(room, Protocol::TURN(room->current_turn()), {});

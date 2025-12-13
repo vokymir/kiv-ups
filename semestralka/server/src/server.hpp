@@ -132,6 +132,8 @@ private:
                     std::shared_ptr<Player> p);
   void handle_play(const std::vector<std::string> &msg,
                    std::shared_ptr<Player> p);
+  void handle_draw(const std::vector<std::string> &msg,
+                   std::shared_ptr<Player> p);
 
   // player manipulation
 private:
