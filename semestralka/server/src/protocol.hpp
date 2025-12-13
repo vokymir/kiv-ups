@@ -63,7 +63,7 @@ public:
       }
       body += "GAME \n";
       body += strip(ROOM(room)) + "\n";
-      body += strip(HAND(p) + "\n");
+      body += strip(HAND(p)) + "\n";
       body += strip(TURN(room->current_turn()));
       break;
     }
