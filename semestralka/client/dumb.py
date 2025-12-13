@@ -90,12 +90,16 @@ def network_thread(sock):
                         command = parts[1].strip()
 
                         if command == "PING":
+                            # Show the PING on UI
+                            # state.ui_queue.put(f"[SERVER] {command}")
                             if state.pong_enabled:
                                 # Send PONG
                                 response = format_message("PONG")
                                 try:
                                     sock.sendall(response.encode('utf-8'))
                                     write_to_file("SENT", response)
+                                    # Show the PONG on UI
+                                    # state.ui_queue.put("[YOU] PONG")
                                 except OSError:
                                     break
                             else:
@@ -151,7 +155,7 @@ def draw_ui(stdscr):
 
         # Draw status bar at the top
         status_color = curses.color_pair(3)
-        pong_status = "ACTIVE" if state.pong_enabled else "PAUSED (Ctrl+C to resume)"
+        pong_status = "ACTIVE" if state.pong_enabled else "PAUSED (Ctrl+P to resume)"
         pong_color = curses.color_pair(1) if state.pong_enabled else curses.color_pair(4)
 
         stdscr.addstr(0, 0, f"Connected to {SERVER_IP}:{SERVER_PORT} | Ctrl+D to Exit | PONG Reply: ", status_color)
@@ -184,8 +188,8 @@ def draw_ui(stdscr):
                 if key == 4:
                     state.running = False
 
-                # Ctrl+C check (ASCII 3)
-                elif key == 3:
+                # Ctrl+P check (ASCII 16) - Toggle PONG
+                elif key == 16:
                     state.pong_enabled = not state.pong_enabled
                     status_msg = "Resumed PONG responses." if state.pong_enabled else "Stopped PONG responses."
                     state.ui_queue.put(f"[SYSTEM] {status_msg}")
@@ -215,8 +219,9 @@ def draw_ui(stdscr):
                     input_str += chr(key)
 
         except KeyboardInterrupt:
-            # Fallback if raw mode leaks the signal
-            state.pong_enabled = not state.pong_enabled
+            # If Ctrl+C is pressed, we can either ignore it or exit.
+            # Since Ctrl+D is the designated exit, we'll just ignore Ctrl+C here
+            pass
 
         stdscr.refresh()
         # Sleep briefly to lower CPU usage
