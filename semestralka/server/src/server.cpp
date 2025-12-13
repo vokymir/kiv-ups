@@ -526,7 +526,7 @@ void Server::process_message(const std::vector<std::string> &msg,
 void Server::handle_pong(const std::vector<std::string> &msg,
                          std::shared_ptr<Player> p) {
   if (msg.size() != 1) {
-    Logger::error("{}", Logger::more("Invalid PONG", p));
+    Logger::error("{} Invalid PONG", Logger::more(p));
     terminate_player(p);
     return;
   }
@@ -537,14 +537,14 @@ void Server::handle_pong(const std::vector<std::string> &msg,
 void Server::handle_name(const std::vector<std::string> &msg,
                          std::shared_ptr<Player> p) {
   if (msg.size() != 2) {
-    Logger::error("{}", Logger::more("Invalid NAME, number of words", p));
+    Logger::error("{} Invalid NAME, number of words", Logger::more(p));
     terminate_player(p);
     return;
   }
 
   auto location = where_player(p);
   if (location.state_ != Player_State::UNNAMED) {
-    Logger::error("{}", Logger::more("Invalid NAME, player isn't unnamed", p));
+    Logger::error("{} Invalid NAME, player wasn't unnamed", Logger::more(p));
     terminate_player(p);
     return;
   }
@@ -559,6 +559,7 @@ void Server::handle_name(const std::vector<std::string> &msg,
     p->append_msg(Protocol::OK_NAME());
 
     move_player_by_fd(p->fd(), unnamed_, lobby_);
+    Logger::info("{} have name and is in lobby.", Logger::more(p));
 
     // this is an existing player
   } else {
@@ -571,42 +572,44 @@ void Server::handle_name(const std::vector<std::string> &msg,
     // erase this temporary player object
     erase_by_fd(unnamed_, p->fd());
     close_connection(old_fd);
+
+    Logger::info("Existing player name={} switched sockets: {} => {}",
+                 existing->nick(), old_fd, existing->fd());
   }
 }
 
 void Server::handle_list_rooms(const std::vector<std::string> &msg,
                                std::shared_ptr<Player> p) {
   if (msg.size() != 1) {
-    Logger::error("{}", Logger::more("Invalid LIST_ROOMS", p));
+    Logger::error("{} Invalid LIST_ROOMS", Logger::more(p));
     terminate_player(p);
     return;
   }
 
   auto loc = where_player(p);
   if (loc.state_ != Player_State::LOBBY) {
-    Logger::info(
-        "Player fd={} tried to list rooms while not in lobby, disconnecting.",
-        p->fd());
+    Logger::info("{} tried to list rooms while not in lobby, disconnecting.",
+                 Logger::more(p));
     terminate_player(p);
     return;
   }
 
   p->append_msg(Protocol::ROOMS(rooms_));
+  Logger::info("{} listed rooms", Logger::more(p));
 }
 
 void Server::handle_join_room(const std::vector<std::string> &msg,
                               std::shared_ptr<Player> p) {
   if (msg.size() != 2) {
-    Logger::error("{}", Logger::more("Invalid JOIN_ROOM", p));
+    Logger::error("{} Invalid JOIN_ROOM", Logger::more(p));
     terminate_player(p);
     return;
   }
 
   auto loc = where_player(p);
   if (loc.state_ != Player_State::LOBBY) {
-    Logger::info(
-        "Player fd={} tried to join room while not in lobby, disconnecting.",
-        p->fd());
+    Logger::info("{} tried to join room while not in lobby, disconnecting.",
+                 Logger::more(p));
     terminate_player(p);
     return;
   }
@@ -618,6 +621,7 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
                    [r_id](const auto &r) { return r->id() == r_id; });
   if (room_it == rooms_.end()) { // cannot find room
     p->append_msg(Protocol::FAIL_JOIN_ROOM());
+    Logger::info("{} couldn't join non-existing room.", Logger::more(p));
     return;
   }
 
@@ -625,13 +629,16 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
 
   if (room->state() != Room_State::OPEN) { // room full
     p->append_msg(Protocol::FAIL_JOIN_ROOM());
+    Logger::info("{} couldn't join full room id={}.", Logger::more(p),
+                 room->id());
     return;
   }
 
   // move to room & remove from lobby
   move_player_by_fd(p->fd(), lobby_, room->players());
-
   p->append_msg(Protocol::OK_JOIN_ROOM());
+
+  Logger::info("{} joined room id={}.", Logger::more(p), room->id());
 
   // TODO: what if the room is full & game should start?
 }
@@ -639,62 +646,66 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
 void Server::handle_create_room(const std::vector<std::string> &msg,
                                 std::shared_ptr<Player> p) {
   if (msg.size() != 1) {
-    Logger::error("{}", Logger::more("Invalid CREATE_ROOM", p));
+    Logger::error("{} Invalid CREATE_ROOM", Logger::more(p));
     terminate_player(p);
     return;
   }
 
   auto loc = where_player(p);
   if (loc.state_ != Player_State::LOBBY) {
-    Logger::info(
-        "Player fd={} tried to create room while not in lobby, disconnecting.",
-        p->fd());
+    Logger::info("{} tried to create room while not in lobby, disconnecting.",
+                 Logger::more(p));
     terminate_player(p);
     return;
   }
 
   if (rooms_.size() >= max_rooms_) { // already limit of rooms
     p->append_msg(Protocol::FAIL_CREATE_ROOM());
+    Logger::info("{} Failed create new room - limit of rooms reached.",
+                 Logger::more(p));
     return;
   }
 
   // create new room
   rooms_.emplace_back();
   auto room = rooms_.back();
+  Logger::info("{} New room id={} was created and joined", Logger::more(p),
+               room->id());
 
   // move to room & remove from lobby
   move_player_by_fd(p->fd(), lobby_, room->players());
-
   p->append_msg(Protocol::OK_CREATE_ROOM());
 }
 
 void Server::handle_leave_room(const std::vector<std::string> &msg,
                                std::shared_ptr<Player> p) {
   if (msg.size() != 1) {
-    Logger::error("{}", Logger::more("Invalid LEAVE_ROOM", p));
+    Logger::error("{} Invalid LEAVE_ROOM", Logger::more(p));
     terminate_player(p);
     return;
   }
 
   auto loc = where_player(p);
   if (loc.state_ != Player_State::ROOM || loc.state_ != Player_State::GAME) {
-    Logger::info(
-        "Player fd={} tried to leave room while not in one, disconnecting.",
-        p->fd());
+    Logger::info("{} tried to leave room while not in one, disconnecting.",
+                 Logger::more(p));
+
     terminate_player(p);
     return;
   }
 
   auto room = loc.room_.lock();
   if (!room) {
-    Logger::warn("Player fd={} tried to leave non-existing room? disconnecting",
-                 p->fd());
+    Logger::warn("{} tried to leave non-existing room? disconnecting",
+                 Logger::more(p));
     terminate_player(p);
     return;
   }
 
   // move to lobby & remove from room
   move_player_by_fd(p->fd(), room->players(), lobby_);
+  p->append_msg(Protocol::OK_LEAVE_ROOM());
+  Logger::info("{} left room id={}.", Logger::more(p), room->id());
 
   // TODO: broadcast this info to all players in room
   //
@@ -705,9 +716,8 @@ void Server::handle_leave_room(const std::vector<std::string> &msg,
     rooms_.erase(
         std::find_if(rooms_.begin(), rooms_.end(),
                      [&room](const auto &r) { return room->id() == r->id(); }));
+    Logger::info("Empty room id={} was closed.", room->id());
   }
-
-  p->append_msg(Protocol::OK_LEAVE_ROOM());
 }
 
 void Server::move_player_by_fd(int fd,

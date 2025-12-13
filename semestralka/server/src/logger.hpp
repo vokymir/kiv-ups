@@ -58,15 +58,12 @@ public:
   // easily show more info about something
 
   // more info about player
-  static inline const std::string more(const std::string &msg,
-                                       std::shared_ptr<Player> p) {
+  static inline const std::string more(std::shared_ptr<Player> p) {
     std::string response = "Player ";
     if (!p->nick().empty()) {
       response += p->nick() + " ";
     }
     response += "fd=" + std::to_string(p->fd()) + ": ";
-
-    response += msg;
 
     return response;
   }
