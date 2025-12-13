@@ -2,6 +2,7 @@
 #include "logger.hpp"
 #include "protocol.hpp"
 #include "server.hpp"
+#include <algorithm>
 #include <cerrno>
 #include <memory>
 #include <stdexcept>
@@ -96,5 +97,24 @@ void Player::set_last_pong(std::chrono::steady_clock::time_point time) {
   did_sleep_times_ = 0;
   last_pong_ = time;
 };
+
+bool Player::have_card(const Card &c) {
+  auto it = std::find_if(hand_.begin(), hand_.end(), [&c](const auto &card) {
+    return c.rank_ == card.rank_ && c.suit_ == card.suit_;
+  });
+
+  return it != hand_.end();
+}
+
+void Player::remove_card(const Card &c) {
+  auto it = std::find_if(hand_.begin(), hand_.end(), [&c](const auto &card) {
+    return c.rank_ == card.rank_ && c.suit_ == card.suit_;
+  });
+  if (it == hand_.end()) {
+    return; // cannot find
+  }
+
+  hand_.erase(it);
+}
 
 } // namespace prsi

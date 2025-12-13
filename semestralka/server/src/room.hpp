@@ -66,7 +66,9 @@ public:
 
   // safe wrapper
   int current_player_idx() { return current_player_idx_ % players_.size(); }
-  std::shared_ptr<Player> current_player();
+  std::shared_ptr<Player> current_player() {
+    return players_[current_player_idx()];
+  }
   void advance_player() { current_player_idx_++; }
   Turn current_turn();
 
