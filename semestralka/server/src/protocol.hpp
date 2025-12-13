@@ -138,6 +138,18 @@ public:
   static std::string SKIP(std::shared_ptr<Player> p) {
     return build_message("SKIP " + p->nick());
   }
+  static std::string DRAWED(std::shared_ptr<Player> p, int count) {
+    return build_message("DRAWED " + p->nick() + " " + std::to_string(count));
+  }
+  static std::string CARDS(const std::vector<Card> &cards) {
+    std::string body = "CARDS ";
+
+    for (const auto &c : cards) {
+      body += c.to_string() + " ";
+    }
+
+    return build_message(body);
+  }
 
   static std::string WIN() { return build_message("WIN"); }
 

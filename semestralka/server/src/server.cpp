@@ -869,7 +869,18 @@ void Server::handle_play(const std::vector<std::string> &msg,
 
   } else if (c.rank_ == '7') {
     auto np = room->current_player();
-    // draw
+    // draw cards
+    auto c1 = room->deal_card();
+    auto c2 = room->deal_card();
+
+    // give them to player
+    auto &hand = np->hand();
+    hand.push_back(c1);
+    hand.push_back(c2);
+
+    // send it to people
+    np->append_msg(Protocol::CARDS({c1, c2}));
+    broadcast_to_room(room, Protocol::DRAWED(np, 2), {np->fd()});
   }
 
   // next turn
