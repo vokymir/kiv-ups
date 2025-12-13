@@ -343,6 +343,7 @@ void Server::remove_from_game_server(std::shared_ptr<Player> p) {
 
     try {
       // move player from room to lobby
+      broadcast_to_room(room, Protocol::DEAD(p), {p->fd()});
       leave_room(p, room);
       owner = lobby_;
 
