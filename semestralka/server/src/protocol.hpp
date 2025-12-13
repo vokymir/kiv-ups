@@ -13,8 +13,25 @@ namespace prsi {
 class Protocol {
 public:
   // WRITE
+  // = control messages
   static std::string PING() { return build_message("PING"); }
+  static std::string SLEEP(std::shared_ptr<Player> p) {
+    std::string body = "SLEEP " + p->nick();
 
+    return build_message(body);
+  }
+  static std::string DEAD(std::shared_ptr<Player> p) {
+    std::string body = "DEAD " + p->nick();
+
+    return build_message(body);
+  }
+  static std::string AWAKE(std::shared_ptr<Player> p) {
+    std::string body = "AWAKE " + p->nick();
+
+    return build_message(body);
+  }
+
+  // = lobby messages
   static std::string ROOMS(std::vector<std::shared_ptr<Room>> &rs) {
     std::string body = "ROOMS " + std::to_string(rs.size());
 
@@ -26,6 +43,7 @@ public:
     return build_message(body);
   }
 
+  // = room messages
   static std::string ROOM(std::shared_ptr<Room> r) {
     std::string body = "ROOM " + std::to_string(r->id()) + " ";
     body += to_string(r->state()) + " ";
@@ -37,6 +55,8 @@ public:
 
     return body;
   }
+
+  // = game messages
 
   // = ok messages
   static std::string OK_NAME() { return build_message("OK NAME"); }
