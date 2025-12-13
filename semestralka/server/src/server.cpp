@@ -32,6 +32,7 @@ const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"JOIN_ROOM", &Server::handle_join_room},
     {"CREATE_ROOM", &Server::handle_create_room},
     {"LEAVE_ROOM", &Server::handle_leave_room},
+    {"ROOM_INFO", &Server::handle_room_info},
 };
 
 // other
@@ -742,6 +743,35 @@ void Server::leave_room(std::shared_ptr<Player> p, std::shared_ptr<Room> r) {
     broadcast_to_room(r, Protocol::WIN(), {});
     r->state(Room_State::FINISHED);
   }
+}
+
+void Server::handle_room_info(const std::vector<std::string> &msg,
+                              std::shared_ptr<Player> p) {
+  if (msg.size() != 1) {
+    Logger::error("{} Invalid ROOM_INFO", Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  auto loc = where_player(p);
+  if (loc.state_ != Player_State::ROOM && loc.state_ != Player_State::GAME) {
+    Logger::info("{} tried to get room info while not in one, disconnecting.",
+                 Logger::more(p));
+
+    terminate_player(p);
+    return;
+  }
+
+  auto room = loc.room_.lock();
+  if (!room) {
+    Logger::warn("{} tried to get info about non-existing room? disconnecting",
+                 Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  p->append_msg(Protocol::ROOM(room));
+  Logger::info("{} sent room info.", Logger::more(p));
 }
 
 void Server::move_player_by_fd(int fd,

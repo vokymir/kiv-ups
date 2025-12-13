@@ -53,7 +53,7 @@ public:
       body += " " + p->nick();
     }
 
-    return body;
+    return build_message(body);
   }
   static std::string LEAVE(std::shared_ptr<Player> p) {
     std::string body = "LEAVE " + p->nick();
