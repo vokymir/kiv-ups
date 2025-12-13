@@ -1,5 +1,6 @@
 #pragma once
 
+#include <string>
 namespace prsi {
 
 struct Card {
@@ -34,6 +35,8 @@ struct Card {
 
     return valid_rank && valid_suit;
   }
+
+  std::string to_string() const { return std::string{suit_} + rank_; }
 };
 
 } // namespace prsi

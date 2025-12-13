@@ -71,7 +71,12 @@ public:
   // = game messages
   static std::string GAME_START() { return build_message("GAME_START"); }
   static std::string HAND(std::shared_ptr<Player> p) {
-    std::string body = "HAND ";
+    auto &hand = p->hand();
+    std::string body = "HAND " + std::to_string(hand.size());
+
+    for (const auto &c : hand) {
+      body += " " + c.to_string();
+    }
 
     return build_message(body);
   }
@@ -79,8 +84,7 @@ public:
     std::string body = "TURN ";
     body += turn.name_ + " ";
 
-    body += "TOP ";
-    // TODO: add top card
+    body += "TOP " + turn.card_.to_string();
 
     return build_message(body);
   }

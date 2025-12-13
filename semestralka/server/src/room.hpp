@@ -68,8 +68,7 @@ public:
   int current_player_idx() { return current_player_idx_ % players_.size(); }
   Turn current_turn();
 
-  void shuffle_deck(); // TODO:
-
+  void shuffle_deck();
   void generate_deck();
 
   // remove card from deck, ensure there exist at least one, otherwise shuffle
