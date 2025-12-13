@@ -1,4 +1,5 @@
 #include "server.hpp"
+#include "card.hpp"
 #include "config.hpp"
 #include "logger.hpp"
 #include "player.hpp"
@@ -34,6 +35,7 @@ const std::unordered_map<std::string, Server::Handler> Server::handlers_ = {
     {"LEAVE_ROOM", &Server::handle_leave_room},
     {"ROOM_INFO", &Server::handle_room_info},
     {"STATE", &Server::handle_state},
+    {"PLAY", &Server::handle_play},
 };
 
 // other
@@ -801,6 +803,62 @@ void Server::handle_state(const std::vector<std::string> &msg,
 
   p->append_msg(Protocol::STATE(*this, p));
   Logger::info("{} sent state.", Logger::more(p));
+}
+
+void Server::handle_play(const std::vector<std::string> &msg,
+                         std::shared_ptr<Player> p) {
+  if (msg.size() != 2) {
+    Logger::error("{} Invalid PLAY", Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  auto loc = where_player(p);
+  if (loc.state_ != Player_State::GAME) {
+    Logger::info(
+        "{} tried to play card when not in game state => disconnecting.",
+        Logger::more(p));
+
+    terminate_player(p);
+    return;
+  }
+
+  auto room = loc.room_.lock();
+  if (!room) {
+    Logger::warn("{} tried to play in non-existing room? disconnecting",
+                 Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  if (room->state() != Room_State::PLAYING) {
+    Logger::warn("{} tried to play in room which is not playing, disconnecting",
+                 Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  if (room->current_turn().name_ != p->nick()) {
+    Logger::warn("{} tried to play when not on turn, disconnecting",
+                 Logger::more(p));
+    terminate_player(p);
+    return;
+  }
+
+  Card c{msg[1][0], msg[1][1]};
+
+  if (!room->play_card(c)) {
+    Logger::warn(
+        "{} tried to play card which cannot be played ({}), disconnecting",
+        Logger::more(p), c.to_string());
+    terminate_player(p);
+    return;
+  }
+
+  p->append_msg(Protocol::OK_PLAY());
+  broadcast_to_room(room, Protocol::PLAYED(p, c), {p->fd()});
+
+  Logger::info("{} played card={}", Logger::more(p), c.to_string());
 }
 
 void Server::move_player_by_fd(int fd,

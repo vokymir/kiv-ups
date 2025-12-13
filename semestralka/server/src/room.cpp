@@ -1,5 +1,6 @@
 #include "room.hpp"
 #include "card.hpp"
+#include "logger.hpp"
 #include <array>
 #include <random>
 #include <vector>
@@ -35,7 +36,7 @@ Turn Room::current_turn() {
   t.name_ = players_[current_player_idx()]->nick();
 
   // top card
-  auto top = pile_.back();
+  auto top = top_card();
   t.card_.rank_ = top.rank_;
   t.card_.suit_ = top.suit_;
 
@@ -110,6 +111,35 @@ void Room::shuffle_deck() {
   for (auto &c : tmp) {
     deck_.push(c);
   }
+}
+
+bool Room::play_card(const Card &c) {
+  auto p = current_player();
+  if (!p->have_card(c)) {
+    Logger::warn("{} tried to play card, but didn't have it in hand ({}).",
+                 Logger::more(p), c.to_string());
+    return false;
+  }
+
+  auto &top = top_card();
+
+  // change suit
+  if (c.rank_ == 'Q') {
+    p->remove_card(c);
+    pile_.emplace(c);
+    current_player_idx_++;
+    return true;
+  }
+
+  // normal card
+  if (c.rank_ != top.rank_ && c.suit_ != top.suit_) {
+    return false;
+  }
+
+  p->remove_card(c);
+  pile_.emplace(c);
+  current_player_idx_++;
+  return true;
 }
 
 } // namespace prsi

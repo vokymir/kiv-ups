@@ -66,6 +66,7 @@ public:
 
   // safe wrapper
   int current_player_idx() { return current_player_idx_ % players_.size(); }
+  std::shared_ptr<Player> current_player();
   Turn current_turn();
 
   void shuffle_deck();
@@ -75,6 +76,12 @@ public:
   // remove card from deck, ensure there exist at least one, otherwise shuffle
   // from pile
   Card deal_card();
+  const Card &top_card() { return pile_.back(); }
+
+  // current player play this card. if not possible return false, otherwise true
+  // change current_player
+  // WARN: WON'T evaluate A/7
+  bool play_card(const Card &c);
 };
 
 } // namespace prsi

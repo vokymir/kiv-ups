@@ -1,5 +1,6 @@
 #pragma once
 
+#include "card.hpp"
 #include "player.hpp"
 #include "room.hpp"
 #include "server.hpp"
@@ -128,6 +129,13 @@ public:
     return build_message(body);
   }
 
+  static std::string PLAYED(std::shared_ptr<Player> p, const Card &c) {
+    std::string body = "PLAYED " + p->nick();
+    body += " " + c.to_string();
+
+    return build_message(body);
+  }
+
   static std::string WIN() { return build_message("WIN"); }
 
   // = ok messages
@@ -137,6 +145,7 @@ public:
     return build_message("OK CREATE_ROOM");
   }
   static std::string OK_LEAVE_ROOM() { return build_message("OK LEAVE_ROOM"); }
+  static std::string OK_PLAY() { return build_message("OK PLAY"); }
 
   // = fail messages
   static std::string FAIL_JOIN_ROOM() {
