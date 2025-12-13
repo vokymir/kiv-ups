@@ -167,6 +167,7 @@ private:
   int ping_timeout_ms_;
   int sleep_timeout_ms_;
   int death_timeout_ms_;
+  int players_in_game_ = 2;
 };
 
 } // namespace prsi

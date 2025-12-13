@@ -69,6 +69,22 @@ public:
   }
 
   // = game messages
+  static std::string GAME_START() { return build_message("GAME_START"); }
+  static std::string HAND(std::shared_ptr<Player> p) {
+    std::string body = "HAND ";
+
+    return build_message(body);
+  }
+  static std::string TURN(const Turn &turn) {
+    std::string body = "TURN ";
+    body += turn.name_ + " ";
+
+    body += "TOP ";
+    // TODO: add top card
+
+    return build_message(body);
+  }
+
   static std::string WIN() { return build_message("WIN"); }
 
   // = ok messages

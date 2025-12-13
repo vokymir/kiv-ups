@@ -1,7 +1,9 @@
 #pragma once
 
 #include "player.hpp"
+#include <cstddef>
 #include <memory>
+#include <string>
 #include <vector>
 namespace prsi {
 
@@ -23,6 +25,11 @@ constexpr std::string to_string(Room_State s) {
   return "UNKNOWN";
 }
 
+struct Turn {
+  std::string name_;
+  // TODO: top card
+};
+
 class Room {
   static int new_room_id_;
 
@@ -43,6 +50,15 @@ public:
   void state(Room_State s) { state_ = s; }
 
   std::vector<std::shared_ptr<Player>> &players() { return players_; }
+
+  bool should_begin_game(size_t required_players) {
+    return state_ == Room_State::OPEN && (players_.size() == required_players);
+  }
+
+  // prepare game = deal cards & prepare pile/deck
+  void setup_game(); // TODO:
+
+  Turn current_turn(); // TODO:
 };
 
 } // namespace prsi

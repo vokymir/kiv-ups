@@ -651,7 +651,21 @@ void Server::handle_join_room(const std::vector<std::string> &msg,
 
   Logger::info("{} joined room id={}.", Logger::more(p), room->id());
 
-  // TODO: what if the room is full & game should start?
+  // start game ==> server takes over control
+  if (room->should_begin_game(players_in_game_)) {
+    room->state(Room_State::PLAYING);
+    broadcast_to_room(room, Protocol::GAME_START(), {});
+
+    room->setup_game();
+
+    // show everyone hand
+    for (auto p : room->players()) {
+      p->append_msg(Protocol::HAND(p));
+    }
+
+    // show everyone turn
+    broadcast_to_room(room, Protocol::TURN(room->current_turn()), {});
+  }
 }
 
 void Server::handle_create_room(const std::vector<std::string> &msg,
