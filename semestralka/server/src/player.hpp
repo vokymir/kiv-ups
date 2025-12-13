@@ -1,6 +1,8 @@
 #pragma once
 
+#include "card.hpp"
 #include <chrono>
+#include <list>
 #include <memory>
 #include <stdexcept>
 #include <string>
@@ -37,6 +39,8 @@ private:
   Server &server_;
   std::string read_buffer_;
   std::string write_buffer_;
+
+  std::list<Card> hand_;
 
   // time of last sent ping
   std::chrono::steady_clock::time_point last_ping_;
@@ -84,6 +88,8 @@ public:
     }
     nick_ = nick;
   }
+
+  std::list<Card> &hand() { return hand_; }
 
   // helper
 
