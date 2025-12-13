@@ -84,7 +84,7 @@ std::vector<std::string> Player::complete_recv_msg() {
   return Protocol::extract_message(read_buffer_);
 }
 void Player::set_last_pong(std::chrono::steady_clock::time_point time) {
-  if (sleep_intensity_ > 0) {
+  if (did_sleep_times_ > 0) {
     // if is in room, tell others that now i am awake
     std::shared_ptr<Player> p{this};
     auto loc = server_.where_player(p);
@@ -93,7 +93,7 @@ void Player::set_last_pong(std::chrono::steady_clock::time_point time) {
       server_.broadcast_to_room(r, Protocol::AWAKE(p), {fd_});
     }
   }
-  sleep_intensity_ = 0;
+  did_sleep_times_ = 0;
   last_pong_ = time;
 };
 

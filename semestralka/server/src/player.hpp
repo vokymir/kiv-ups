@@ -43,7 +43,7 @@ private:
   // time of last received pong
   std::chrono::steady_clock::time_point last_pong_;
   // how many sleep cycles were experienced without pong
-  int sleep_intensity_ = 0;
+  int did_sleep_times_ = 0;
 
 public:
   // read from socket into read_buffer
@@ -69,8 +69,8 @@ public:
   std::chrono::steady_clock::time_point get_last_pong() const {
     return last_pong_;
   }
-  int did_sleep_times() const { return sleep_intensity_; }
-  void did_sleep_times(int si) { sleep_intensity_ = si; }
+  int did_sleep_times() const { return did_sleep_times_; }
+  void did_sleep_times(int si) { did_sleep_times_ = si; }
 
   // get/set
 public:
