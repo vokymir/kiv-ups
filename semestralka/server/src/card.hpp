@@ -4,8 +4,8 @@
 namespace prsi {
 
 struct Card {
-  char rank_;
-  char suit_;
+  char rank_ = 'N'; // invalid
+  char suit_ = 'N';
 
   Card() {}
   Card(char suit, char rank) : rank_(rank), suit_(suit) {}
