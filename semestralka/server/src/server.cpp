@@ -695,7 +695,7 @@ void Server::handle_create_room(const std::vector<std::string> &msg,
   }
 
   // create new room
-  rooms_.emplace_back(std::make_shared<Room>());
+  rooms_.emplace_back(std::make_shared<Room>(start_hand_size_, max_hand_size_));
   auto room = rooms_.back();
   Logger::info("{} New room id={} was created and joined", Logger::more(p),
                room->id());
@@ -902,6 +902,18 @@ void Server::handle_play(const std::vector<std::string> &msg,
     broadcast_to_room(room, Protocol::DRAWED(np, 2), {np->fd()});
     // skip the player
     room->advance_player();
+
+    // is this end of game?
+    auto w = room->get_winner();
+    auto win = w.lock();
+    if (win) {
+      win->append_msg(Protocol::WIN());
+      broadcast_to_room(room, Protocol::LOSE(), {win->fd()});
+      room->state(Room_State::FINISHED);
+
+      // return control to clients
+      return;
+    }
   }
 
   // next turn
@@ -958,6 +970,18 @@ void Server::handle_draw(const std::vector<std::string> &msg,
   // send it to people
   p->append_msg(Protocol::CARDS({c}));
   broadcast_to_room(room, Protocol::DRAWED(p, 1), {p->fd()});
+
+  // is this end of game?
+  auto w = room->get_winner();
+  auto win = w.lock();
+  if (win) {
+    win->append_msg(Protocol::WIN());
+    broadcast_to_room(room, Protocol::LOSE(), {win->fd()});
+    room->state(Room_State::FINISHED);
+
+    // return control to clients
+    return;
+  }
 
   // next turn
   room->advance_player();

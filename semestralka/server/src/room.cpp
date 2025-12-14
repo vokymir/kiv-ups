@@ -19,7 +19,7 @@ void Room::setup_game() {
   // deal cards to players
   for (auto &p : players()) {
     auto &hand = p->hand();
-    for (int i = 0; i < 4; i++) {
+    for (int i = 0; i < start_hand_size_; i++) {
       hand.push_front(deal_card());
     }
   }
@@ -146,9 +146,18 @@ bool Room::play_card(const Card &c) {
 std::weak_ptr<Player> Room::get_winner() {
   std::weak_ptr<Player> winner;
 
-  for (auto &p : players_) {
+  for (int i = 0; i < players_.size(); i++) {
+    auto p = players_[i];
+    auto other = players_[players_.size() - i - 1];
+
+    // get winner
     if (p->hand().size() == 0) {
       winner = p;
+      break;
+
+      // get loser
+    } else if (p->hand().size() > max_hand_size_) {
+      winner = other;
       break;
     }
   }

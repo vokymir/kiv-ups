@@ -174,6 +174,8 @@ private:
   int sleep_timeout_ms_;
   int death_timeout_ms_;
   int players_in_game_ = 2;
+  int start_hand_size_ = 4;
+  int max_hand_size_ = 9;
 };
 
 } // namespace prsi

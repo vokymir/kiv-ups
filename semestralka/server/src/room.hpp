@@ -43,9 +43,12 @@ private:
   std::queue<Card> deck_; // drawing deck
   std::queue<Card> pile_; // throw-away pile
   int current_player_idx_ = -1;
+  int start_hand_size_ = -1;
+  int max_hand_size_ = 9;
 
 public:
-  Room(int id = -1) : id_(id) {
+  Room(int shs, int mhs, int id = -1)
+      : id_(id), start_hand_size_(shs), max_hand_size_(mhs) {
     if (id_ == -1) {
       id_ = new_room_id_++;
     }
