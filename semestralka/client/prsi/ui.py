@@ -98,8 +98,8 @@ class PrsiApp(tk.Tk):
 
         # Update buttons depending on context
         if page_name == "LoginFrame":
-            self.btn_rules.place_forget() # Hide help on login
-        else:
+            # self.btn_rules.place_forget() # Hide help on login
+        # else:
             self.btn_rules.place(x=config.WINDOW_WIDTH - 50, y=10)
 
     def show_rules(self) -> None:
