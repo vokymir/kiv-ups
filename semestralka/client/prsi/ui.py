@@ -115,9 +115,14 @@ class LoginFrame(tk.Frame):
         super().__init__(parent, bg=config.BG_COLOR)
         self.app: PrsiApp = app
 
-        # Center Frame using place() with anchor for responsiveness
+        # --- Centering Fix: Use grid weights ---
+        # 1. Configure rows and columns to expand, ensuring the content is pushed to the center.
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+
         center_frame: tk.Frame = tk.Frame(self, bg=config.BG_COLOR)
-        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+        # 2. Place the center_frame in the grid without sticky, allowing it to naturally center.
+        center_frame.grid(row=0, column=0)
 
         tk.Label(center_frame, text="PRŠÍ ONLINE", font=("Helvetica", 32, "bold"),
                  bg=config.BG_COLOR, fg=config.TEXT_COLOR).pack(pady=30)
