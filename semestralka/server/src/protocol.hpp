@@ -91,8 +91,11 @@ public:
     body += "PLAYERS " + std::to_string(r->players().size());
     for (const auto &p : r->players()) {
       body += " " + p->nick();
+
       std::string status = p->did_sleep_times() == 0 ? "AWAKE" : "SLEEP";
       body += " " + status;
+
+      body += std::to_string(p->hand().size()) + " ";
     }
 
     return build_message(body);
