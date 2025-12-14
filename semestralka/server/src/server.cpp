@@ -847,6 +847,13 @@ void Server::handle_play(const std::vector<std::string> &msg,
 
   Card c{msg[1][0], msg[1][1]};
 
+  if (!c.is_valid()) {
+    Logger::warn("{} tried to play invalid card ({}), disconnecting",
+                 Logger::more(p), c.to_string());
+    terminate_player(p);
+    return;
+  }
+
   if (!room->play_card(c)) {
     Logger::warn(
         "{} tried to play card which cannot be played ({}), disconnecting",
