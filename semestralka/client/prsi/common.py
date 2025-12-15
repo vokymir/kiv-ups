@@ -24,3 +24,5 @@ class Client_Dummy:
         pass
     def leave_room(self) -> None:
         pass
+    def play_card(self, _card_name: str) -> None:
+        pass

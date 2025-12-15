@@ -347,13 +347,43 @@ class Game_Screen(tk.Frame):
         """
         Show opponents cards - only their backs
         """
-        pass
+        card_back_img: ImageTk.PhotoImage = self.ui.img_loader.get_image(CARD_BACK)
+
+        overlap: float = 0.6
+        x_pos: int = 0
+
+        for i in range(count):
+            label: tk.Label = tk.Label(frame, image=card_back_img,
+                    bg=TABLE_COLOR, bd=0)
+            label.place(x=x_pos, y=0)
+            x_pos += int(CARD_WIDTH * overlap)
+
+        # adjust frame size to fit all cards
+        w: int = x_pos - int(CARD_WIDTH * overlap) + CARD_WIDTH
+        _ = frame.config(width=w, height=CARD_HEIGHT)
 
     def _update_pile(self, top_card: str) -> None:
-        pass
+        pile_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(top_card)
+        self.pile_label.config(image=pile_image, width=CARD_WIDTH, height=CARD_HEIGHT)
+        # TODO: keep reference to pile image?
 
     def update_hand(self, hand: list[str]) -> None:
-        pass
+        # clear existing cards
+        for widget in self.player_hand_F.winfo_children():
+            widget.destroy()
+
+        # center the hand
+        _ = self.player_hand_F.grid_columnconfigure(0, weight=1)
+
+        # redraw
+        for i, card_name in enumerate(hand):
+            card_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(card_name)
+
+            # clickable card
+            card_btn: tk.Button = tk.Button(self.player_hand_F,
+                image=card_image, command=lambda name=card_name:\
+                self.client.play_card(name),bg=BG_COLOR, bd=1, relief=tk.RAISED)
+            card_btn.grid(row=0, column=i, padx=PAD_X//2)
 
 
 
