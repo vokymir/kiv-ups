@@ -3,7 +3,7 @@ from tkinter import messagebox
 import queue
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_NAME, CMD_PONG
+from prsi.config import CMD_NAME, CMD_PONG, CMD_ROOMS
 
 
 class Client:
@@ -20,6 +20,10 @@ class Client:
         # ui
         self.ui: Ui = Ui(self)
 
+        # stuff
+        # TODO: player/rooms?
+        self.rooms = {}
+
         _ = self.ui.after(100, self.process_incoming_messages)
         print("[Client] Initialization complete. Ready to run.")
 
@@ -31,13 +35,19 @@ class Client:
 
     # ui -> net
 
-    def connect(self, ip: str, port: int, username: str):
+    def connect(self, ip: str, port: int, username: str) -> None:
         if not(self.net.connect(ip, str(port))):
             _ = messagebox.showerror("Server", "Cannot connect to the server.")
             return
 
         self.net.send_command(CMD_NAME + " " + username)
         _ = messagebox.showinfo("Server", "Trying to connect.")
+
+    def rooms(self) -> None:
+        """
+        Ask server for rooms
+        """
+        self.net.send_command(CMD_ROOMS)
 
     # net -> ui
 
@@ -77,6 +87,7 @@ class Client:
             case "OK":
                 return
             case "ROOMS":
+                # TODO: here update ui
                 # update lobby
                 pass
             case "ROOM":
