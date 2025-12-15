@@ -1,3 +1,51 @@
+from prsi.config import ST_UNNAMED
+
+class Card:
+    def __init__(self, suit: str = "N", rank: str = "N") -> None:
+        self.suit: str = suit
+        self.rank: str = rank
+
+    def valid(self) -> bool:
+        valid_suit: bool = False
+        valid_rank: bool = False
+        match self.suit:
+            case 'L':
+                valid_suit = True
+            case 'Z':
+                valid_suit = True
+            case 'K':
+                valid_suit = True
+            case 'S':
+                valid_suit = True
+            case _:
+                valid_suit = False
+        match self.rank:
+            case '7':
+                valid_rank = True
+            case '8':
+                valid_rank = True
+            case '9':
+                valid_rank = True
+            case '0':
+                valid_rank = True
+            case 'J':
+                valid_rank = True
+            case 'Q':
+                valid_rank = True
+            case 'K':
+                valid_rank = True
+            case 'A':
+                valid_rank = True
+            case _:
+                valid_rank = False
+
+        return (valid_suit and valid_rank)
+
+class Player:
+    def __init__(self, nick: str, state: str = ST_UNNAMED) -> None:
+        self.nick: str = nick
+        self.state: str = state
+        self.hand: list[Card] = []
 
 class Room:
     def __init__(self, id: int, state: str) -> None:
@@ -26,3 +74,5 @@ class Client_Dummy:
         pass
     def play_card(self, _card_name: str) -> None:
         pass
+
+

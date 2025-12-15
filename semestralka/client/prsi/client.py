@@ -4,7 +4,7 @@ import queue
 from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOMS, FN_LOBBY, FN_LOGIN
+from prsi.config import CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOMS, FN_LOBBY, FN_LOGIN
 from prsi.common import Client_Dummy, Room
 
 class Client(Client_Dummy):
@@ -17,6 +17,10 @@ class Client(Client_Dummy):
 
         # stuff
         self.known_rooms_: list[Room] = []
+        self.should_play_: bool = False
+
+        # Already Sent DRAW
+        self.as_draw: bool = False
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -56,6 +60,7 @@ class Client(Client_Dummy):
         """
         Ask server for rooms
         """
+        if ()
         self.net.send_command(CMD_ROOMS)
 
     @override
@@ -66,6 +71,13 @@ class Client(Client_Dummy):
     def disconnect(self) -> None:
         self.net.disconnect()
         self.ui.switch_frame(FN_LOGIN)
+
+    @override
+    def draw_card(self) -> None:
+        if (not self.should_play_):
+            self.ui.show_temp_message("It's not your turn.")
+            return
+        self.net.send_command(CMD_DRAW)
 
     # net -> ui
 

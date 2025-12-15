@@ -52,7 +52,13 @@ CMD_JOIN = "JOIN_ROOM"
 CMD_LEAVE_ROOM = "LEAVE_ROOM"
 
 # == game
+CMD_DRAW = "DRAW"
 
+# == client states:
+ST_UNNAMED = "UNNAMED"
+ST_LOBBY = "LOBBY"
+ST_ROOM = "ROOM"
+ST_GAME = "GAME"
 
 # rules - we will see about that
 RULES_TEXT = {
