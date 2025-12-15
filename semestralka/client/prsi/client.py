@@ -11,7 +11,7 @@ except ImportError:
 
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM
+from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PLAY, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM
 from prsi.common import Card, Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
@@ -33,6 +33,7 @@ class Client(Client_Dummy):
 
         # Already Sent DRAW
         self.as_draw: bool = False
+        self.as_play: bool = False
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -177,6 +178,22 @@ class Client(Client_Dummy):
             return
         self.ui.show_temp_message("It's not your turn.")
 
+    @override
+    def play_card(self, card: Card) -> None:
+        if (self.player and self.player.state == ST_GAME and\
+            self.room and self.room.turn and (not self.as_play)):
+            if (card.rank == "Q" or\
+                card.rank == self.room.top_card.rank or\
+                card.suit == self.room.top_card.suit):
+                self.net.send_command(CMD_PLAY + " " + card.__str__())
+                self.as_play = True
+            else:
+                self.ui.show_temp_message("You cannot play this.")
+        else:
+            self.ui.show_temp_message("You cannot play.")
+
+
+
     # net -> ui
 
     def process_incoming_messages(self) -> None:
@@ -231,6 +248,8 @@ class Client(Client_Dummy):
                     self.ui.room_frame.draw_opponent_name(op.nick)
                 self.ui.switch_frame(FN_ROOM)
             case "GAME_START":
+                if (self.player):
+                    self.player.state = ST_GAME
                 # to get the other player
                 self.net.send_command(CMD_ROOM)
             case "HAND":
@@ -239,8 +258,9 @@ class Client(Client_Dummy):
                     self.ui.room_frame.update_hand(self.player.hand)
             case "TURN":
                 self.parse_turn_message(parts)
-                # update current turn, top card
-                pass
+                top: Card | None = self.get_top_card()
+                if (top):
+                    self.ui.room_frame.update_pile(top.__str__())
             case "PLAYED":
                 # show what other player did
                 pass

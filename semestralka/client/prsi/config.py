@@ -54,6 +54,7 @@ CMD_ROOM = "ROOM_INFO"
 CMD_LEAVE_ROOM = "LEAVE_ROOM"
 
 # == game
+CMD_PLAY = "PLAY"
 CMD_DRAW = "DRAW"
 
 # == client states:
