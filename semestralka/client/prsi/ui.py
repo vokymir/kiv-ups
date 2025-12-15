@@ -298,7 +298,7 @@ class Game_Screen(tk.Frame):
         self.player_hand_F: tk.Frame
         # label for the top card on pile
         self.pile_label: tk.Label
-        self.pile_img: ImageTk.PhotoImage
+        self.pile_img: ImageTk.PhotoImage | None = None
 
         # setup layout
         _ = self.grid_columnconfigure(0, weight=1)
@@ -344,8 +344,7 @@ class Game_Screen(tk.Frame):
         # = pile (top card)
         self.pile_label = tk.Label(middle_frame, bg=TABLE_COLOR, bd=1, relief=tk.SOLID)
         self.pile_label.grid(row=0, column=1, padx=PAD_X * 2, pady=PAD_Y * 2)
-        top_card: Card = self.client.get_top_card()
-        self.update_pile(top_card.__str__())
+        self.update_pile()
 
         # bottom area
         bottom_frame: tk.Frame = tk.Frame(self, bg=BG_COLOR)
@@ -415,9 +414,10 @@ class Game_Screen(tk.Frame):
         w: int = x_pos - int(CARD_WIDTH * overlap) + CARD_WIDTH
         _ = self.opponent_hand_F.config(width=w, height=CARD_HEIGHT)
 
-    def update_pile(self, top_card: str) -> None:
-        self.pile_img: ImageTk.PhotoImage = self.ui.img_loader.get_image(
-            top_card + ".jpeg")
+    def update_pile(self) -> None:
+        top_card: Card = self.client.get_top_card()
+        self.pile_img = self.ui.img_loader.get_image(
+            top_card.__str__() + ".jpeg")
         _ = self.pile_label.config(image=self.pile_img,
                                 width=CARD_WIDTH, height=CARD_HEIGHT)
 

@@ -264,9 +264,8 @@ class Client(Client_Dummy):
                     self.ui.room_frame.update_hand(self.player.hand)
             case "TURN":
                 self.parse_turn_message(parts)
-                top: Card | None = self.get_top_card()
-                if (top):
-                    self.ui.room_frame.update_pile(top.__str__())
+                if (self.ui):
+                    self.ui.room_frame.update_pile()
             case "PLAYED":
                 # show what other player did
                 pass
