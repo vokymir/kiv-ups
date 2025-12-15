@@ -2,7 +2,7 @@ import queue
 import socket
 import threading
 
-from semestralka.client.prsi.config import BUF_SIZE, PROTO_DELIM, PROTO_MAGIC
+from prsi.config import BUF_SIZE, PROTO_DELIM, PROTO_MAGIC
 
 Queue_Message = tuple[str, str|None]
 QM_ERROR: str = "ERROR"

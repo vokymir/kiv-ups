@@ -2,7 +2,6 @@ import tkinter as tk
 
 from prsi import config
 
-
 class Client: pass # forward declare
 
 class Ui(tk.Tk):
