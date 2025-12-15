@@ -8,8 +8,8 @@ import curses
 from datetime import datetime
 
 # --- CONFIGURATION ---
-SERVER_IP = "127.0.0.1"  # Change this to your target IP
-SERVER_PORT = 42690       # Change this to your target PORT
+SERVER_IP = "147.228.67.112"  # Change this to your target IP
+SERVER_PORT = 3507       # Change this to your target PORT
 LOG_FILE = "client_traffic.log"
 
 # --- PROTOCOL CONSTANTS ---
