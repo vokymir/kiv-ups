@@ -5,7 +5,7 @@ from tkinter import Image, messagebox
 from PIL import Image, ImageTk
 
 # hehe
-from prsi.config import ACCENT_COLOR, APP_TITLE, BG_COLOR, CARD_BACK, CARD_BG, DEFAULT_IP, DEFAULT_PORT, FN_LOGIN, FN_LOBBY, FN_ROOM, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, PAD_X, PAD_Y, TABLE_COLOR, TEXT_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
+from prsi.config import ACCENT_COLOR, APP_TITLE, ASSETS_DIR, BG_COLOR, CARD_BACK, CARD_BG, CARD_HEIGHT, CARD_WIDTH, DEFAULT_IP, DEFAULT_PORT, FN_LOGIN, FN_LOBBY, FN_ROOM, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, PAD_X, PAD_Y, TABLE_COLOR, TEXT_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
 from prsi.common import Client_Dummy, Room
 
 class Img_Loader:
@@ -46,6 +46,7 @@ class Ui(tk.Tk):
     def __init__(self, client: Client_Dummy) -> None:
         super().__init__()
         self.client: Client_Dummy = client
+        self.img_loader: Img_Loader = Img_Loader(CARD_WIDTH, CARD_HEIGHT, ASSETS_DIR)
         print("[UI] Initializing Tkinter root window (Ui)...")
 
         self.title(APP_TITLE)
@@ -311,7 +312,7 @@ class Game_Screen(tk.Frame):
         _ = middle_frame.grid_columnconfigure(2, weight=1)
 
         # = deck
-        deck_image: ImageTk.PhotoImage = self.master.img_loader.get_image("back")
+        deck_image: ImageTk.PhotoImage = self.ui.img_loader.get_image("back")
 
     def _draw_opponent_cards(self, frame: tk.Frame, count: int) -> None:
         """
