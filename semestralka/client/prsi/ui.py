@@ -381,7 +381,8 @@ class Game_Screen(tk.Frame):
 
         # redraw
         for i, card in enumerate(hand):
-            card_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(card.__str__())
+            card_image: ImageTk.PhotoImage =\
+                self.ui.img_loader.get_image(card.__str__() + ".jpeg")
 
             # clickable card
             card_btn: tk.Button = tk.Button(self.player_hand_F,
