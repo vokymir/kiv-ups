@@ -83,6 +83,23 @@ class Client(Client_Dummy):
 
     # ui -> net
 
+    # == any time
+
+    @override
+    def disconnect(self) -> None:
+        """
+        AS=none
+        """
+        self.net.disconnect()
+
+        self.player = None
+        self.room = None
+        self.known_rooms_ = []
+
+        self.ui.switch_frame(FN_LOGIN)
+
+    # == unnamed
+
     @override
     def connect(self, ip: str, port: int, username: str) -> None:
         if not(self.net.connect(ip, str(port))):
@@ -92,6 +109,8 @@ class Client(Client_Dummy):
         self.net.send_command(CMD_NAME + " " + username)
         self.player = Player(username) # save username here - after dont have it
         self.ui.show_temp_message("Trying to connect.", 1000)
+
+    # == lobby
 
     @override
     def rooms(self) -> None:
@@ -121,18 +140,10 @@ class Client(Client_Dummy):
             return
         self.ui.show_temp_message("Cannot join room when not in lobby")
 
-    @override
-    def disconnect(self) -> None:
-        """
-        AS=none
-        """
-        self.net.disconnect()
+    # == room
 
-        self.player = None
-        self.room = None
-        self.known_rooms_ = []
 
-        self.ui.switch_frame(FN_LOGIN)
+    # == game
 
     @override
     def draw_card(self) -> None:
@@ -181,23 +192,7 @@ class Client(Client_Dummy):
 
         match cmd:
             case "OK":
-                if (len(parts) > 1):
-                    match parts[1]:
-                        case "NAME":
-                            if (not self.player):
-                                self.ui.show_temp_message("WEIRD BUG #1")
-                                self.disconnect()
-                            else:
-                                self.player.state = ST_LOBBY
-                            self.net.send_command(CMD_ROOMS)
-                        case "JOIN_ROOM":
-                            self.net.send_command(CMD_ROOM)
-                        case "CREATE_ROOM":
-                            self.net.send_command(CMD_ROOM)
-                        case _:
-                            pass
-
-                return
+                self.parse_ok_message(parts)
             case "FAIL":
                 self.ui.show_temp_message(f"ERROR: {msg}",10000)
             case "ROOMS":
@@ -254,6 +249,26 @@ class Client(Client_Dummy):
                 pass
             case _:
                 self.ui.show_temp_message("Received unknown message from server.")
+
+    def parse_ok_message(self, msg: list[str]) -> None:
+        if (len(msg) > 1):
+            match msg[1]:
+                case "NAME":
+                    if (not self.player):
+                        self.ui.show_temp_message("WEIRD BUG #1")
+                        self.disconnect()
+                    else:
+                        self.player.state = ST_LOBBY
+                    self.net.send_command(CMD_ROOMS)
+                case "JOIN_ROOM":
+                    self.net.send_command(CMD_ROOM)
+                case "CREATE_ROOM":
+                    self.net.send_command(CMD_ROOM)
+                case _:
+                    pass
+
+        return
+
 
     def parse_rooms_message(self, msg: list[str]) -> None:
         try:
