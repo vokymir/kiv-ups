@@ -1,36 +1,36 @@
-from typing import Final, TypedDict
+# --- Network Defaults ---
+DEFAULT_IP = "127.0.0.1"
+DEFAULT_PORT = 12345
 
-TITLE: Final[str] = "Prší TCP Client"
-WINDOW_GEOMETRY: Final[str] = "800x600"
+# --- UI Constants ---
+WINDOW_WIDTH = 1024
+WINDOW_HEIGHT = 768
+APP_TITLE = "Prší Client"
 
-SERVER: Final[str] = "127.0.0.1"
-PORT: Final[int] = 3507
+# --- Colors ---
+BG_COLOR = "#2C3E50"        # Dark Blue/Grey
+TABLE_COLOR = "#27ae60"     # Forest Green (Card table)
+ACCENT_COLOR = "#e74c3c"    # Red
+TEXT_COLOR = "#ecf0f1"      # White
+CARD_BG = "#ffffff"
 
+# --- Card Settings ---
+CARD_WIDTH = 100
+CARD_HEIGHT = 145
+ASSETS_DIR = "assets"       # Folder where .jpg images are stored
 
-class Colors(TypedDict):
-    bg_main: str
-    bg_card: str
-    bg_input: str
-    bg_board: str
-    bg_top: str
-    fg_main: str
-    fg_accent: str
-    fg_muted: str
-    danger: str
+# --- Protocol / Game Constants ---
+# You can define your protocol constants here
+CMD_LOGIN = "LOGIN"
+CMD_JOIN = "JOIN"
+CMD_LEAVE_SERVER = "LEAVE_SRV"
+CMD_LEAVE_ROOM = "LEAVE_ROOM"
 
-
-COLORS: Final[Colors] = {
-    "bg_main": "#1a1a2e",
-    "bg_card": "#16213e",
-    "bg_input": "#0f3460",
-    "bg_board": "#1b262c",
-    "bg_top": "#151525",
-    "fg_main": "#e0e0e0",
-    "fg_accent": "#e94560",
-    "fg_muted": "#888",
-    "danger": "#e84118",
+# Placeholder rules text
+RULES_TEXT = {
+    "7": "Seventh: Next player must draw 2 cards or play another 7.",
+    "Ace": "Ace: You can skip the next player.",
+    "Svršek (Queen/Over)": "Change Suit: You can change the current suit.",
+    "Green King (King of Spades)": "Effect: Next player draws 5 cards!",
+    "Basic": "Must follow suit or rank."
 }
-
-FONT_TITLE: Final[tuple[str, int, str]] = ("Arial", 24, "bold")
-FONT_HEADER: Final[tuple[str, int, str]] = ("Arial", 20, "bold")
-FONT_LABEL: Final[tuple[str, int]] = ("Arial", 14)
