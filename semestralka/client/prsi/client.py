@@ -19,7 +19,7 @@ class Client:
         # ui
         self.ui: Ui = Ui(self)
 
-        self.ui.after(100, self.process_incoming_messages)
+        _ = self.ui.after(100, self.process_incoming_messages)
 
     def run(self) -> None:
         self.ui.mainloop()
