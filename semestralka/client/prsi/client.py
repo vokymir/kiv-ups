@@ -30,6 +30,7 @@ class Client(Client_Dummy):
         # = room
         self.room: Room | None = None
         # = game
+        self.last_played: Card | None = None
 
         # Already Sent DRAW/PLAY
         self.already_sent: bool = False
@@ -194,8 +195,9 @@ class Client(Client_Dummy):
 
     @override
     def play_card(self, card: Card) -> None:
-        print(f"room {self.room}\nturn:{self.room.turn}\nAS: {self.already_sent}")
         if (self.room and self.room.turn and (not self.already_sent)):
+            print(f"TOP: {self.room.top_card.__str__()}")
+            print(f"TRIED: {card.__str__()}")
             if (card.rank == "Q" or\
                 card.rank == self.room.top_card.rank or\
                 card.suit == self.room.top_card.suit):
@@ -317,6 +319,13 @@ class Client(Client_Dummy):
                     self.net.send_command(CMD_ROOM)
                 case "CREATE_ROOM":
                     self.net.send_command(CMD_ROOM)
+                case "PLAYED":
+                    # remove card from hand
+                    if (self.last_played and self.player):
+                        self.player.discard(self.last_played)
+                        self.ui.room_frame.update_hand(self.player.hand)
+                    self.last_played = None
+
                 case _:
                     pass
 
@@ -368,11 +377,11 @@ class Client(Client_Dummy):
 
             # set global my room
             if (self.room ):
-                # remember turn always
+                # always remember turn
                 room.turn = self.room.turn
-
-                # only copy top card if some mismatch
-                if (self.room.id == -1):
+                # only remember top card if new is invalid
+                if (room.top_card.suit == "N" or\
+                    room.top_card.rank == "N"):
                     room.top_card = self.room.top_card
 
             self.room = room
@@ -425,7 +434,6 @@ class Client(Client_Dummy):
             else:
                 self.room.top_card = card
 
-            print(f"TURN: {self.player and self.player.nick == name}")
             if (self.player and self.player.nick == name):
                 self.room.turn = True
                 _ = messagebox.showinfo("Your turn", "It's your time to shine.")

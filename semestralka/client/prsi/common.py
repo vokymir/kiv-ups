@@ -5,6 +5,7 @@ except ImportError:
     # Python <= 3.11
     from typing_extensions import override
 
+from typing import override
 from prsi.config import ST_UNNAMED
 
 class Card:
@@ -15,6 +16,12 @@ class Card:
     @override
     def __str__(self) -> str:
         return f"{self.suit}{self.rank}"
+
+    @override
+    def __eq__(self, other: object, /) -> bool:
+        if (not isinstance(other, Card)):
+            return False
+        return self.suit == other.suit and self.rank == other.rank
 
     def valid(self) -> bool:
         valid_suit: bool = False
@@ -60,6 +67,12 @@ class Player:
         self.hand: list[Card] = []
         # for other players
         self.n_cards: int = 0
+
+    def discard(self, card: Card) -> None:
+        for c in self.hand:
+            if (c.rank == card.rank and c.suit == card.suit):
+                self.hand.remove(c)
+                break
 
 class Room:
     def __init__(self, id: int, state: str) -> None:
