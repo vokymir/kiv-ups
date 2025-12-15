@@ -4,6 +4,8 @@ class Room:
         self.id: int = id
         self.state: str = state
 
+# to get rid of basedpyright errors
+# actual client inherits from this
 class Client_Dummy:
     def run(self) -> None:
         pass
