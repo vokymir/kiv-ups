@@ -104,9 +104,8 @@ class Client(Client_Dummy):
             case "OK":
                 return
             case "ROOMS":
-                # TODO: here update ui
-                # update lobby
-                pass
+                self.parse_rooms_message(parts)
+                self.ui.refresh_lobby()
             case "ROOM":
                 # update room
                 pass
@@ -153,6 +152,29 @@ class Client(Client_Dummy):
                 pass
             case _:
                 _ = messagebox.showerror("Unknown message received:",msg)
+
+    def parse_rooms_message(self, msg: list[str]) -> None:
+        try:
+            count: int = int(msg[1])
+            rooms: list[Room] = []
+
+            beg_idx: int = 2 # skip cmd, count
+            ris: int = 2 # room info size
+            for i in range(beg_idx, beg_idx + count * ris, ris):
+                rooms.append(
+                    Room(
+                        int(msg[i]),
+                        msg[i+1]
+                ))
+
+            # replace with new rooms
+            self.known_rooms_ = rooms
+
+        except Exception as e:
+            print(f"[PROTO] invalid rooms message received ({" ".join(msg)})\
+            resulting in: {e}")
+            _ = messagebox.showerror("Refresh", "Couldn't refresh.")
+
 
 
 

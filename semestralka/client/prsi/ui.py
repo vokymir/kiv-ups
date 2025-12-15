@@ -25,7 +25,11 @@ class Ui(tk.Tk):
 
         # holder for all frames
         self.frames: dict[str, tk.Frame] = {}
-        self.frames["login"] = Login_Screen(container, self, client)
+        self.login_frame: Login_Screen = Login_Screen(container, self, client)
+        self.lobby_frame: Lobby_Screen = Lobby_Screen(container, self, client)
+
+        self.frames["login"] = self.login_frame
+        self.frames["lobby"] = self.lobby_frame
 
         for frame in self.frames.values():
             frame.grid(row=0, column=0, sticky="nsew")
@@ -43,6 +47,9 @@ class Ui(tk.Tk):
             return
 
         frame.tkraise()
+
+    def refresh_lobby(self) -> None:
+        self.lobby_frame.refresh_room_list()
 
 class Login_Screen(tk.Frame):
     def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client_Dummy) -> None:
