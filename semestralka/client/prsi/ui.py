@@ -48,6 +48,12 @@ class Ui(tk.Tk):
 
         frame.tkraise()
 
+    def show_temp_message(self, text: str, duration_ms: int = 3000) -> None:
+        label = tk.Label(self, text=text, bg="#333", fg="white", padx=10, pady=5)
+        label.place(relx=0.5, rely=0.95, anchor="s")
+
+        _ = self.after(duration_ms, label.destroy)
+
     def refresh_lobby(self) -> None:
         self.lobby_frame.refresh_room_list()
 
@@ -160,10 +166,8 @@ class Lobby_Screen(tk.Frame):
         self.room_list_frame.grid(row=1, column=0, sticky="nsew")
         _ = self.room_list_frame.grid_columnconfigure(0, weight=1)
 
-        # just show nothing
+        # just show what is known now
         self.refresh_room_list()
-        # ask server for new rooms
-        self.ask_refresh_rooms()
 
     def ask_disconnect(self) -> None:
         self.client.disconnect()

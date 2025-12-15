@@ -45,11 +45,11 @@ class Client(Client_Dummy):
     @override
     def connect(self, ip: str, port: int, username: str) -> None:
         if not(self.net.connect(ip, str(port))):
-            _ = messagebox.showerror("Server", "Cannot connect to the server.")
+            self.ui.show_temp_message("Cannot connect to the server")
             return
 
         self.net.send_command(CMD_NAME + " " + username)
-        _ = messagebox.showinfo("Server", "Trying to connect.")
+        self.ui.show_temp_message("Trying to connect.", 1000)
 
     @override
     def rooms(self) -> None:
@@ -102,10 +102,15 @@ class Client(Client_Dummy):
 
         match cmd:
             case "OK":
+                if (len(parts) > 1):
+                    if (parts[1] == "NAME"):
+                        self.net.send_command(CMD_ROOMS)
+
                 return
             case "ROOMS":
                 self.parse_rooms_message(parts)
                 self.ui.refresh_lobby()
+                self.ui.switch_frame("lobby")
             case "ROOM":
                 # update room
                 pass
