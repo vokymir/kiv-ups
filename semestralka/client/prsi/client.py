@@ -31,7 +31,7 @@ class Client(Client_Dummy):
         self.room: Room | None = None
         # = game
 
-        # Already Sent DRAW
+        # Already Sent DRAW/PLAY
         self.already_sent: bool = False
 
         # network part of client - talk via queue
@@ -194,6 +194,7 @@ class Client(Client_Dummy):
 
     @override
     def play_card(self, card: Card) -> None:
+        print(f"room {self.room}\nturn:{self.room.turn}\nAS: {self.already_sent}")
         if (self.room and self.room.turn and (not self.already_sent)):
             if (card.rank == "Q" or\
                 card.rank == self.room.top_card.rank or\
@@ -366,9 +367,14 @@ class Client(Client_Dummy):
                 room.players.append(player)
 
             # set global my room
-            if (self.room and self.room.id == -1):
-                room.top_card = self.room.top_card
+            if (self.room ):
+                # remember turn always
                 room.turn = self.room.turn
+
+                # only copy top card if some mismatch
+                if (self.room.id == -1):
+                    room.top_card = self.room.top_card
+
             self.room = room
 
             # if not in game, set the state to room
@@ -411,31 +417,24 @@ class Client(Client_Dummy):
 
             card: Card = Card(top[0], top[1])
 
-            if (self.room):
-                self.room.top_card = card
-
-                if (self.player and self.player.nick == name):
-                    self.room.turn = True
-                    self.already_sent = False
-                    self.already_sent = False
-                    _ = messagebox.showinfo("Your turn", "It's your time to shine.")
-                else:
-                    self.room.turn = False
-                    self.ui.show_temp_message("Opponents turn")
-            else:
+            if (not self.room):
                 # prepare info about top card
                 # inside invalid room
-                self.room = Room(-1,"PLAYING")
+                self.room = Room(-1,"TEMPORARY")
                 self.room.top_card = card
-                if (self.player and self.player.nick == name):
-                    self.room.turn = True
-                    self.already_sent = False
-                    self.already_sent = False
-                    self.ui.show_temp_message("Your turn")
-                else:
-                    self.room.turn = False
-                    self.ui.show_temp_message("Opponents turn")
+            else:
+                self.room.top_card = card
 
+            print(f"TURN: {self.player and self.player.nick == name}")
+            if (self.player and self.player.nick == name):
+                self.room.turn = True
+                _ = messagebox.showinfo("Your turn", "It's your time to shine.")
+            else:
+                self.room.turn = False
+                self.ui.show_temp_message("Opponents turn")
+
+            # definitely, its another turn
+            self.already_sent = False
 
         except Exception as e:
             joined: str = " ".join(msg)
@@ -447,10 +446,6 @@ class Client(Client_Dummy):
         if self.player:
             self.player.state = ST_GAME
 
-        if self.room:
-            self.room.turn = False
-
-        self.already_sent = False
         self.already_sent = False
 
         self.net.send_command(CMD_ROOM)
