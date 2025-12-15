@@ -11,7 +11,7 @@ public:
   // IP
   std::string ip_ = "127.0.0.1";
   // PORT
-  int port_ = 65'500;
+  int port_ = 3'750;
   // EME
   // should be at least max_clients_ + 1 (listen)
   int epoll_max_events_ = 32;
