@@ -198,6 +198,8 @@ class Client(Client_Dummy):
                             pass
 
                 return
+            case "FAIL":
+                self.ui.show_temp_message(f"ERROR: {msg}",10000)
             case "ROOMS":
                 self.parse_rooms_message(parts)
                 self.ui.refresh_lobby()
