@@ -94,5 +94,7 @@ class Client_Dummy:
         return 0
     def get_top_card(self) -> Card:
         return Card()
+    def get_room(self) -> Room | None:
+        return None
 
 

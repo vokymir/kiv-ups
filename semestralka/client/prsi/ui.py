@@ -359,9 +359,28 @@ class Game_Screen(tk.Frame):
         # = controls
         control_frame: tk.Frame = tk.Frame(bottom_frame, bg=BG_COLOR)
         control_frame.grid(row=0, column=1, padx=PAD_X, pady=PAD_Y)
+        self.control_frame: tk.Frame = control_frame
 
-        tk.Button(control_frame, text="Leave Room", command=self.client.leave_room,
-                 font=FONT_MEDIUM, bg=ACCENT_COLOR, fg=TEXT_COLOR).pack(pady=PAD_Y)
+        self.leave_btn: tk.Button = tk.Button()
+        self.set_room_id()
+
+    def set_room_id(self) -> None:
+        """
+        Set room id and display it inside Leave room button
+        """
+        room: Room | None = self.client.get_room()
+        r_id: str = ""
+        if (isinstance(room, Room)):
+            r_id = str(room.id)
+
+        self.leave_btn.destroy()
+
+        self.leave_btn = tk.Button(self.control_frame,
+              text=f"Leave Room{" " if len(r_id) > 0 else ""}{r_id}",
+              command=self.client.leave_room, font=FONT_MEDIUM,
+              bg=ACCENT_COLOR, fg=TEXT_COLOR)
+        self.leave_btn.pack(pady=PAD_Y)
+
 
     def draw_opponent_name(self, name: str) -> None:
         for widget in self.opponent_name_F.winfo_children():

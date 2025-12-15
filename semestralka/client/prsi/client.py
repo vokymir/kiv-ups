@@ -81,6 +81,12 @@ class Client(Client_Dummy):
             return self.room.top_card
         return Card()
 
+    @override
+    def get_room(self) -> Room | None:
+        if (self.room):
+            return self.room
+        return None
+
     # ui -> net
 
     # == any time
@@ -201,6 +207,7 @@ class Client(Client_Dummy):
                 self.ui.switch_frame(FN_LOBBY)
             case "ROOM":
                 self.parse_room_message(parts)
+                self.ui.room_frame.set_room_id()
                 self.ui.room_frame.draw_opponent_cards(self.opponent_n_cards())
                 op: Player | None = self.opponent()
                 if (isinstance(op, Player)):
