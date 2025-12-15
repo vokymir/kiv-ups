@@ -338,7 +338,8 @@ class Client(Client_Dummy):
                 self.player.state = ST_ROOM
 
         except Exception as e:
-            print(f"[PROTO] invalid room message received ({" ".join(msg)})\
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid rooms message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot display room.")
 
@@ -360,7 +361,8 @@ class Client(Client_Dummy):
                 self.player.hand = hand
 
         except Exception as e:
-            print(f"[PROTO] invalid hand message received ({" ".join(msg)})\
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid rooms message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot load hand.")
 
