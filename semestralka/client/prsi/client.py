@@ -1,8 +1,14 @@
 from queue import Queue
 from tkinter import messagebox
 import queue
-from typing_extensions import override
-# from typing import override
+
+try:
+    # Python >= 3.12
+    from typing import override
+except ImportError:
+    # Python <= 3.11
+    from typing_extensions import override
+
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
 from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM
