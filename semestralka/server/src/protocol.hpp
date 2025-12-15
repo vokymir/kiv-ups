@@ -34,7 +34,7 @@ public:
   }
   static std::string STATE(Server &s, std::shared_ptr<Player> p) {
     auto loc = s.where_player(p);
-    std::string body;
+    std::string body = "STATE ";
 
     auto room = loc.room_.lock();
     switch (loc.state_) {
