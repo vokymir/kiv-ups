@@ -311,6 +311,11 @@ class Game_Screen(tk.Frame):
         _ = top_frame.grid_columnconfigure(0, weight=1)
         _ = top_frame.grid_columnconfigure(1, weight=1)
 
+        opponent_name_frame: tk.Frame = tk.Frame(top_frame, bg=BG_COLOR)
+        opponent_name_frame.grid(row=0, column=1, sticky="nsew")
+        self.opponent_name_F: tk.Frame = opponent_name_frame
+        self.draw_opponent_name("")
+
         opponent_hand_frame: tk.Frame = tk.Frame(top_frame, bg=TABLE_COLOR)
         opponent_hand_frame.grid(row=0, column=0, sticky="nsew")
         n_cards: int = self.client.opponent_n_cards()
@@ -356,6 +361,13 @@ class Game_Screen(tk.Frame):
 
         tk.Button(control_frame, text="Leave Room", command=self.client.leave_room,
                  font=FONT_MEDIUM, bg=ACCENT_COLOR, fg=TEXT_COLOR).pack(pady=PAD_Y)
+
+    def draw_opponent_name(self, name: str) -> None:
+        for widget in self.opponent_name_F.winfo_children():
+            widget.destroy()
+
+        label: tk.Label = tk.Label(self.opponent_name_F, text=name, bg=BG_COLOR, bd=0)
+        label.place(relx=0.5, rely=0.5)
 
     def draw_opponent_cards(self, count: int) -> None:
         """

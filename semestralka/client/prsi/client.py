@@ -202,6 +202,9 @@ class Client(Client_Dummy):
             case "ROOM":
                 self.parse_room_message(parts)
                 self.ui.room_frame.draw_opponent_cards(self.opponent_n_cards())
+                op: Player | None = self.opponent()
+                if (isinstance(op, Player)):
+                    self.ui.room_frame.draw_opponent_name(op.nick)
                 self.ui.switch_frame(FN_ROOM)
             case "GAME_START":
                 # to get the other player
