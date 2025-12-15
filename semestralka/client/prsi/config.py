@@ -49,6 +49,7 @@ CMD_ROOMS = "LIST_ROOMS"
 
 # == room
 CMD_JOIN = "JOIN_ROOM"
+CMD_ROOM = "ROOM_INFO"
 CMD_LEAVE_ROOM = "LEAVE_ROOM"
 
 # == game

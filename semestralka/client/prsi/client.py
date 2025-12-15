@@ -4,7 +4,7 @@ import queue
 from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY
+from prsi.config import CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY
 from prsi.common import Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
@@ -149,13 +149,18 @@ class Client(Client_Dummy):
         match cmd:
             case "OK":
                 if (len(parts) > 1):
-                    if (parts[1] == "NAME"):
-                        if (not self.player):
-                            self.ui.show_temp_message("WEIRD BUG #1")
-                            self.disconnect()
-                        else:
-                            self.player.state = ST_LOBBY
-                        self.net.send_command(CMD_ROOMS)
+                    match parts[1]:
+                        case "NAME":
+                            if (not self.player):
+                                self.ui.show_temp_message("WEIRD BUG #1")
+                                self.disconnect()
+                            else:
+                                self.player.state = ST_LOBBY
+                            self.net.send_command(CMD_ROOMS)
+                        case "JOIN_ROOM":
+                            self.net.send_command(CMD_ROOM)
+                        case _:
+                            pass
 
                 return
             case "ROOMS":
