@@ -19,3 +19,6 @@ class Client_Dummy:
         pass
     def disconnect(self) -> None:
         pass
+
+    def draw_card(self) -> None:
+        pass

@@ -313,11 +313,26 @@ class Game_Screen(tk.Frame):
 
         # = deck
         deck_image: ImageTk.PhotoImage = self.ui.img_loader.get_image("back")
+        deck_btn: tk.Button = tk.Button(middle_frame, image=deck_image,
+                command=self.client.draw_card, bg=TABLE_COLOR, bd=0, relief=tk.FLAT)
+        deck_btn.grid(row=0, column=0, padx=CARD_WIDTH//2, pady=CARD_HEIGHT//2,
+                      sticky=tk.E)
+        tk.Label(middle_frame, text="Deck (Click to Draw)", bg=TABLE_COLOR,
+                 fg=TEXT_COLOR, font=FONT_SMALL).grid(
+            row=1, column=0, sticky=tk.E)
+
+        # = pile (top card)
+        self.pile_label = tk.Label(middle_frame, bg=TABLE_COLOR, bd=1, relief=tk.SOLID)
+        self.pile_label.grid(row=0, column=1, padx=PAD_X * 2, pady=PAD_Y * 2)
+        self._update_pile(CARD_BACK) # TODO: get from server
 
     def _draw_opponent_cards(self, frame: tk.Frame, count: int) -> None:
         """
         Show opponents cards - only their backs
         """
+        pass
+
+    def _update_pile(self, top_card: str) -> None:
         pass
 
 
