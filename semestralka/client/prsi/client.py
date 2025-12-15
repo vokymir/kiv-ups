@@ -4,7 +4,7 @@ import queue
 from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_NAME, CMD_PONG, CMD_ROOMS
+from prsi.config import CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOMS, FN_LOBBY, FN_LOGIN
 from prsi.common import Client_Dummy, Room
 
 class Client(Client_Dummy):
@@ -60,11 +60,12 @@ class Client(Client_Dummy):
 
     @override
     def join(self, room_id: int) -> None:
-        pass # TODO:
+        self.net.send_command(CMD_JOIN + " " + str(room_id))
 
     @override
     def disconnect(self) -> None:
-        pass # TODO:
+        self.net.disconnect()
+        self.ui.switch_frame(FN_LOGIN)
 
     # net -> ui
 
@@ -78,10 +79,10 @@ class Client(Client_Dummy):
 
             if (qm_type == QM_ERROR):
                 _ = messagebox.showerror("Network Error", content if content else "Unknown Error")
-                self.ui.switch_frame("login")
+                self.ui.switch_frame(FN_LOGIN)
 
             elif (qm_type == QM_DISCONNECTED):
-                self.ui.switch_frame("login")
+                self.ui.switch_frame(FN_LOGIN)
 
             elif (qm_type == QM_MESSAGE):
                 if (content):
@@ -110,7 +111,7 @@ class Client(Client_Dummy):
             case "ROOMS":
                 self.parse_rooms_message(parts)
                 self.ui.refresh_lobby()
-                self.ui.switch_frame("lobby")
+                self.ui.switch_frame(FN_LOBBY)
             case "ROOM":
                 # update room
                 pass

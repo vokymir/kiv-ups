@@ -5,6 +5,10 @@ DEFAULT_PORT = 3507
 BUF_SIZE = 4096
 
 # ui
+FN_LOGIN: str = "login" # frame name
+FN_LOBBY: str = "lobby"
+FN_ROOM: str = "room"
+
 WINDOW_WIDTH: int = 1024
 WINDOW_HEIGHT: int = 768
 APP_TITLE: str = "Prší"
