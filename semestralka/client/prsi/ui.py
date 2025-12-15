@@ -52,7 +52,7 @@ class Ui(tk.Tk):
         self.title(APP_TITLE)
         self.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         _ =self.configure(bg=BG_COLOR)
-        self.minsize(WINDOW_WIDTH, WINDOW_HEIGHT)
+        # self.minsize(WINDOW_WIDTH, WINDOW_HEIGHT)
 
         # root container
         _ = self.grid_columnconfigure(0, weight=1)
