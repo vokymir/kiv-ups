@@ -273,16 +273,14 @@ class Client(Client_Dummy):
                 self.ui.room_frame.update_pile()
             case "PLAYED":
                 self.parse_played_message(parts)
-                # show what other player did
             case "DRAWED":
                 self.parse_drawed_message(parts)
-                # show that other player drew
             case "SKIP":
                 self.parse_skip_message(parts)
-                # maybe show sho is skipped
             case "CARDS":
                 self.parse_cards_message(parts)
-                # add these cards to hand
+                if (self.player):
+                    self.ui.room_frame.update_hand(self.player.hand)
             case "WIN":
                 self.parse_win_message(parts)
                 # show you are winner
@@ -442,15 +440,64 @@ class Client(Client_Dummy):
 
         self.net.send_command(CMD_ROOM)
 
-    def parse_played_message(self, msg: list[str]) -> None:
+    def parse_played_message(self, _msg: list[str]) -> None:
+        pass
 
     def parse_drawed_message(self, msg: list[str]) -> None:
+        try:
+            who: str = msg[1]
+            count: int = int(msg[2])
+
+            opp: Player | None = self.opponent()
+            if (opp and opp.nick == who):
+                if (self.room):
+                    opp.n_cards += count
+
+                    self.ui.room_frame.draw_opponent_cards(opp.n_cards)
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid drawed message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Someone drawed a card?")
 
     def parse_skip_message(self, msg: list[str]) -> None:
+        try:
+            who: str = msg[1]
+            self.ui.show_temp_message(f"Player {who} was skipped.")
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid skip message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Someone was skipped?")
 
     def parse_cards_message(self, msg: list[str]) -> None:
+        try:
+            count: int = int(msg[1])
+            cards: list[Card] = []
 
-    def parse_win_message(self, msg: list[str]) -> None:
+            for i in range(2, 2+count):
+                cd: str = msg[i]
+                suit: str = cd[0]
+                rank: str = cd[1]
+
+                card: Card = Card(suit, rank)
+                cards.append(card)
+
+            if (self.player):
+                self.player.hand.extend(cards)
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid skip message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Someone was skipped?")
+
+    def parse_win_message(self, _msg: list[str]) -> None:
+        if (self.player and self.player.state == ST_GAME):
+            self.ui.show_temp_message("You won.");
+            self.net.send_command(CMD_ROOM)
 
     def parse_lose_message(self, msg: list[str]) -> None:
 
