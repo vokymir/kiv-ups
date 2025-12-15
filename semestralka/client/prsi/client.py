@@ -55,6 +55,23 @@ class Client(Client_Dummy):
         """
         return self.known_rooms_
 
+    def opponent(self) -> Player | None:
+        if (self.player and self.room and self.room.players):
+            for player in self.room.players:
+                if (player.nick != self.player.nick):
+                    return player
+        return None
+
+    @override
+    def opponent_n_cards(self) -> int:
+        """
+        State=game
+        """
+        p: Player | None = self.opponent()
+        if (isinstance(p, Player)):
+            return p.n_cards
+        return 0
+
     # ui -> net
 
     @override

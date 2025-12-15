@@ -304,7 +304,8 @@ class Game_Screen(tk.Frame):
 
         opponent_hand_frame: tk.Frame = tk.Frame(top_frame, bg=TABLE_COLOR)
         opponent_hand_frame.grid(row=0, column=0, sticky="nsew")
-        self.draw_opponent_cards(opponent_hand_frame, 6) # TODO:
+        n_cards: int = self.client.opponent_n_cards()
+        self.draw_opponent_cards(opponent_hand_frame, n_cards)
 
         # middle area (pile & deck)
         middle_frame: tk.Frame = tk.Frame(self, bg=TABLE_COLOR)
