@@ -238,6 +238,7 @@ class Client(Client_Dummy):
                 if (self.player):
                     self.ui.room_frame.update_hand(self.player.hand)
             case "TURN":
+                self.parse_turn_message(parts)
                 # update current turn, top card
                 pass
             case "PLAYED":
@@ -372,6 +373,26 @@ class Client(Client_Dummy):
             print(f"[PROTO] invalid hand message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot load hand.")
+
+    def parse_turn_message(self, msg: list[str]) -> None:
+        try:
+            name: str = msg[1]
+            top: str = msg[3]
+
+            card: Card = Card(top[0], top[1])
+
+            if (self.room):
+                self.room.top_card = card
+
+                if (self.player and self.player.nick == name):
+                    self.room.turn = True
+                    self.ui.show_temp_message("Your turn")
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid turn message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Don't know whose turn it is")
 
 
 
