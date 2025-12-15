@@ -142,10 +142,9 @@ class Lobby_Screen(tk.Frame):
                   bg="#3498db", fg=config.TEXT_COLOR).grid(row=0, column=2,
                     sticky=tk.E, padx=config.PAD_X)
 
-        # TODO: add disconnect method to client
         # leave server button
         tk.Button(header_frame, text="Leave Server",
-                  command=self.client.disconnect, font=config.FONT_MEDIUM,
+                  command=self.ask_disconnect, font=config.FONT_MEDIUM,
                   bg=config.ACCENT_COLOR, fg=config.TEXT_COLOR).grid(
                     row=0, column=3, sticky=tk.E)
 
@@ -155,17 +154,26 @@ class Lobby_Screen(tk.Frame):
         self.room_list_frame.grid(row=1, column=0, sticky="nsew")
         self.room_list_frame.grid_columnconfigure(0, weight=1)
 
-        # just nothing
+        # just show nothing
         self.refresh_room_list()
         # ask server for new rooms
         self.ask_refresh_rooms()
 
+    def ask_disconnect(self) -> None:
+        self.client.disconnect()
+
     def ask_refresh_rooms(self) -> None:
         self.client.rooms()
 
+    def ask_join_room(self, room_id: int) -> None:
+        self.client.join(room_id)
+
+    def get_client_rooms(self):
+        return self.client.rooms
+
     def refresh_room_list(self) -> None:
         """
-        Clear All & redraw after client responds.
+        Clear All & redraw based on what is in client
         """
         # clear
         for widget in self.room_list_frame.winfo_children():
@@ -184,7 +192,7 @@ class Lobby_Screen(tk.Frame):
         tk.Label(header_row, text="Action", font=config.FONT_MEDIUM + " underline", bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=3, sticky=tk.E)
 
         # Draw room rows
-        for i, room in enumerate(self.client.rooms):
+        for i, room in enumerate(self.get_client_rooms()):
             room_id: int = room["id"]
             room_state: str = room["state"]
 
@@ -212,7 +220,7 @@ class Lobby_Screen(tk.Frame):
             # join button
             if room_state == "open":
                 tk.Button(room_row, text="JOIN",
-                    command=lambda r_id=room_id: self.client.join_room(r_id),
+                    command=lambda r_id=room_id: self.ask_join_room(r_id),
                     font=config.FONT_SMALL + " bold", bg="#2ecc71",
                     fg=config.TEXT_COLOR).grid(row=0, column=2, sticky=tk.E)
             else:
