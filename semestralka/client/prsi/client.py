@@ -499,15 +499,53 @@ class Client(Client_Dummy):
             self.ui.show_temp_message("You won.");
             self.net.send_command(CMD_ROOM)
 
-    def parse_lose_message(self, msg: list[str]) -> None:
+    def parse_lose_message(self, _msg: list[str]) -> None:
+        if (self.player and self.player.state == ST_GAME):
+            self.ui.show_temp_message("You lost.");
+            self.net.send_command(CMD_ROOM)
 
     def parse_state_message(self, msg: list[str]) -> None:
+        pass
 
     def parse_sleep_message(self, msg: list[str]) -> None:
+        try:
+            name: str = msg[1]
+
+            if (self.player and self.player.state == ST_GAME):
+                self.ui.show_temp_message(f"Player {name} is not connected...")
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid sleep message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Someone is asleep?")
+
 
     def parse_dead_message(self, msg: list[str]) -> None:
+        try:
+            name: str = msg[1]
+
+            if (self.player and self.player.state == ST_GAME):
+                self.ui.show_temp_message(f"Player {name} disconnected...")
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid dead message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Someone is dead?")
 
     def parse_awake_message(self, msg: list[str]) -> None:
+        try:
+            name: str = msg[1]
+
+            if (self.player and self.player.state == ST_GAME):
+                self.ui.show_temp_message(f"Player {name} is online.")
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid awake message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Someone is alive?")
 
 
 
