@@ -375,8 +375,12 @@ class Game_Screen(tk.Frame):
 
         self.leave_btn.destroy()
 
+        textik: str = ""
+        if len(r_id) > 0:
+            textik += " " + r_id
+
         self.leave_btn = tk.Button(self.control_frame,
-              text=f"Leave Room{" " if len(r_id) > 0 else ""}{r_id}",
+              text=f"Leave Room{textik}",
               command=self.client.leave_room, font=FONT_MEDIUM,
               bg=ACCENT_COLOR, fg=TEXT_COLOR)
         self.leave_btn.pack(pady=PAD_Y)
