@@ -176,6 +176,7 @@ class Client(Client_Dummy):
                              self.player.state == ST_GAME)):
             self.net.send_command(CMD_LEAVE_ROOM)
             self.player.state = ST_LOBBY
+            self.player.hand = []
             self.room = None
             self.net.send_command(CMD_ROOMS)
 
@@ -186,8 +187,7 @@ class Client(Client_Dummy):
         """
         AS=true, State=game
         """
-        if (self.player and self.player.state == ST_GAME and \
-        self.room and self.room.turn and (not self.as_draw)):
+        if (self.room and self.room.turn and (not self.as_draw)):
             self.net.send_command(CMD_DRAW)
             self.as_draw = True
             return
@@ -195,8 +195,7 @@ class Client(Client_Dummy):
 
     @override
     def play_card(self, card: Card) -> None:
-        if (self.player and self.player.state == ST_GAME and\
-            self.room and self.room.turn and (not self.as_play)):
+        if (self.room and self.room.turn and (not self.as_play)):
             if (card.rank == "Q" or\
                 card.rank == self.room.top_card.rank or\
                 card.suit == self.room.top_card.suit):
@@ -370,6 +369,7 @@ class Client(Client_Dummy):
             # set global my room
             if (self.room and self.room.id == -1):
                 room.top_card = self.room.top_card
+                room.turn = self.room.turn
             self.room = room
 
             # if not in game, set the state to room
@@ -415,20 +415,27 @@ class Client(Client_Dummy):
             if (self.room):
                 self.room.top_card = card
 
-                self.room.turn = False
-
                 if (self.player and self.player.nick == name):
                     self.room.turn = True
                     self.as_draw = False
                     self.as_play = False
                     self.ui.show_temp_message("Your turn")
                 else:
+                    self.room.turn = False
                     self.ui.show_temp_message("Opponents turn")
             else:
                 # prepare info about top card
                 # inside invalid room
                 self.room = Room(-1,"PLAYING")
                 self.room.top_card = card
+                if (self.player and self.player.nick == name):
+                    self.room.turn = True
+                    self.as_draw = False
+                    self.as_play = False
+                    self.ui.show_temp_message("Your turn")
+                else:
+                    self.room.turn = False
+                    self.ui.show_temp_message("Opponents turn")
 
 
         except Exception as e:
