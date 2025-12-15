@@ -11,7 +11,7 @@ except ImportError:
 
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PLAY, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM
+from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PLAY, CMD_PONG, CMD_ROOM, CMD_ROOMS, CMD_STATE, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM
 from prsi.common import Card, Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
@@ -112,6 +112,13 @@ class Client(Client_Dummy):
 
         self.ui.switch_frame(FN_LOGIN)
 
+    @override
+    def state(self) -> None:
+        """
+        to get the state of player
+        """
+        self.net.send_command(CMD_STATE)
+
     # == unnamed
 
     @override
@@ -155,6 +162,13 @@ class Client(Client_Dummy):
         self.ui.show_temp_message("Cannot join room when not in lobby")
 
     # == room
+
+    @override
+    def room_info(self) -> None:
+        if (self.room):
+            self.net.send_command(CMD_ROOM)
+        else:
+            self.net.send_command(CMD_STATE)
 
     @override
     def leave_room(self) -> None:

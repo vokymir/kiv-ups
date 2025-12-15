@@ -39,6 +39,7 @@ PROTO_DELIM = "|"
 
 # == control
 CMD_PONG = "PONG"
+CMD_STATE = "STATE"
 CMD_LEAVE_SERVER = "LEAVE_SERVER" # everything invalid would work
 
 # == unnamed

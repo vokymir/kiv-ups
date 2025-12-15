@@ -75,21 +75,28 @@ class Room:
 class Client_Dummy:
     def run(self) -> None:
         pass
+
     def connect(self, _ip: str, _port: int, _username: str) -> None:
         pass
+    def state(self) -> None:
+        pass
+    def disconnect(self) -> None:
+        pass
+
     def rooms(self) -> None:
         pass
     def create_room(self) -> None:
         pass
     def join(self, _room_id: int) -> None:
         pass
-    def disconnect(self) -> None:
-        pass
-    def draw_card(self) -> None:
+
+    def room_info(self) -> None:
         pass
     def leave_room(self) -> None:
         pass
 
+    def draw_card(self) -> None:
+        pass
     def play_card(self, _card: Card) -> None:
         pass
 
