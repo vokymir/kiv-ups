@@ -51,6 +51,7 @@ class Room:
     def __init__(self, id: int, state: str) -> None:
         self.id: int = id
         self.state: str = state
+        self.players: list[Player] = []
 
 # to get rid of basedpyright errors
 # actual client inherits from this
