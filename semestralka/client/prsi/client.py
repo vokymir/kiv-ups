@@ -15,14 +15,14 @@ class Client(Client_Dummy):
         # message queue: for getting messages out of net
         self.mq: Queue[Queue_Message] = queue.Queue()
 
+        # stuff
+        self.known_rooms_: list[Room] = []
+
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
 
         # ui
         self.ui: Ui = Ui(self)
-
-        # stuff
-        self.known_rooms_: list[Room] = []
 
         _ = self.ui.after(100, self.process_incoming_messages)
         print("[Client] Initialization complete. Ready to run.")
