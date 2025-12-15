@@ -66,9 +66,11 @@ class Ui(tk.Tk):
         self.frames: dict[str, tk.Frame] = {}
         self.login_frame: Login_Screen = Login_Screen(container, self, client)
         self.lobby_frame: Lobby_Screen = Lobby_Screen(container, self, client)
+        self.room_frame: Game_Screen = Game_Screen(container, self, client)
 
         self.frames[FN_LOGIN] = self.login_frame
         self.frames[FN_LOBBY] = self.lobby_frame
+        self.frames[FN_ROOM] = self.lobby_frame
 
         for frame in self.frames.values():
             frame.grid(row=0, column=0, sticky="nsew")
