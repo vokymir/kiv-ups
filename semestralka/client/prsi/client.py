@@ -339,7 +339,7 @@ class Client(Client_Dummy):
 
         except Exception as e:
             joined: str = " ".join(msg)
-            print(f"[PROTO] invalid rooms message received ({joined})\
+            print(f"[PROTO] invalid room message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot display room.")
 
@@ -362,7 +362,7 @@ class Client(Client_Dummy):
 
         except Exception as e:
             joined: str = " ".join(msg)
-            print(f"[PROTO] invalid rooms message received ({joined})\
+            print(f"[PROTO] invalid hand message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot load hand.")
 
