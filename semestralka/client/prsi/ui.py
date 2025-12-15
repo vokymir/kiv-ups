@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import messagebox
-from tracemalloc import Frame
 
 from prsi import config
 
@@ -39,20 +38,24 @@ class Ui(tk.Tk):
         """
         Raise the selected frame to the top.
         """
-        frame: tk.Frame = self.frames[frame_name]
+        frame = self.frames.get(frame_name)
+        if frame is None:
+            print(f"[WARN] No frame named {frame_name}")
+            return
+
         frame.tkraise()
 
 class Login_Screen(tk.Frame):
     def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client) -> None:
-        super().__init__(parent)
+        super().__init__()
         self.ui: Ui = ui_master
         self.client: Client = client
         print("[UI] Initializing Login Screen widgets...")
 
         # input variables
-        self.ip: tk.StringVar = tk.StringVar(value=config.DEFAULT_IP)
-        self.port: tk.StringVar = tk.StringVar(value=str(config.DEFAULT_PORT))
-        self.username: tk.StringVar = tk.StringVar(value="Player")
+        self.ip_var: tk.StringVar = tk.StringVar(value=config.DEFAULT_IP)
+        self.port_var: tk.StringVar = tk.StringVar(value=str(config.DEFAULT_PORT))
+        self.username_var: tk.StringVar = tk.StringVar(value="Player")
 
         # positioning
         center_frame: tk.Frame = tk.Frame(self, bg=config.BG_COLOR,
@@ -65,9 +68,9 @@ class Login_Screen(tk.Frame):
                 bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0,
                     column=0, columnspan=2, pady=config.PAD_Y * 2)
         fields: list[tuple[str, tk.StringVar]] = [
-            ("Server IP:", self.ip),
-            ("Port:", self.port),
-            ("Username:", self.username)
+            ("Server IP:", self.ip_var),
+            ("Port:", self.port_var),
+            ("Username:", self.username_var)
         ]
 
         # input box setup
@@ -91,10 +94,10 @@ class Login_Screen(tk.Frame):
         print("[UI] Login Screen widgets created.")
 
     def _connect(self) -> None:
-        ip: str = self.ip.get()
+        ip: str = self.ip_var.get()
 
         try:
-            port: int = int(self.port.get())
+            port: int = int(self.port_var.get())
         except ValueError:
             _ = messagebox.showerror("Port", "Port must be a valid integer.")
             return
@@ -102,7 +105,7 @@ class Login_Screen(tk.Frame):
             _ = messagebox.showerror("Port", "Port must be from range (1000, 65536)")
             return
 
-        username: str = self.username.get()
+        username: str = self.username_var.get()
         if ((not ip) or (not username)):
             _ = messagebox.showerror("Fields", "IP and Username cannot be empty.")
             return
