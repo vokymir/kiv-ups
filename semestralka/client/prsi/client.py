@@ -4,8 +4,8 @@ import queue
 from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOMS, FN_LOBBY, FN_LOGIN
-from prsi.common import Client_Dummy, Room
+from prsi.config import CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY
+from prsi.common import Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
     """
@@ -16,8 +16,13 @@ class Client(Client_Dummy):
         self.mq: Queue[Queue_Message] = queue.Queue()
 
         # stuff
+        # = not unnamed
+        self.player: Player | None = None
+        # = lobby
         self.known_rooms_: list[Room] = []
-        self.should_play_: bool = False
+        # = room
+        self.room: Room | None = None
+        # = game
 
         # Already Sent DRAW
         self.as_draw: bool = False
@@ -33,6 +38,9 @@ class Client(Client_Dummy):
 
     @override
     def run(self) -> None:
+        """
+        Start main loop.
+        """
         print("--- Starting Tkinter main loop (GUI should now appear) ---")
         self.ui.update()
         self.ui.mainloop()
@@ -42,6 +50,9 @@ class Client(Client_Dummy):
 
     @override
     def known_rooms(self) -> list[Room]:
+        """
+        State=lobby
+        """
         return self.known_rooms_
 
     # ui -> net
@@ -53,31 +64,53 @@ class Client(Client_Dummy):
             return
 
         self.net.send_command(CMD_NAME + " " + username)
+        self.player = Player(username) # save username here - after dont have it
         self.ui.show_temp_message("Trying to connect.", 1000)
 
     @override
     def rooms(self) -> None:
         """
         Ask server for rooms
+        AS=none, State=Lobby
         """
-        if ()
-        self.net.send_command(CMD_ROOMS)
+        if (self.player and self.player.state == ST_LOBBY):
+            self.net.send_command(CMD_ROOMS)
+            return
+        self.ui.show_temp_message("Cannot show rooms when not in lobby")
 
     @override
     def join(self, room_id: int) -> None:
-        self.net.send_command(CMD_JOIN + " " + str(room_id))
+        """
+        AS=none, State=Lobby
+        """
+        if (self.player and self.player.state == ST_LOBBY):
+            self.net.send_command(CMD_JOIN + " " + str(room_id))
+            return
+        self.ui.show_temp_message("Cannot join room when not in lobby")
 
     @override
     def disconnect(self) -> None:
+        """
+        AS=none
+        """
         self.net.disconnect()
+
+        self.player = None
+        self.room = None
+        self.known_rooms_ = []
+
         self.ui.switch_frame(FN_LOGIN)
 
     @override
     def draw_card(self) -> None:
-        if (not self.should_play_):
-            self.ui.show_temp_message("It's not your turn.")
+        """
+        AS=true, State=game
+        """
+        if (self.player and self.player.state == ST_GAME and \
+        self.room and self.room.turn and (not self.as_draw)):
+            self.net.send_command(CMD_DRAW)
             return
-        self.net.send_command(CMD_DRAW)
+        self.ui.show_temp_message("It's not your turn.")
 
     # net -> ui
 
@@ -117,6 +150,11 @@ class Client(Client_Dummy):
             case "OK":
                 if (len(parts) > 1):
                     if (parts[1] == "NAME"):
+                        if (not self.player):
+                            self.ui.show_temp_message("WEIRD BUG #1")
+                            self.disconnect()
+                        else:
+                            self.player.state = ST_LOBBY
                         self.net.send_command(CMD_ROOMS)
 
                 return
@@ -125,8 +163,11 @@ class Client(Client_Dummy):
                 self.ui.refresh_lobby()
                 self.ui.switch_frame(FN_LOBBY)
             case "ROOM":
-                # update room
-                pass
+                self.parse_room_message(parts)
+                # don't interrupt eg. running game
+                if (self.player and self.player.state == ST_LOBBY):
+                    self.ui.lobby_frame.refresh_room_list()
+                    self.ui.switch_frame(FN_ROOM)
             case "GAME_START":
                 # maybe nothing?
                 pass
@@ -192,6 +233,35 @@ class Client(Client_Dummy):
             print(f"[PROTO] invalid rooms message received ({" ".join(msg)})\
             resulting in: {e}")
             _ = messagebox.showerror("Refresh", "Couldn't refresh.")
+
+    def parse_room_message(self, msg: list[str]) -> None:
+        try:
+            id: int = int(msg[1])
+            state: str = msg[2]
+            room: Room = Room(id, state)
+
+            n_players: int = int(msg[3])
+            # add all players
+            for i in range(n_players):
+                # start on 4, every player is 3 thingies
+                idx: int = 4 + i * 3
+                name: str = msg[idx]
+                p_state: str = msg[idx+1]
+                n_cards: int = int(msg[idx+2])
+
+                player: Player = Player(name, p_state)
+                player.n_cards = n_cards
+
+                room.players.append(player)
+
+            # set global my room
+            self.room = room
+
+        except Exception as e:
+            print(f"[PROTO] invalid room message received ({" ".join(msg)})\
+            resulting in: {e}")
+            _ = messagebox.showerror("Room", "Couldn't show room info.")
+
 
 
 

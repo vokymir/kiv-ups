@@ -45,13 +45,18 @@ class Player:
     def __init__(self, nick: str, state: str = ST_UNNAMED) -> None:
         self.nick: str = nick
         self.state: str = state
+        # for player I
         self.hand: list[Card] = []
+        # for other players
+        self.n_cards: int = 0
 
 class Room:
     def __init__(self, id: int, state: str) -> None:
         self.id: int = id
         self.state: str = state
         self.players: list[Player] = []
+        # is it our players turn?
+        self.turn: bool = False
 
 # to get rid of basedpyright errors
 # actual client inherits from this
