@@ -301,14 +301,15 @@ class Game_Screen(tk.Frame):
 
         # setup layout
         _ = self.grid_columnconfigure(0, weight=1)
-        _ = self.grid_rowconfigure(0, weight=1) # game area
-        _ = self.grid_rowconfigure(1, weight=0) # control area
+        _ = self.grid_rowconfigure(0, weight=1) # opponent
+        _ = self.grid_rowconfigure(0, weight=2) # game area
+        _ = self.grid_rowconfigure(1, weight=1) # control area
 
         # top area (opponent & status)
         top_frame: tk.Frame = tk.Frame(self, bg=TABLE_COLOR)
         top_frame.grid(row=0, column=0, sticky="new",
                        padx=PAD_X * 2, pady=PAD_Y * 2)
-        _ = top_frame.grid_columnconfigure(0, weight=1)
+        _ = top_frame.grid_columnconfigure(0, weight=5)
         _ = top_frame.grid_columnconfigure(1, weight=1)
 
         opponent_name_frame: tk.Frame = tk.Frame(top_frame, bg=BG_COLOR)
@@ -324,7 +325,7 @@ class Game_Screen(tk.Frame):
 
         # middle area (pile & deck)
         middle_frame: tk.Frame = tk.Frame(self, bg=TABLE_COLOR)
-        middle_frame.grid(row=0, column=0, sticky="nsew")
+        middle_frame.grid(row=1, column=0, sticky="nsew")
         _ = middle_frame.grid_columnconfigure(0, weight=1)
         _ = middle_frame.grid_columnconfigure(1, weight=0) # Card area
         _ = middle_frame.grid_columnconfigure(2, weight=1)
