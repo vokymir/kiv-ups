@@ -1,3 +1,5 @@
 *.log
 .venv/
 __pycache__/
+# should be there, just for nvim search
+assets/
