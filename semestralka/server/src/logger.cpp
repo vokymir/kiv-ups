@@ -1,6 +1,8 @@
 
 #include "logger.hpp"
 #include <chrono>
+#include <fmt/chrono.h>
+#include <fmt/core.h>
 #include <fmt/format.h>
 #include <iostream>
 namespace prsi {
@@ -10,18 +12,16 @@ std::mutex Logger::log_mutex_;
 std::string get_formatted_time() {
   auto now = std::chrono::system_clock::now();
 
-  std::string formatted_time = std::format("{:%F %T}", now);
-
-  return formatted_time;
+  return fmt::format("{:%F %T}", now);
 }
 
 void Logger::log(std::string_view severity, std::string_view msg) {
   std::lock_guard<std::mutex> lock(log_mutex_);
 
   std::string formatted_log =
-      std::format("[{} | {}] {}", severity, get_formatted_time(), msg);
+      fmt::format("[{} | {}] {}", severity, get_formatted_time(), msg);
 
-  std::cerr << formatted_log << std::endl;
+  std::cerr << formatted_log << '\n';
 }
 
 } // namespace prsi
