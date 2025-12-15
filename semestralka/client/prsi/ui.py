@@ -222,13 +222,14 @@ class Lobby_Screen(tk.Frame):
                 row=0, column=0, sticky=tk.W)
 
             # state
-            state_fg: str = "#2ecc71" if room_state == "open" else config.TEXT_COLOR
+            state_fg: str = "#2ecc71" if room_state.lower() == "open"\
+            else config.TEXT_COLOR
             tk.Label(room_row, text=room_state.capitalize(),
                 font=config.FONT_MEDIUM, bg=row_color, fg=state_fg).grid(
                 row=0, column=1, sticky=tk.W)
 
             # join button
-            if room_state == "open":
+            if room_state.lower() == "open":
                 tk.Button(room_row, text="JOIN",
                     command=lambda r_id=room_id: self.ask_join_room(r_id),
                     font=config.FONT_SMALL + " bold", bg="#2ecc71",
