@@ -201,10 +201,8 @@ class Client(Client_Dummy):
                 self.ui.switch_frame(FN_LOBBY)
             case "ROOM":
                 self.parse_room_message(parts)
-                # don't interrupt eg. running game
-                if (self.player and self.player.state == ST_LOBBY):
-                    self.ui.lobby_frame.refresh_room_list()
-                    self.ui.switch_frame(FN_ROOM)
+                self.ui.room_frame.draw_opponent_cards(self.opponent_n_cards())
+                self.ui.switch_frame(FN_ROOM)
             case "GAME_START":
                 # to get the other player
                 self.net.send_command(CMD_ROOM)

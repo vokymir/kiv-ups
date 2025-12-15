@@ -314,7 +314,8 @@ class Game_Screen(tk.Frame):
         opponent_hand_frame: tk.Frame = tk.Frame(top_frame, bg=TABLE_COLOR)
         opponent_hand_frame.grid(row=0, column=0, sticky="nsew")
         n_cards: int = self.client.opponent_n_cards()
-        self.draw_opponent_cards(opponent_hand_frame, n_cards)
+        self.opponent_hand_F: tk.Frame = opponent_hand_frame
+        self.draw_opponent_cards(n_cards)
 
         # middle area (pile & deck)
         middle_frame: tk.Frame = tk.Frame(self, bg=TABLE_COLOR)
@@ -356,7 +357,7 @@ class Game_Screen(tk.Frame):
         tk.Button(control_frame, text="Leave Room", command=self.client.leave_room,
                  font=FONT_MEDIUM, bg=ACCENT_COLOR, fg=TEXT_COLOR).pack(pady=PAD_Y)
 
-    def draw_opponent_cards(self, frame: tk.Frame, count: int) -> None:
+    def draw_opponent_cards(self, count: int) -> None:
         """
         Show opponents cards - only their backs
         """
@@ -366,14 +367,14 @@ class Game_Screen(tk.Frame):
         x_pos: int = 0
 
         for i in range(count):
-            label: tk.Label = tk.Label(frame, image=card_back_img,
+            label: tk.Label = tk.Label(self.opponent_hand_F, image=card_back_img,
                     bg=TABLE_COLOR, bd=0)
             label.place(x=x_pos, y=0)
             x_pos += int(CARD_WIDTH * overlap)
 
         # adjust frame size to fit all cards
         w: int = x_pos - int(CARD_WIDTH * overlap) + CARD_WIDTH
-        _ = frame.config(width=w, height=CARD_HEIGHT)
+        _ = self.opponent_hand_F.config(width=w, height=CARD_HEIGHT)
 
     def update_pile(self, top_card: str) -> None:
         pile_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(top_card + ".jpeg")
