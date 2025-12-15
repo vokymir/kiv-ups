@@ -4,7 +4,7 @@ import queue
 from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY
+from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM
 from prsi.common import Card, Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
@@ -148,6 +148,14 @@ class Client(Client_Dummy):
 
     # == room
 
+    @override
+    def leave_room(self) -> None:
+        if (self.player and (self.player.state == ST_ROOM or \
+                             self.player.state == ST_GAME)):
+            self.net.send_command(CMD_LEAVE_ROOM)
+            self.player.state = ST_LOBBY
+            self.room = None
+            self.net.send_command(CMD_ROOMS)
 
     # == game
 
@@ -207,6 +215,8 @@ class Client(Client_Dummy):
                 self.ui.switch_frame(FN_LOBBY)
             case "ROOM":
                 self.parse_room_message(parts)
+                if (not self.room):
+                    self.ui.show_temp_message("Cannot retrieve room info")
                 self.ui.room_frame.set_room_id()
                 self.ui.room_frame.draw_opponent_cards(self.opponent_n_cards())
                 op: Player | None = self.opponent()
@@ -322,6 +332,9 @@ class Client(Client_Dummy):
 
             # set global my room
             self.room = room
+            # if not in game, set the state to room
+            if (self.player and self.player.state != ST_GAME):
+                self.player.state = ST_ROOM
 
         except Exception as e:
             print(f"[PROTO] invalid room message received ({" ".join(msg)})\

@@ -79,11 +79,11 @@ class Client_Dummy:
         pass
     def disconnect(self) -> None:
         pass
-
     def draw_card(self) -> None:
         pass
     def leave_room(self) -> None:
         pass
+
     def play_card(self, _card: Card) -> None:
         pass
 
