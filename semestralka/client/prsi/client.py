@@ -306,7 +306,8 @@ class Client(Client_Dummy):
             self.known_rooms_ = rooms
 
         except Exception as e:
-            print(f"[PROTO] invalid rooms message received ({" ".join(msg)})\
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid rooms message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot display rooms.")
 
