@@ -206,8 +206,8 @@ class Client(Client_Dummy):
                     self.ui.lobby_frame.refresh_room_list()
                     self.ui.switch_frame(FN_ROOM)
             case "GAME_START":
-                # maybe nothing?
-                pass
+                # to get the other player
+                self.net.send_command(CMD_ROOM)
             case "HAND":
                 self.parse_hand_message(parts)
                 if (self.player):
