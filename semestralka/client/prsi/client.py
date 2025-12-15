@@ -32,8 +32,7 @@ class Client(Client_Dummy):
         # = game
 
         # Already Sent DRAW
-        self.as_draw: bool = False
-        self.as_play: bool = False
+        self.already_sent: bool = False
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -187,20 +186,20 @@ class Client(Client_Dummy):
         """
         AS=true, State=game
         """
-        if (self.room and self.room.turn and (not self.as_draw)):
+        if (self.room and self.room.turn and (not self.already_sent)):
             self.net.send_command(CMD_DRAW)
-            self.as_draw = True
+            self.already_sent = True
             return
         self.ui.show_temp_message("It's not your turn.")
 
     @override
     def play_card(self, card: Card) -> None:
-        if (self.room and self.room.turn and (not self.as_play)):
+        if (self.room and self.room.turn and (not self.already_sent)):
             if (card.rank == "Q" or\
                 card.rank == self.room.top_card.rank or\
                 card.suit == self.room.top_card.suit):
                 self.net.send_command(CMD_PLAY + " " + card.__str__())
-                self.as_play = True
+                self.already_sent = True
             else:
                 self.ui.show_temp_message("You cannot play this.")
         else:
@@ -417,9 +416,9 @@ class Client(Client_Dummy):
 
                 if (self.player and self.player.nick == name):
                     self.room.turn = True
-                    self.as_draw = False
-                    self.as_play = False
-                    self.ui.show_temp_message("Your turn")
+                    self.already_sent = False
+                    self.already_sent = False
+                    _ = messagebox.showinfo("Your turn", "It's your time to shine.")
                 else:
                     self.room.turn = False
                     self.ui.show_temp_message("Opponents turn")
@@ -430,8 +429,8 @@ class Client(Client_Dummy):
                 self.room.top_card = card
                 if (self.player and self.player.nick == name):
                     self.room.turn = True
-                    self.as_draw = False
-                    self.as_play = False
+                    self.already_sent = False
+                    self.already_sent = False
                     self.ui.show_temp_message("Your turn")
                 else:
                     self.room.turn = False
@@ -451,8 +450,8 @@ class Client(Client_Dummy):
         if self.room:
             self.room.turn = False
 
-        self.as_draw = False
-        self.as_play = False
+        self.already_sent = False
+        self.already_sent = False
 
         self.net.send_command(CMD_ROOM)
 
