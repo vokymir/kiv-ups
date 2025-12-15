@@ -70,7 +70,7 @@ class Ui(tk.Tk):
 
         self.frames[FN_LOGIN] = self.login_frame
         self.frames[FN_LOBBY] = self.lobby_frame
-        self.frames[FN_ROOM] = self.lobby_frame
+        self.frames[FN_ROOM] = self.room_frame
 
         for frame in self.frames.values():
             frame.grid(row=0, column=0, sticky="nsew")
