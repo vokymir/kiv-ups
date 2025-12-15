@@ -417,7 +417,6 @@ class Client(Client_Dummy):
 
                 self.room.turn = False
 
-                print(f"self: {self.player.nick}\nname: {name}")
                 if (self.player and self.player.nick == name):
                     self.room.turn = True
                     self.as_draw = False
