@@ -82,7 +82,7 @@ class Client_Dummy:
         pass
     def leave_room(self) -> None:
         pass
-    def play_card(self, _card_name: str) -> None:
+    def play_card(self, _card: Card) -> None:
         pass
     # get/set
     def known_rooms(self) -> list[Room]:

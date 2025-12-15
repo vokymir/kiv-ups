@@ -371,7 +371,7 @@ class Game_Screen(tk.Frame):
         _ = self.pile_label.config(image=pile_image,
                                 width=CARD_WIDTH, height=CARD_HEIGHT)
 
-    def update_hand(self, hand: list[str]) -> None:
+    def update_hand(self, hand: list[Card]) -> None:
         # clear existing cards
         for widget in self.player_hand_F.winfo_children():
             widget.destroy()
@@ -380,12 +380,12 @@ class Game_Screen(tk.Frame):
         _ = self.player_hand_F.grid_columnconfigure(0, weight=1)
 
         # redraw
-        for i, card_name in enumerate(hand):
-            card_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(card_name)
+        for i, card in enumerate(hand):
+            card_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(card.__str__())
 
             # clickable card
             card_btn: tk.Button = tk.Button(self.player_hand_F,
-                image=card_image, command=lambda name=card_name:\
+                image=card_image, command=lambda name=card:\
                 self.client.play_card(name),bg=BG_COLOR, bd=1, relief=tk.RAISED)
             card_btn.grid(row=0, column=i, padx=PAD_X//2)
 

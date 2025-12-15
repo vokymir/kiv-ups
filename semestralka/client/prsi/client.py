@@ -203,8 +203,9 @@ class Client(Client_Dummy):
                 # maybe nothing?
                 pass
             case "HAND":
-                # update hand
-                pass
+                self.parse_hand_message(parts)
+                if (self.player):
+                    self.ui.room_frame.update_hand(self.player.hand)
             case "TURN":
                 # update current turn, top card
                 pass
@@ -241,7 +242,7 @@ class Client(Client_Dummy):
                 # show who is awake
                 pass
             case _:
-                _ = messagebox.showerror("Unknown message received:",msg)
+                self.ui.show_temp_message("Received unknown message from server.")
 
     def parse_rooms_message(self, msg: list[str]) -> None:
         try:
@@ -263,7 +264,7 @@ class Client(Client_Dummy):
         except Exception as e:
             print(f"[PROTO] invalid rooms message received ({" ".join(msg)})\
             resulting in: {e}")
-            _ = messagebox.showerror("Refresh", "Couldn't refresh.")
+            self.ui.show_temp_message("Cannot display rooms.")
 
     def parse_room_message(self, msg: list[str]) -> None:
         try:
@@ -291,9 +292,29 @@ class Client(Client_Dummy):
         except Exception as e:
             print(f"[PROTO] invalid room message received ({" ".join(msg)})\
             resulting in: {e}")
-            _ = messagebox.showerror("Room", "Couldn't show room info.")
+            self.ui.show_temp_message("Cannot display room.")
 
 
+    def parse_hand_message(self, msg: list[str]) -> None:
+        try:
+            count: int = int(msg[1])
+            hand: list[Card] = []
+
+            for i in range(2, 2+count):
+                cd: str = msg[i]
+                suit: str = cd[0]
+                rank: str = cd[1]
+
+                card: Card = Card(suit, rank)
+                hand.append(card)
+
+            if (self.player):
+                self.player.hand = hand
+
+        except Exception as e:
+            print(f"[PROTO] invalid hand message received ({" ".join(msg)})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Cannot load hand.")
 
 
 
