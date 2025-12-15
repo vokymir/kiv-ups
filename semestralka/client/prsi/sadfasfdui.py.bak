@@ -1,0 +1,413 @@
+
+import tkinter as tk
+import os
+from PIL import Image, ImageTk # pillow for JPG
+from prsi import config
+
+# --- Image Handling ---
+
+class ImgLoader:
+    """Handles loading and caching of card images."""
+    def __init__(self, card_width: int, card_height: int, assets_dir: str) -> None:
+        self.card_width: int = card_width
+        self.card_height: int = card_height
+        self.assets_dir: str = assets_dir
+        self.images: dict[str, ImageTk.PhotoImage] = {}
+        # Pre-load or create placeholders for critical images
+        self._load_placeholders()
+
+    def _load_placeholders(self) -> None:
+        """Creates dummy images since we can't load actual files here."""
+        # 1. Card Back Placeholder (for opponent and deck)
+        try:
+            from PIL import ImageDraw, ImageFont # type: ignore # Import locally for placeholder creation
+            img = Image.new('RGB', (self.card_width, self.card_height), config.ACCENT_COLOR)
+            d = ImageDraw.Draw(img) # type: ignore # drawing object
+            d.text((self.card_width // 4, self.card_height // 2 - 10), "PRŠÍ", fill=config.TEXT_COLOR, font=ImageFont.load_default()) # type: ignore
+            self.images["back"] = ImageTk.PhotoImage(img)
+        except Exception as e:
+            # Fallback for systems without Pillow or with file permission issues
+            print(f"Warning: Could not create PIL placeholder image. {e}")
+            self.images["back"] = tk.PhotoImage() # empty PhotoImage
+
+    def get_image(self, card_name: str) -> ImageTk.PhotoImage:
+        """
+        Loads and returns the PhotoImage for a given card name (e.g., 'S-A', 'back').
+        This function assumes assets_dir contains card_name.jpg files.
+        """
+        if card_name not in self.images:
+            try:
+                # 1. Attempt to load the actual image file
+                img_path = os.path.join(self.assets_dir, f"{card_name}.jpg")
+                img = Image.open(img_path).resize((self.card_width, self.card_height), Image.Resampling.LANCZOS)
+                self.images[card_name] = ImageTk.PhotoImage(img)
+
+            except FileNotFoundError:
+                # 2. Fallback: Create a text-based placeholder if file not found
+                print(f"Warning: Image file not found for {card_name}. Using placeholder.")
+                img = Image.new('RGB', (self.card_width, self.card_height), config.CARD_BG)
+                from PIL import ImageDraw, ImageFont # type: ignore # Import locally for placeholder creation
+                d = ImageDraw.Draw(img)
+                try:
+                    font = ImageFont.truetype("arial.ttf", 20) # type: ignore
+                except IOError:
+                    font = ImageFont.load_default() # type: ignore
+
+                d.text((self.card_width // 5, self.card_height // 2 - 10), card_name, fill="black", font=font)
+                self.images[card_name] = ImageTk.PhotoImage(img)
+
+            except Exception:
+                # 3. Final Fallback: Use the generic back image
+                return self.images["back"]
+
+        return self.images[card_name]
+
+
+# --- Main UI Class ---
+
+class Ui(tk.Tk):
+    """
+    Main Tkinter UI class for the Prší client.
+    Handles screen switching and holds frame instances.
+    """
+    def __init__(self, client: Client) -> None:
+        super().__init__()
+        self.client: Client = client
+
+        self.title(config.APP_TITLE)
+        self.geometry(f"{config.WINDOW_WIDTH}x{config.WINDOW_HEIGHT}")
+        self.configure(bg=config.BG_COLOR)
+        self.minsize(config.WINDOW_WIDTH, config.WINDOW_HEIGHT)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1)
+
+        # Initialize Image Loader
+        self.img_loader: ImgLoader = ImgLoader(config.CARD_WIDTH, config.CARD_HEIGHT, config.ASSETS_DIR)
+
+        # Main frame container where all screens will be stacked
+        container: tk.Frame = tk.Frame(self, bg=config.BG_COLOR)
+        container.grid(row=0, column=0, sticky="nsew")
+
+        self.frames: dict[str, tk.Frame] = {}
+
+        # Initialize all three screens
+        self.login_screen_instance: LoginScreen = LoginScreen(container, self, client)
+        self.lobby_screen_instance: LobbyScreen = LobbyScreen(container, self, client)
+        self.game_screen_instance: GameScreen = GameScreen(container, self, client)
+
+        self.frames["login"] = self.login_screen_instance
+        self.frames["lobby"] = self.lobby_screen_instance
+        self.frames["game"] = self.game_screen_instance
+
+        for frame in self.frames.values():
+            frame.grid(row=0, column=0, sticky="nsew")
+
+        self.switch_frame("login")
+
+    def switch_frame(self, frame_name: str) -> None:
+        """Raises the selected frame to the top."""
+        frame: tk.Frame = self.frames[frame_name]
+        frame.tkraise()
+        # Optionally refresh content on switch
+        if frame_name == "lobby":
+            self.lobby_screen_instance.refresh_room_list()
+
+
+    def show_help(self, screen_name: str) -> None:
+        """Displays a new window with instructions (Napoveda)."""
+        help_window: tk.Toplevel = tk.Toplevel(self)
+        help_window.title(f"Napoveda - {screen_name}")
+        help_window.configure(bg=config.BG_COLOR)
+
+        # Determine the help text based on the current screen
+        help_text: str = ""
+        if screen_name == "Login":
+            help_text = "Enter the server IP, Port, and your Username to connect. The IP is required to be a valid server address."
+        elif screen_name == "Lobby":
+            help_text = "The Lobby shows available rooms. Click 'JOIN' on an 'open' room. Use 'Refresh Rooms' to update the list, and 'Leave Server' to disconnect."
+        elif screen_name == "Game":
+            help_text = "Play a card by clicking on it. Click the deck to draw a new card. Use 'Leave Room' to return to the lobby."
+
+        label: tk.Label = tk.Label(help_window, text=help_text,
+                                   bg=config.BG_COLOR, fg=config.TEXT_COLOR,
+                                   font=config.FONT_MEDIUM, wraplength=400, justify=tk.LEFT)
+        label.pack(padx=config.PAD_X * 2, pady=config.PAD_Y * 2)
+
+        tk.Button(help_window, text="Close", command=help_window.destroy, bg=config.ACCENT_COLOR, fg=config.TEXT_COLOR).pack(pady=config.PAD_Y)
+
+
+# --- Screen Implementations ---
+
+class LoginScreen(tk.Frame):
+    """The screen for inputting connection details (IP, Port, Username)."""
+    def __init__(self, parent: tk.Frame, master: Ui, client: Client) -> None:
+        super().__init__(parent, bg=config.BG_COLOR)
+        self.master: Ui = master
+        self.client: Client = client
+
+        # 1. Input Variables
+        self.ip_var: tk.StringVar = tk.StringVar(value="127.0.0.1")
+        self.port_var: tk.StringVar = tk.StringVar(value="5000")
+        self.username_var: tk.StringVar = tk.StringVar(value=os.getlogin() if hasattr(os, 'getlogin') else "Player")
+
+        # 2. Main Centering Frame (Grid 3x3 concept is applied to positioning, not the internal grid)
+        center_frame: tk.Frame = tk.Frame(self, bg=config.BG_COLOR, padx=config.PAD_X * 3, pady=config.PAD_Y * 3, bd=2, relief=tk.RIDGE)
+        # Centering the Frame using place(relx=0.5, rely=0.5) and anchor='center'
+        center_frame.place(relx=0.5, rely=0.5, anchor=tk.CENTER)
+
+        # 3. Widgets setup using grid inside center_frame
+        tk.Label(center_frame, text=config.APP_TITLE, font=config.FONT_LARGE,
+                 bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=0, columnspan=2, pady=config.PAD_Y*2)
+
+        fields: list[tuple[str, tk.StringVar]] = [
+            ("Server IP:", self.ip_var),
+            ("Port:", self.port_var),
+            ("Username:", self.username_var)
+        ]
+
+        # Input box setup
+        for i, (label_text, var) in enumerate(fields):
+            tk.Label(center_frame, text=label_text, font=config.FONT_MEDIUM,
+                     bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=i + 1, column=0, sticky=tk.W, padx=config.PAD_X, pady=config.PAD_Y)
+            tk.Entry(center_frame, textvariable=var, font=config.FONT_MEDIUM,
+                     width=25, bg=config.CARD_BG, fg="#000000").grid(row=i + 1, column=1, sticky=tk.E, padx=config.PAD_X, pady=config.PAD_Y)
+
+        # Connect button
+        tk.Button(center_frame, text="Connect", command=self._connect, font=config.FONT_MEDIUM,
+                  bg=config.ACCENT_COLOR, fg=config.TEXT_COLOR,
+                  relief=tk.RAISED, bd=3).grid(row=len(fields) + 1, column=0, columnspan=2, pady=config.PAD_Y*3, sticky=tk.EW)
+
+        # Help button
+        tk.Button(self, text="?", command=lambda: self.master.show_help("Login"),
+                  bg=config.BG_COLOR, fg=config.TEXT_COLOR, font="Helvetica 14 bold").place(relx=0.98, rely=0.02, anchor=tk.NE)
+
+    def _connect(self) -> None:
+        """Handles connection attempt logic."""
+        ip: str = self.ip_var.get()
+        # Ensure port is an integer
+        try:
+            port: int = int(self.port_var.get())
+        except ValueError:
+            messagebox.showerror("Error", "Port must be a valid integer.")
+            return
+
+        username: str = self.username_var.get()
+        if not ip or not username:
+            messagebox.showerror("Error", "IP and Username cannot be empty.")
+            return
+
+        self.client.connect(ip, port, username)
+
+
+class LobbyScreen(tk.Frame):
+    """The screen for selecting and managing game rooms."""
+    def __init__(self, parent: tk.Frame, master: Ui, client: Client) -> None:
+        super().__init__(parent, bg=config.BG_COLOR)
+        self.master: Ui = master
+        self.client: Client = client
+        self.room_list_frame: tk.Frame # Forward declaration for room list
+
+        # Setup main layout
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+
+        # Header and Buttons
+        header_frame: tk.Frame = tk.Frame(self, bg=config.BG_COLOR)
+        header_frame.grid(row=0, column=0, sticky="ew", padx=config.PAD_X, pady=config.PAD_Y)
+        # Configure columns: Label | Spacer | Refresh Button | Leave Server Button
+        header_frame.grid_columnconfigure(1, weight=1) # Spacer column
+
+        tk.Label(header_frame, text="Lobby: Available Rooms", font=config.FONT_LARGE,
+                 bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=0, sticky=tk.W)
+
+        # New Refresh Button (Column 2)
+        tk.Button(header_frame, text="Refresh Rooms", command=self.client.refresh_rooms, font=config.FONT_MEDIUM,
+                  bg="#3498db", fg=config.TEXT_COLOR).grid(row=0, column=2, sticky=tk.E, padx=config.PAD_X)
+
+        # Leave Server Button (Column 3)
+        tk.Button(header_frame, text="Leave Server", command=self.client.disconnect, font=config.FONT_MEDIUM,
+                  bg=config.ACCENT_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=3, sticky=tk.E)
+
+        # Container for the dynamic list of rooms
+        self.room_list_frame = tk.Frame(self, bg=config.BG_COLOR, padx=config.PAD_X, pady=config.PAD_Y)
+        self.room_list_frame.grid(row=1, column=0, sticky="nsew")
+        self.room_list_frame.grid_columnconfigure(0, weight=1)
+
+        self.refresh_room_list()
+
+        # Help button
+        tk.Button(self, text="?", command=lambda: self.master.show_help("Lobby"),
+                  bg=config.BG_COLOR, fg=config.TEXT_COLOR, font="Helvetica 14 bold").place(relx=0.98, rely=0.02, anchor=tk.NE)
+
+
+    def refresh_room_list(self) -> None:
+        """Clears and redraws the list of rooms based on client data."""
+        # Clear existing widgets
+        for widget in self.room_list_frame.winfo_children():
+            widget.destroy()
+
+        # Create header row
+        header_row: tk.Frame = tk.Frame(self.room_list_frame, bg=config.BG_COLOR, padx=config.PAD_X, pady=config.PAD_Y)
+        header_row.grid(row=0, column=0, sticky="ew")
+        header_row.grid_columnconfigure(0, weight=1) # Room ID
+        header_row.grid_columnconfigure(1, weight=1) # State
+        header_row.grid_columnconfigure(2, weight=1) # Players
+        header_row.grid_columnconfigure(3, weight=1) # Action button (fixed width)
+
+        tk.Label(header_row, text="Room ID", font=config.FONT_MEDIUM + " underline", bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=0, sticky=tk.W)
+        tk.Label(header_row, text="State", font=config.FONT_MEDIUM + " underline", bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=1, sticky=tk.W)
+        tk.Label(header_row, text="Players", font=config.FONT_MEDIUM + " underline", bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=2, sticky=tk.W)
+        tk.Label(header_row, text="Action", font=config.FONT_MEDIUM + " underline", bg=config.BG_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=3, sticky=tk.E)
+
+
+        # Draw room rows
+        for i, room in enumerate(self.client.rooms):
+            room_id: int = room["id"] # type: ignore
+            room_state: str = room["state"] # type: ignore
+
+            row_color: str = "#34495e" if i % 2 == 0 else "#4e6a87" # Alternate row colors
+
+            room_row: tk.Frame = tk.Frame(self.room_list_frame, bg=row_color, padx=config.PAD_X, pady=config.PAD_Y // 2)
+            room_row.grid(row=i + 1, column=0, sticky="ew")
+            room_row.grid_columnconfigure(0, weight=1)
+            room_row.grid_columnconfigure(1, weight=1)
+            room_row.grid_columnconfigure(2, weight=1)
+            room_row.grid_columnconfigure(3, weight=1)
+
+            # Room ID
+            tk.Label(room_row, text=f"Room {room_id}", font=config.FONT_MEDIUM, bg=row_color, fg=config.TEXT_COLOR).grid(row=0, column=0, sticky=tk.W)
+
+            # State
+            state_fg: str = "#2ecc71" if room_state == "open" else config.TEXT_COLOR
+            tk.Label(room_row, text=room_state.capitalize(), font=config.FONT_MEDIUM, bg=row_color, fg=state_fg).grid(row=0, column=1, sticky=tk.W)
+
+            # Players
+            tk.Label(room_row, text=f'{room["players"]}/4', font=config.FONT_MEDIUM, bg=row_color, fg=config.TEXT_COLOR).grid(row=0, column=2, sticky=tk.W)
+
+            # Action Button
+            if room_state == "open":
+                tk.Button(room_row, text="JOIN",
+                          command=lambda r_id=room_id: self.client.join_room(r_id),
+                          font=config.FONT_SMALL + " bold", bg="#2ecc71", fg=config.TEXT_COLOR).grid(row=0, column=3, sticky=tk.E)
+            else:
+                tk.Label(room_row, text="-", font=config.FONT_SMALL, bg=row_color, fg=config.TEXT_COLOR).grid(row=0, column=3, sticky=tk.E)
+
+
+class GameScreen(tk.Frame):
+    """The main game screen with cards, pile, and deck."""
+    def __init__(self, parent: tk.Frame, master: Ui, client: Client) -> None:
+        super().__init__(parent, bg=config.TABLE_COLOR)
+        self.master: Ui = master
+        self.client: Client = client
+
+        # UI components that need dynamic updates
+        self.player_hand_frame: tk.Frame # Container for the player's clickable cards
+        self.pile_label: tk.Label # Label for the top card of the pile
+
+        # Setup main layout
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(0, weight=1) # Game area
+        self.grid_rowconfigure(1, weight=0) # Control area
+
+        # --- Top Area (Opponent & Status) ---
+        top_frame: tk.Frame = tk.Frame(self, bg=config.TABLE_COLOR)
+        top_frame.grid(row=0, column=0, sticky="new", padx=config.PAD_X*2, pady=config.PAD_Y*2)
+        top_frame.grid_columnconfigure(0, weight=1)
+        top_frame.grid_columnconfigure(1, weight=1)
+
+        # Opponent/Status
+        tk.Label(top_frame, text="Waiting on opponent (ID: ABC-123)", font=config.FONT_MEDIUM,
+                 bg=config.TABLE_COLOR, fg=config.TEXT_COLOR).grid(row=0, column=0, sticky=tk.W)
+
+        # Opponent's cards (displaying backs)
+        opponent_hand_frame: tk.Frame = tk.Frame(top_frame, bg=config.TABLE_COLOR)
+        opponent_hand_frame.grid(row=1, column=0, columnspan=2, pady=config.PAD_Y)
+        self._draw_opponent_cards(opponent_hand_frame, 6) # Simulate 6 opponent cards
+
+        # --- Middle Area (Pile & Deck) ---
+        middle_frame: tk.Frame = tk.Frame(self, bg=config.TABLE_COLOR)
+        middle_frame.grid(row=0, column=0, sticky="nsew")
+        middle_frame.grid_columnconfigure(0, weight=1)
+        middle_frame.grid_columnconfigure(1, weight=0) # Card area
+        middle_frame.grid_columnconfigure(2, weight=1)
+
+        # 1. Deck (clickable)
+        deck_image: ImageTk.PhotoImage = self.master.img_loader.get_image("back")
+        deck_button: tk.Button = tk.Button(middle_frame, image=deck_image, command=self.client.draw_card,
+                                           bg=config.TABLE_COLOR, bd=0, relief=tk.FLAT)
+        deck_button.image = deck_image # Keep reference
+        deck_button.grid(row=0, column=0, padx=config.CARD_WIDTH//2, pady=config.CARD_HEIGHT//2, sticky=tk.E)
+        tk.Label(middle_frame, text="Deck (Click to Draw)", bg=config.TABLE_COLOR, fg=config.TEXT_COLOR, font=config.FONT_SMALL).grid(row=1, column=0, sticky=tk.E)
+
+        # 2. Pile (top card)
+        self.pile_label = tk.Label(middle_frame, bg=config.TABLE_COLOR, bd=1, relief=tk.SOLID)
+        self.pile_label.grid(row=0, column=1, padx=config.PAD_X * 2, pady=config.PAD_Y * 2)
+        tk.Label(middle_frame, text="Pile", bg=config.TABLE_COLOR, fg=config.TEXT_COLOR, font=config.FONT_SMALL).grid(row=1, column=1)
+        # Initial draw of pile card
+        self.update_pile("back") # Start with a face-down card
+
+        # --- Bottom Area (Player Hand & Controls) ---
+        bottom_frame: tk.Frame = tk.Frame(self, bg=config.BG_COLOR)
+        bottom_frame.grid(row=2, column=0, sticky="ew")
+        bottom_frame.grid_columnconfigure(0, weight=1)
+        bottom_frame.grid_columnconfigure(1, weight=0)
+
+        # Player Hand Container
+        self.player_hand_frame = tk.Frame(bottom_frame, bg=config.BG_COLOR)
+        self.player_hand_frame.grid(row=0, column=0, padx=config.PAD_X, pady=config.PAD_Y)
+
+        # Controls (Leave Room Button)
+        control_frame: tk.Frame = tk.Frame(bottom_frame, bg=config.BG_COLOR)
+        control_frame.grid(row=0, column=1, padx=config.PAD_X, pady=config.PAD_Y)
+
+        tk.Button(control_frame, text="Leave Room", command=self.client.leave_room, font=config.FONT_MEDIUM,
+                  bg=config.ACCENT_COLOR, fg=config.TEXT_COLOR).pack(pady=config.PAD_Y)
+
+        # Help button (placed relative to the GameScreen frame)
+        tk.Button(self, text="?", command=lambda: self.master.show_help("Game"),
+                  bg=config.TABLE_COLOR, fg=config.TEXT_COLOR, font="Helvetica 14 bold").place(relx=0.98, rely=0.02, anchor=tk.NE)
+
+    def _draw_opponent_cards(self, frame: tk.Frame, count: int) -> None:
+        """Draws opponent's face-down cards."""
+        card_back_image: ImageTk.PhotoImage = self.master.img_loader.get_image("back")
+        # Use a slight horizontal overlap for better look
+        overlap_factor: float = 0.6
+        x_pos: int = 0
+
+        for i in range(count):
+            label: tk.Label = tk.Label(frame, image=card_back_image, bg=config.TABLE_COLOR, bd=0)
+            label.image = card_back_image
+            label.place(x=x_pos, y=0)
+            x_pos += int(config.CARD_WIDTH * overlap_factor)
+
+        # Adjust frame size to fit all cards
+        frame.config(width=x_pos - int(config.CARD_WIDTH * overlap_factor) + config.CARD_WIDTH, height=config.CARD_HEIGHT)
+
+
+    def update_hand(self, hand: list[str]) -> None:
+        """Redraws the player's clickable hand."""
+        # Clear existing cards
+        for widget in self.player_hand_frame.winfo_children():
+            widget.destroy()
+
+        # Center the hand horizontally in the frame
+        self.player_hand_frame.grid_columnconfigure(0, weight=1)
+
+        # Redraw cards
+        for i, card_name in enumerate(hand):
+            card_image: ImageTk.PhotoImage = self.master.img_loader.get_image(card_name)
+
+            # Create a clickable button for the card
+            card_button: tk.Button = tk.Button(self.player_hand_frame,
+                                               image=card_image,
+                                               command=lambda name=card_name: self.client.play_card(name),
+                                               bg=config.BG_COLOR, bd=1, relief=tk.RAISED)
+            card_button.image = card_image # Keep reference
+            # Place cards in a row
+            card_button.grid(row=0, column=i, padx=config.PAD_X // 2)
+
+    def update_pile(self, card_name: str) -> None:
+        """Updates the top card of the pile."""
+        pile_image: ImageTk.PhotoImage = self.master.img_loader.get_image(card_name)
+        self.pile_label.config(image=pile_image, width=config.CARD_WIDTH, height=config.CARD_HEIGHT)
+        self.pile_label.image = pile_image # Keep reference
