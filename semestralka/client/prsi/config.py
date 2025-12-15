@@ -31,6 +31,7 @@ FONT_SMALL: str = "Helvetica 10"
 ASSETS_DIR: str = "assets"     # directory where .jpg images are stored
 
 MAX_HAND_CARDS: int = 10
+CARD_BACK: str = "back.jpg"
 
 # protocol
 PROTO_MAGIC = "PRSI"

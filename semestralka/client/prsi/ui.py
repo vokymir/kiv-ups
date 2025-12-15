@@ -1,9 +1,46 @@
+import os
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import Image, messagebox
+
+from PIL import Image, ImageTk
 
 # hehe
-from prsi.config import ACCENT_COLOR, APP_TITLE, BG_COLOR, CARD_BG, DEFAULT_IP, DEFAULT_PORT, FN_LOGIN, FN_LOBBY, FN_ROOM, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, PAD_X, PAD_Y, TABLE_COLOR, TEXT_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
+from prsi.config import ACCENT_COLOR, APP_TITLE, BG_COLOR, CARD_BACK, CARD_BG, DEFAULT_IP, DEFAULT_PORT, FN_LOGIN, FN_LOBBY, FN_ROOM, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, PAD_X, PAD_Y, TABLE_COLOR, TEXT_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
 from prsi.common import Client_Dummy, Room
+
+class Img_Loader:
+    """
+    Loading JPG images from assets directory.
+    """
+    def __init__(self, card_width: int, card_height: int, assets_dir: str) -> None:
+        self.c_w: int = card_width
+        self.c_h: int = card_height
+        self.assets_dir: str = assets_dir
+        self.images: dict[str, ImageTk.PhotoImage] = {}
+
+        # preload back of card - to fail early
+        _ = self.get_image(CARD_BACK)
+
+    def get_image(self, card_name: str) -> ImageTk.PhotoImage:
+        """
+        Load the image. Card name must contain .jpg (or other) extension.
+        """
+        if (card_name in self.images):
+            return self.images[card_name]
+
+        try:
+            # attemp to load actual image
+            img_path: str = os.path.join(self.assets_dir, card_name)
+            img = Image.open(img_path).resize(
+                (self.c_w, self.c_h), Image.Resampling.LANCZOS)
+            # save & return
+            self.images[card_name] = ImageTk.PhotoImage(img)
+            return self.images[card_name]
+
+        except Exception as e:
+            print(f"[IMG] Exception when loading card {card_name}: {e}")
+            # return at least something
+            return self.images[CARD_BACK]
 
 class Ui(tk.Tk):
     def __init__(self, client: Client_Dummy) -> None:
@@ -242,8 +279,45 @@ class Lobby_Screen(tk.Frame):
 class Game_Screen(tk.Frame):
     def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client_Dummy) -> None:
         super().__init__(bg=TABLE_COLOR)
-        pass
+        self.ui: Ui = ui_master
+        self.client: Client_Dummy = client
 
+        # container for cards
+        self.player_hand_F: tk.Frame
+        # label for the top card on pile
+        self.pile_label: tk.Label
+
+        # setup layout
+        _ = self.grid_columnconfigure(0, weight=1)
+        _ = self.grid_rowconfigure(0, weight=1) # game area
+        _ = self.grid_rowconfigure(1, weight=0) # control area
+
+        # top area (opponent & status)
+        top_frame: tk.Frame = tk.Frame(self, bg=TABLE_COLOR)
+        top_frame.grid(row=0, column=0, sticky="new",
+                       padx=PAD_X * 2, pady=PAD_Y * 2)
+        _ = top_frame.grid_columnconfigure(0, weight=1)
+        _ = top_frame.grid_columnconfigure(1, weight=1)
+
+        opponent_hand_frame: tk.Frame = tk.Frame(top_frame, bg=TABLE_COLOR)
+        opponent_hand_frame.grid(row=0, column=0, sticky="nsew")
+        self._draw_opponent_cards(opponent_hand_frame, 6) # TODO:
+
+        # middle area (pile & deck)
+        middle_frame: tk.Frame = tk.Frame(self, bg=TABLE_COLOR)
+        middle_frame.grid(row=0, column=0, sticky="nsew")
+        _ = middle_frame.grid_columnconfigure(0, weight=1)
+        _ = middle_frame.grid_columnconfigure(1, weight=0) # Card area
+        _ = middle_frame.grid_columnconfigure(2, weight=1)
+
+        # = deck
+        deck_image: ImageTk.PhotoImage = self.master.img_loader.get_image("back")
+
+    def _draw_opponent_cards(self, frame: tk.Frame, count: int) -> None:
+        """
+        Show opponents cards - only their backs
+        """
+        pass
 
 
 
