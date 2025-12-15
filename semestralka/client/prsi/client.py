@@ -175,6 +175,7 @@ class Client(Client_Dummy):
         if (self.player and self.player.state == ST_GAME and \
         self.room and self.room.turn and (not self.as_draw)):
             self.net.send_command(CMD_DRAW)
+            self.as_draw = True
             return
         self.ui.show_temp_message("It's not your turn.")
 
@@ -248,9 +249,14 @@ class Client(Client_Dummy):
                     self.ui.room_frame.draw_opponent_name(op.nick)
                 self.ui.switch_frame(FN_ROOM)
             case "GAME_START":
-                if (self.player):
+                if self.player:
                     self.player.state = ST_GAME
-                # to get the other player
+                if self.room:
+                    self.room.turn = False
+
+                self.as_draw = False
+                self.as_play = False
+
                 self.net.send_command(CMD_ROOM)
             case "HAND":
                 self.parse_hand_message(parts)
@@ -404,9 +410,16 @@ class Client(Client_Dummy):
             if (self.room):
                 self.room.top_card = card
 
+                self.room.turn = False
+
                 if (self.player and self.player.nick == name):
                     self.room.turn = True
+                    self.as_draw = False
+                    self.as_play = False
                     self.ui.show_temp_message("Your turn")
+                else:
+                    self.ui.show_temp_message("Opponents turn")
+
 
         except Exception as e:
             joined: str = " ".join(msg)
