@@ -368,7 +368,10 @@ class Client(Client_Dummy):
                 room.players.append(player)
 
             # set global my room
+            if (self.room and self.room.id == -1):
+                room.top_card = self.room.top_card
             self.room = room
+
             # if not in game, set the state to room
             if (self.player and self.player.state != ST_GAME):
                 self.player.state = ST_ROOM
@@ -414,6 +417,7 @@ class Client(Client_Dummy):
 
                 self.room.turn = False
 
+                print(f"self: {self.player.nick}\nname: {name}")
                 if (self.player and self.player.nick == name):
                     self.room.turn = True
                     self.as_draw = False
@@ -421,6 +425,11 @@ class Client(Client_Dummy):
                     self.ui.show_temp_message("Your turn")
                 else:
                     self.ui.show_temp_message("Opponents turn")
+            else:
+                # prepare info about top card
+                # inside invalid room
+                self.room = Room(-1,"PLAYING")
+                self.room.top_card = card
 
 
         except Exception as e:
@@ -432,6 +441,7 @@ class Client(Client_Dummy):
     def parse_gamestart_message(self, _msg: list[str]) -> None:
         if self.player:
             self.player.state = ST_GAME
+
         if self.room:
             self.room.turn = False
 
