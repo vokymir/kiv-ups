@@ -1,6 +1,7 @@
 #include "room.hpp"
 #include "card.hpp"
 #include "logger.hpp"
+#include <algorithm>
 #include <array>
 #include <memory>
 #include <random>
