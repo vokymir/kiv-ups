@@ -2,13 +2,12 @@ import tkinter as tk
 from tkinter import messagebox
 
 from prsi import config
-
-class Client: pass # forward declare
+from prsi.common import Client_Dummy, Room
 
 class Ui(tk.Tk):
-    def __init__(self, client: Client) -> None:
+    def __init__(self, client: Client_Dummy) -> None:
         super().__init__()
-        self.client: Client = client
+        self.client: Client_Dummy = client
         print("[UI] Initializing Tkinter root window (Ui)...")
 
         self.title(config.APP_TITLE)
@@ -46,10 +45,10 @@ class Ui(tk.Tk):
         frame.tkraise()
 
 class Login_Screen(tk.Frame):
-    def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client) -> None:
+    def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client_Dummy) -> None:
         super().__init__()
         self.ui: Ui = ui_master
-        self.client: Client = client
+        self.client: Client_Dummy = client
         print("[UI] Initializing Login Screen widgets...")
 
         # input variables
@@ -113,10 +112,10 @@ class Login_Screen(tk.Frame):
         self.client.connect(ip, port, username)
 
 class Lobby_Screen(tk.Frame):
-    def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client) -> None:
+    def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client_Dummy) -> None:
         super().__init__()
         self.ui: Ui = ui_master
-        self.client: Client = client
+        self.client: Client_Dummy = client
 
         self.room_listing_F: tk.Frame
 
@@ -149,10 +148,10 @@ class Lobby_Screen(tk.Frame):
                     row=0, column=3, sticky=tk.E)
 
         # container for the dynamic list of rooms
-        self.room_list_frame = tk.Frame(self, bg=config.BG_COLOR,
+        self.room_list_frame: tk.Frame = tk.Frame(self, bg=config.BG_COLOR,
                 padx=config.PAD_X, pady=config.PAD_Y)
         self.room_list_frame.grid(row=1, column=0, sticky="nsew")
-        self.room_list_frame.grid_columnconfigure(0, weight=1)
+        _ = self.room_list_frame.grid_columnconfigure(0, weight=1)
 
         # just show nothing
         self.refresh_room_list()
@@ -168,8 +167,8 @@ class Lobby_Screen(tk.Frame):
     def ask_join_room(self, room_id: int) -> None:
         self.client.join(room_id)
 
-    def get_client_rooms(self):
-        return self.client.rooms
+    def get_client_rooms(self) -> list[Room]:
+        return self.client.known_rooms()
 
     def refresh_room_list(self) -> None:
         """
@@ -193,8 +192,8 @@ class Lobby_Screen(tk.Frame):
 
         # Draw room rows
         for i, room in enumerate(self.get_client_rooms()):
-            room_id: int = room["id"]
-            room_state: str = room["state"]
+            room_id: int = room.id
+            room_state: str = room.state
 
             # alternate row colors
             row_color: str = "#34495e" if i % 2 == 0 else "#4e6a87"

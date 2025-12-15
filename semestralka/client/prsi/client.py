@@ -1,12 +1,13 @@
 from queue import Queue
 from tkinter import messagebox
 import queue
+from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
 from prsi.config import CMD_NAME, CMD_PONG, CMD_ROOMS
+from prsi.common import Client_Dummy, Room
 
-
-class Client:
+class Client(Client_Dummy):
     """
     The controller, have net & ui and actually do all the stuff.
     """
@@ -21,20 +22,27 @@ class Client:
         self.ui: Ui = Ui(self)
 
         # stuff
-        # TODO: player/rooms?
-        self.rooms = {}
+        self.known_rooms_: list[Room] = []
 
         _ = self.ui.after(100, self.process_incoming_messages)
         print("[Client] Initialization complete. Ready to run.")
 
+    @override
     def run(self) -> None:
         print("--- Starting Tkinter main loop (GUI should now appear) ---")
         self.ui.update()
         self.ui.mainloop()
         print("--- Tkinter main loop exited ---")
 
+    # get/set
+
+    @override
+    def known_rooms(self) -> list[Room]:
+        return self.known_rooms_
+
     # ui -> net
 
+    @override
     def connect(self, ip: str, port: int, username: str) -> None:
         if not(self.net.connect(ip, str(port))):
             _ = messagebox.showerror("Server", "Cannot connect to the server.")
@@ -43,11 +51,20 @@ class Client:
         self.net.send_command(CMD_NAME + " " + username)
         _ = messagebox.showinfo("Server", "Trying to connect.")
 
+    @override
     def rooms(self) -> None:
         """
         Ask server for rooms
         """
         self.net.send_command(CMD_ROOMS)
+
+    @override
+    def join(self, room_id: int) -> None:
+        pass # TODO:
+
+    @override
+    def disconnect(self) -> None:
+        pass # TODO:
 
     # net -> ui
 
