@@ -6,6 +6,7 @@ except ImportError:
     from typing_extensions import override
 
 from typing import override
+
 from prsi.config import ST_UNNAMED
 
 class Card:
@@ -69,9 +70,9 @@ class Player:
         self.n_cards: int = 0
 
     def discard(self, card: Card) -> None:
-        for c in self.hand:
+        for i, c in enumerate(self.hand):
             if (c.rank == card.rank and c.suit == card.suit):
-                self.hand.remove(c)
+                cc: Card = self.hand.pop(i)
                 break
 
 class Room:

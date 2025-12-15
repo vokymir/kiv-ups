@@ -196,8 +196,6 @@ class Client(Client_Dummy):
     @override
     def play_card(self, card: Card) -> None:
         if (self.room and self.room.turn and (not self.already_sent)):
-            print(f"TOP: {self.room.top_card.__str__()}")
-            print(f"TRIED: {card.__str__()}")
             if (card.rank == "Q" or\
                 card.rank == self.room.top_card.rank or\
                 card.suit == self.room.top_card.suit):
@@ -319,13 +317,6 @@ class Client(Client_Dummy):
                     self.net.send_command(CMD_ROOM)
                 case "CREATE_ROOM":
                     self.net.send_command(CMD_ROOM)
-                case "PLAYED":
-                    # remove card from hand
-                    if (self.last_played and self.player):
-                        self.player.discard(self.last_played)
-                        self.ui.room_frame.update_hand(self.player.hand)
-                    self.last_played = None
-
                 case _:
                     pass
 
@@ -458,8 +449,22 @@ class Client(Client_Dummy):
 
         self.net.send_command(CMD_ROOM)
 
-    def parse_played_message(self, _msg: list[str]) -> None:
-        pass
+    def parse_played_message(self, msg: list[str]) -> None:
+        try:
+            name: str = msg[1]
+            card: Card = Card(msg[2][0], msg[2][1])
+
+            # remove card from hand
+            if (self.player and self.player.nick == name):
+                self.player.discard(card)
+                self.ui.room_frame.update_hand(self.player.hand)
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid played message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Someone played a card?")
+
 
     def parse_drawed_message(self, msg: list[str]) -> None:
         try:
