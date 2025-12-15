@@ -3,7 +3,7 @@ from tkinter import messagebox
 import queue
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_PONG
+from prsi.config import CMD_NAME, CMD_PONG
 
 
 class Client:
@@ -21,9 +21,23 @@ class Client:
         self.ui: Ui = Ui(self)
 
         _ = self.ui.after(100, self.process_incoming_messages)
+        print("[Client] Initialization complete. Ready to run.")
 
     def run(self) -> None:
+        print("--- Starting Tkinter main loop (GUI should now appear) ---")
+        self.ui.update()
         self.ui.mainloop()
+        print("--- Tkinter main loop exited ---")
+
+    # ui -> net
+
+    def connect(self, ip: str, port: int, username: str):
+        if not(self.net.connect(ip, str(port))):
+            _ = messagebox.showerror("Server", "Cannot connect to the server.")
+            return
+
+        self.net.send_command(CMD_NAME + " " + username)
+        _ = messagebox.showinfo("Server", "Trying to connect.")
 
     # net -> ui
 
