@@ -298,6 +298,7 @@ class Game_Screen(tk.Frame):
         self.player_hand_F: tk.Frame
         # label for the top card on pile
         self.pile_label: tk.Label
+        self.pile_img: ImageTk.PhotoImage
 
         # setup layout
         _ = self.grid_columnconfigure(0, weight=1)
@@ -415,8 +416,9 @@ class Game_Screen(tk.Frame):
         _ = self.opponent_hand_F.config(width=w, height=CARD_HEIGHT)
 
     def update_pile(self, top_card: str) -> None:
-        pile_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(top_card + ".jpeg")
-        _ = self.pile_label.config(image=pile_image,
+        self.pile_img: ImageTk.PhotoImage = self.ui.img_loader.get_image(
+            top_card + ".jpeg")
+        _ = self.pile_label.config(image=self.pile_img,
                                 width=CARD_WIDTH, height=CARD_HEIGHT)
 
     def update_hand(self, hand: list[Card]) -> None:
