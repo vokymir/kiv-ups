@@ -4,7 +4,7 @@ import queue
 from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY
+from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY
 from prsi.common import Card, Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
@@ -105,6 +105,13 @@ class Client(Client_Dummy):
         self.ui.show_temp_message("Cannot show rooms when not in lobby")
 
     @override
+    def create_room(self) -> None:
+        if (self.player and self.player.state == ST_LOBBY):
+            self.net.send_command(CMD_CREATE_ROOM)
+            return
+        self.ui.show_temp_message("Cannot create room when not in lobby")
+
+    @override
     def join(self, room_id: int) -> None:
         """
         AS=none, State=Lobby
@@ -184,6 +191,8 @@ class Client(Client_Dummy):
                                 self.player.state = ST_LOBBY
                             self.net.send_command(CMD_ROOMS)
                         case "JOIN_ROOM":
+                            self.net.send_command(CMD_ROOM)
+                        case "CREATE_ROOM":
                             self.net.send_command(CMD_ROOM)
                         case _:
                             pass

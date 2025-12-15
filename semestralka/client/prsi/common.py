@@ -73,6 +73,8 @@ class Client_Dummy:
         pass
     def rooms(self) -> None:
         pass
+    def create_room(self) -> None:
+        pass
     def join(self, _room_id: int) -> None:
         pass
     def disconnect(self) -> None:
@@ -84,6 +86,7 @@ class Client_Dummy:
         pass
     def play_card(self, _card: Card) -> None:
         pass
+
     # get/set
     def known_rooms(self) -> list[Room]:
         return []

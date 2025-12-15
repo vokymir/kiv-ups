@@ -181,25 +181,31 @@ class Lobby_Screen(tk.Frame):
         header_frame.grid(row=0, column=0, sticky="ew",
                           padx=PAD_X, pady=PAD_Y)
 
-        # columns: label | spacer | refresh button | leave server button
-        _ = header_frame.grid_columnconfigure(1, weight=1) # Spacer column
+        # columns: label | spacer | buttons
+        _ = header_frame.grid_columnconfigure(1, weight=1) # Spacer
 
-        tk.Label(header_frame, text="Lobby: Available Rooms",
+        tk.Label(header_frame, text="Lobby",
                  font=FONT_LARGE, bg=BG_COLOR,
                  fg=TEXT_COLOR).grid(
                     row=0, column=0, sticky=tk.W)
 
+        # create room button
+        tk.Button(header_frame, text="Create Room",
+                  command=self.ask_create_room, font=FONT_MEDIUM,
+                  bg="#3498db", fg=TEXT_COLOR).grid(row=0, column=2,
+                    sticky=tk.E, padx=PAD_X)
+
         # refresh button
         tk.Button(header_frame, text="Refresh Rooms",
                   command=self.ask_refresh_rooms, font=FONT_MEDIUM,
-                  bg="#3498db", fg=TEXT_COLOR).grid(row=0, column=2,
+                  bg="#3498db", fg=TEXT_COLOR).grid(row=0, column=3,
                     sticky=tk.E, padx=PAD_X)
 
         # leave server button
         tk.Button(header_frame, text="Leave Server",
                   command=self.ask_disconnect, font=FONT_MEDIUM,
                   bg=ACCENT_COLOR, fg=TEXT_COLOR).grid(
-                    row=0, column=3, sticky=tk.E)
+                    row=0, column=4, sticky=tk.E)
 
         # container for the dynamic list of rooms
         self.room_list_frame: tk.Frame = tk.Frame(self, bg=BG_COLOR,
@@ -209,6 +215,9 @@ class Lobby_Screen(tk.Frame):
 
         # just show what is known now
         self.refresh_room_list()
+
+    def ask_create_room(self) -> None:
+        self.client.create_room()
 
     def ask_disconnect(self) -> None:
         self.client.disconnect()
