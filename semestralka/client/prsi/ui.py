@@ -6,7 +6,7 @@ from PIL import Image, ImageTk
 
 # hehe
 from prsi.config import ACCENT_COLOR, APP_TITLE, ASSETS_DIR, BG_COLOR, CARD_BACK, CARD_BG, CARD_HEIGHT, CARD_WIDTH, DEFAULT_IP, DEFAULT_PORT, FN_LOGIN, FN_LOBBY, FN_ROOM, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, PAD_X, PAD_Y, TABLE_COLOR, TEXT_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
-from prsi.common import Client_Dummy, Room
+from prsi.common import Card, Client_Dummy, Room
 
 class Img_Loader:
     """
@@ -315,7 +315,7 @@ class Game_Screen(tk.Frame):
         _ = middle_frame.grid_columnconfigure(2, weight=1)
 
         # = deck
-        deck_image: ImageTk.PhotoImage = self.ui.img_loader.get_image("back")
+        deck_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(CARD_BACK)
         deck_btn: tk.Button = tk.Button(middle_frame, image=deck_image,
                 command=self.client.draw_card, bg=TABLE_COLOR, bd=0, relief=tk.FLAT)
         deck_btn.grid(row=0, column=0, padx=CARD_WIDTH//2, pady=CARD_HEIGHT//2,
@@ -327,7 +327,8 @@ class Game_Screen(tk.Frame):
         # = pile (top card)
         self.pile_label = tk.Label(middle_frame, bg=TABLE_COLOR, bd=1, relief=tk.SOLID)
         self.pile_label.grid(row=0, column=1, padx=PAD_X * 2, pady=PAD_Y * 2)
-        self._update_pile(CARD_BACK) # TODO: get from server
+        top_card: Card = self.client.get_top_card()
+        self.update_pile(top_card.__str__())
 
         # bottom area
         bottom_frame: tk.Frame = tk.Frame(self, bg=BG_COLOR)
@@ -365,10 +366,10 @@ class Game_Screen(tk.Frame):
         w: int = x_pos - int(CARD_WIDTH * overlap) + CARD_WIDTH
         _ = frame.config(width=w, height=CARD_HEIGHT)
 
-    def _update_pile(self, top_card: str) -> None:
-        pile_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(top_card)
-        self.pile_label.config(image=pile_image, width=CARD_WIDTH, height=CARD_HEIGHT)
-        # TODO: keep reference to pile image?
+    def update_pile(self, top_card: str) -> None:
+        pile_image: ImageTk.PhotoImage = self.ui.img_loader.get_image(top_card + ".jpeg")
+        _ = self.pile_label.config(image=pile_image,
+                                width=CARD_WIDTH, height=CARD_HEIGHT)
 
     def update_hand(self, hand: list[str]) -> None:
         # clear existing cards

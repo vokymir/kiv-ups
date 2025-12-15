@@ -5,7 +5,7 @@ from typing import override
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
 from prsi.config import CMD_DRAW, CMD_JOIN, CMD_NAME, CMD_PONG, CMD_ROOM, CMD_ROOMS, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY
-from prsi.common import Client_Dummy, Player, Room
+from prsi.common import Card, Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
     """
@@ -71,6 +71,15 @@ class Client(Client_Dummy):
         if (isinstance(p, Player)):
             return p.n_cards
         return 0
+
+    @override
+    def get_top_card(self) -> Card:
+        """
+        State=game
+        """
+        if (self.room):
+            return self.room.top_card
+        return Card()
 
     # ui -> net
 

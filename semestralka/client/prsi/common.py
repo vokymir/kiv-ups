@@ -1,9 +1,14 @@
+from typing import override
 from prsi.config import ST_UNNAMED
 
 class Card:
     def __init__(self, suit: str = "N", rank: str = "N") -> None:
         self.suit: str = suit
         self.rank: str = rank
+
+    @override
+    def __str__(self) -> str:
+        return f"{self.suit}{self.rank}"
 
     def valid(self) -> bool:
         valid_suit: bool = False
@@ -57,6 +62,7 @@ class Room:
         self.players: list[Player] = []
         # is it our players turn?
         self.turn: bool = False
+        self.top_card: Card = Card()
 
 # to get rid of basedpyright errors
 # actual client inherits from this
@@ -83,5 +89,7 @@ class Client_Dummy:
         return []
     def opponent_n_cards(self) -> int:
         return 0
+    def get_top_card(self) -> Card:
+        return Card()
 
 
