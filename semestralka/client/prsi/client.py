@@ -263,57 +263,48 @@ class Client(Client_Dummy):
                     self.ui.room_frame.draw_opponent_name(op.nick)
                 self.ui.switch_frame(FN_ROOM)
             case "GAME_START":
-                if self.player:
-                    self.player.state = ST_GAME
-                if self.room:
-                    self.room.turn = False
-
-                self.as_draw = False
-                self.as_play = False
-
-                self.net.send_command(CMD_ROOM)
+                self.parse_gamestart_message(parts)
             case "HAND":
                 self.parse_hand_message(parts)
                 if (self.player):
                     self.ui.room_frame.update_hand(self.player.hand)
             case "TURN":
                 self.parse_turn_message(parts)
-                if (self.ui):
-                    self.ui.room_frame.update_pile()
+                self.ui.room_frame.update_pile()
             case "PLAYED":
+                self.parse_played_message(parts)
                 # show what other player did
-                pass
             case "DRAWED":
+                self.parse_drawed_message(parts)
                 # show that other player drew
-                pass
             case "SKIP":
+                self.parse_skip_message(parts)
                 # maybe show sho is skipped
-                pass
             case "CARDS":
+                self.parse_cards_message(parts)
                 # add these cards to hand
-                pass
             case "WIN":
+                self.parse_win_message(parts)
                 # show you are winner
-                pass
             case "LOSE":
+                self.parse_lose_message(parts)
                 # show you are loser
-                pass
             case "PING":
                 self.net.send_command(CMD_PONG)
             case "STATE":
+                self.parse_state_message(parts)
                 # change UI accordingly
-                pass
             case "SLEEP":
+                self.parse_sleep_message(parts)
                 # show who is sleeping
-                pass
             case "DEAD":
+                self.parse_dead_message(parts)
                 # show who is dead
-                pass
             case "AWAKE":
+                self.parse_awake_message(parts)
                 # show who is awake
-                pass
             case _:
-                self.ui.show_temp_message("Received unknown message from server.")
+                self.ui.show_temp_message(f"Received unknown message from server: {msg}")
 
     def parse_ok_message(self, msg: list[str]) -> None:
         if (len(msg) > 1):
@@ -440,15 +431,36 @@ class Client(Client_Dummy):
             resulting in: {e}")
             self.ui.show_temp_message("Don't know whose turn it is")
 
+    def parse_gamestart_message(self, _msg: list[str]) -> None:
+        if self.player:
+            self.player.state = ST_GAME
+        if self.room:
+            self.room.turn = False
 
+        self.as_draw = False
+        self.as_play = False
 
+        self.net.send_command(CMD_ROOM)
 
+    def parse_played_message(self, msg: list[str]) -> None:
 
+    def parse_drawed_message(self, msg: list[str]) -> None:
 
+    def parse_skip_message(self, msg: list[str]) -> None:
 
+    def parse_cards_message(self, msg: list[str]) -> None:
 
+    def parse_win_message(self, msg: list[str]) -> None:
 
+    def parse_lose_message(self, msg: list[str]) -> None:
 
+    def parse_state_message(self, msg: list[str]) -> None:
+
+    def parse_sleep_message(self, msg: list[str]) -> None:
+
+    def parse_dead_message(self, msg: list[str]) -> None:
+
+    def parse_awake_message(self, msg: list[str]) -> None:
 
 
 
