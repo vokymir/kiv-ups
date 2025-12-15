@@ -2,7 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 
 # hehe
-from prsi.config import ACCENT_COLOR, APP_TITLE, BG_COLOR, CARD_BG, DEFAULT_IP, DEFAULT_PORT, FN_LOGIN, FN_LOBBY, FN_ROOM, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, PAD_X, PAD_Y, TEXT_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
+from prsi.config import ACCENT_COLOR, APP_TITLE, BG_COLOR, CARD_BG, DEFAULT_IP, DEFAULT_PORT, FN_LOGIN, FN_LOBBY, FN_ROOM, FONT_LARGE, FONT_MEDIUM, FONT_SMALL, PAD_X, PAD_Y, TABLE_COLOR, TEXT_COLOR, WINDOW_HEIGHT, WINDOW_WIDTH
 from prsi.common import Client_Dummy, Room
 
 class Ui(tk.Tk):
@@ -60,7 +60,7 @@ class Ui(tk.Tk):
 
 class Login_Screen(tk.Frame):
     def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client_Dummy) -> None:
-        super().__init__()
+        super().__init__(bg=BG_COLOR)
         self.ui: Ui = ui_master
         self.client: Client_Dummy = client
         print("[UI] Initializing Login Screen widgets...")
@@ -127,7 +127,7 @@ class Login_Screen(tk.Frame):
 
 class Lobby_Screen(tk.Frame):
     def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client_Dummy) -> None:
-        super().__init__()
+        super().__init__(bg=BG_COLOR)
         self.ui: Ui = ui_master
         self.client: Client_Dummy = client
 
@@ -238,6 +238,11 @@ class Lobby_Screen(tk.Frame):
                 tk.Label(room_row, text="-", font=FONT_SMALL,
                     bg=row_color, fg=TEXT_COLOR).grid(
                         row=0, column=2, sticky=tk.E)
+
+class Game_Screen(tk.Frame):
+    def __init__(self, parent: tk.Frame, ui_master: Ui, client: Client_Dummy) -> None:
+        super().__init__(bg=TABLE_COLOR)
+        pass
 
 
 
