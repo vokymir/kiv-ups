@@ -245,11 +245,11 @@ class Client(Client_Dummy):
             state: str = msg[2]
             room: Room = Room(id, state)
 
-            n_players: int = int(msg[3])
+            n_players: int = int(msg[4])
             # add all players
             for i in range(n_players):
-                # start on 4, every player is 3 thingies
-                idx: int = 4 + i * 3
+                # start on 5, every player is 3 thingies
+                idx: int = 5 + i * 3
                 name: str = msg[idx]
                 p_state: str = msg[idx+1]
                 n_cards: int = int(msg[idx+2])
