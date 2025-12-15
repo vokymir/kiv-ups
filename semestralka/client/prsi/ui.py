@@ -302,7 +302,7 @@ class Game_Screen(tk.Frame):
 
         opponent_hand_frame: tk.Frame = tk.Frame(top_frame, bg=TABLE_COLOR)
         opponent_hand_frame.grid(row=0, column=0, sticky="nsew")
-        self._draw_opponent_cards(opponent_hand_frame, 6) # TODO:
+        self.draw_opponent_cards(opponent_hand_frame, 6) # TODO:
 
         # middle area (pile & deck)
         middle_frame: tk.Frame = tk.Frame(self, bg=TABLE_COLOR)
@@ -326,13 +326,33 @@ class Game_Screen(tk.Frame):
         self.pile_label.grid(row=0, column=1, padx=PAD_X * 2, pady=PAD_Y * 2)
         self._update_pile(CARD_BACK) # TODO: get from server
 
-    def _draw_opponent_cards(self, frame: tk.Frame, count: int) -> None:
+        # bottom area
+        bottom_frame: tk.Frame = tk.Frame(self, bg=BG_COLOR)
+        bottom_frame.grid(row=2, column=0, sticky="ew")
+        _ = bottom_frame.grid_columnconfigure(0, weight=1)
+        _ = bottom_frame.grid_columnconfigure(1, weight=0)
+
+        # = player hand
+        self.player_hand_F = tk.Frame(bottom_frame, bg=BG_COLOR)
+        self.player_hand_F.grid(row=0, column=0, padx=PAD_X, pady=PAD_Y)
+
+        # = controls
+        control_frame: tk.Frame = tk.Frame(bottom_frame, bg=BG_COLOR)
+        control_frame.grid(row=0, column=1, padx=PAD_X, pady=PAD_Y)
+
+        tk.Button(control_frame, text="Leave Room", command=self.client.leave_room,
+                 font=FONT_MEDIUM, bg=ACCENT_COLOR, fg=TEXT_COLOR).pack(pady=PAD_Y)
+
+    def draw_opponent_cards(self, frame: tk.Frame, count: int) -> None:
         """
         Show opponents cards - only their backs
         """
         pass
 
     def _update_pile(self, top_card: str) -> None:
+        pass
+
+    def update_hand(self, hand: list[str]) -> None:
         pass
 
 

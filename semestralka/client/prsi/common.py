@@ -22,3 +22,5 @@ class Client_Dummy:
 
     def draw_card(self) -> None:
         pass
+    def leave_room(self) -> None:
+        pass
