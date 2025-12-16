@@ -304,6 +304,8 @@ class Client(Client_Dummy):
                 # show who is awake
             case "JOIN":
                 pass # to get room info is called elsewhere
+            case "LEAVE":
+                pass # the win message will follow
             case _:
                 self.ui.show_temp_message(f"Received unknown message from server: {msg}")
 
