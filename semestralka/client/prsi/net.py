@@ -131,6 +131,8 @@ class Net:
 
                         # let main thread know
                         self.mq.put((QM_MESSAGE, cmd))
+                    else:
+                        break
 
                 if (should_break):
                     break
