@@ -176,6 +176,7 @@ class Client(Client_Dummy):
         """
         if (self.player and self.player.state == ST_LOBBY):
             self.net.send_command(CMD_ROOMS)
+            self.already_sent = True
             return
         self.ui.show_temp_message("Cannot show rooms when not in lobby")
 
@@ -183,6 +184,7 @@ class Client(Client_Dummy):
     def create_room(self) -> None:
         if (self.player and self.player.state == ST_LOBBY):
             self.net.send_command(CMD_CREATE_ROOM)
+            self.already_sent = True
             return
         self.ui.show_temp_message("Cannot create room when not in lobby")
 
@@ -193,6 +195,7 @@ class Client(Client_Dummy):
         """
         if (self.player and self.player.state == ST_LOBBY):
             self.net.send_command(CMD_JOIN + " " + str(room_id))
+            self.already_sent = True
             return
         self.ui.show_temp_message("Cannot join room when not in lobby")
 
@@ -371,6 +374,7 @@ class Client(Client_Dummy):
 
 
     def parse_rooms_message(self, msg: list[str]) -> None:
+        self.already_sent = False
         try:
             count: int = int(msg[1])
             rooms: list[Room] = []
@@ -394,6 +398,7 @@ class Client(Client_Dummy):
             self.ui.show_temp_message("Cannot display rooms.")
 
     def parse_room_message(self, msg: list[str]) -> int:
+        self.already_sent = False
         try:
             n_tokens: int = 0
             id: int = int(msg[1])
