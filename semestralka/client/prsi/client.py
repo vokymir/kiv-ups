@@ -78,7 +78,7 @@ class Client(Client_Dummy):
 
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
-        print(f"ELAPSED {elapsed.seconds}")
+        print(f"ELAPSED {elapsed}")
         print(f"timeout:sleep {self.timeout_sleep}")
         ss: bool = elapsed > self.timeout_sleep
         print(f"should sleep: {ss}")
