@@ -52,6 +52,7 @@ class Client(Client_Dummy):
         self.ui: Ui = Ui(self)
 
         _ = self.ui.after(100, self.process_incoming_messages)
+        _ = self.ui.after(1000, self.check_server_availability)
         print("[Client] Initialization complete. Ready to run.")
 
     @override
@@ -72,6 +73,7 @@ class Client(Client_Dummy):
         if (elapsed > self.timeout_dead):
             self.ui.show_info_window("Server is not available.")
             self.disconnect()
+            self.notified_server_inactivity = False
 
         elif (elapsed > self.timeout_sleep):
             if (not self.notified_server_inactivity):
@@ -345,6 +347,7 @@ class Client(Client_Dummy):
         elapsed: timedelta = now - self.last_ping_recv
 
         if (self.net.connected and elapsed > self.timeout_dead):
+            self.notified_server_inactivity = False
             self.ui.show_info_window("Server is available.")
 
         self.last_ping_recv = now
