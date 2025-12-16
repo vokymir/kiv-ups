@@ -307,7 +307,7 @@ class Client(Client_Dummy):
                         self.disconnect()
                     else:
                         self.player.state = ST_LOBBY
-                    self.net.send_command(CMD_ROOMS)
+                    self.net.send_command(CMD_STATE)
                 case "JOIN_ROOM":
                     self.net.send_command(CMD_ROOM)
                 case "CREATE_ROOM":
@@ -564,7 +564,7 @@ class Client(Client_Dummy):
     def parse_state_message(self, msg: list[str]) -> None:
         try:
             _ = msg.pop(0) # so the whole msg could be passed to room message
-            state: str = msg[0]
+            state: str = msg.pop(0)
 
             if (state == ST_UNNAMED):
                 self.ui.switch_frame(FN_LOGIN)
