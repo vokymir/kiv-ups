@@ -12,7 +12,7 @@ except ImportError:
 
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PLAY, CMD_PONG, CMD_ROOM, CMD_ROOMS, CMD_STATE, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM, ST_UNNAMED
+from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PLAY, CMD_PONG, CMD_ROOM, CMD_ROOMS, CMD_STATE, FN_LOBBY, FN_LOGIN, FN_ROOM, PROTO_DELIM, ST_GAME, ST_LOBBY, ST_ROOM, ST_UNNAMED
 from prsi.common import Card, Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
@@ -148,7 +148,7 @@ class Client(Client_Dummy):
         if (self.already_sent):
             return
 
-        if any(ch.isspace() for ch in username):
+        if any((ch.isspace() or ch == PROTO_DELIM) for ch in username):
             self.ui.show_info_window("Username cannot contain whitespaces.")
             return
 
