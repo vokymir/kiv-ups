@@ -543,7 +543,14 @@ class Client(Client_Dummy):
             self.room.turn = False
 
     def parse_state_message(self, msg: list[str]) -> None:
-        pass
+        try:
+            pass
+
+        except Exception as e:
+            joined: str = " ".join(msg)
+            print(f"[PROTO] invalid state message received ({joined})\
+            resulting in: {e}")
+            self.ui.show_temp_message("Where am I?")
 
     def parse_sleep_message(self, msg: list[str]) -> None:
         try:
