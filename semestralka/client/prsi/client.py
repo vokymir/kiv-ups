@@ -150,6 +150,7 @@ class Client(Client_Dummy):
 
         if any((ch.isspace() or ch == PROTO_DELIM) for ch in username):
             self.ui.show_info_window("Username cannot contain whitespaces.")
+            self.already_sent = False
             return
 
         self.already_sent = True
