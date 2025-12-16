@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from queue import Queue
 from tkinter import messagebox
 import queue
@@ -35,6 +36,9 @@ class Client(Client_Dummy):
 
         # Already Sent DRAW/PLAY
         self.already_sent: bool = False
+
+        # reconnect stuff
+        self.last_ping_recv: datetime = datetime.now(timezone.utc)
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -278,6 +282,7 @@ class Client(Client_Dummy):
                 self.parse_lose_message(parts)
                 # show you are loser
             case "PING":
+                self.last_ping_recv = datetime.now(timezone.utc)
                 self.net.send_command(CMD_PONG)
             case "STATE":
                 self.parse_state_message(parts)
