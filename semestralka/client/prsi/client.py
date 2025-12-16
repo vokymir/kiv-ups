@@ -153,6 +153,7 @@ class Client(Client_Dummy):
     @override
     def connect(self, ip: str, port: int, username: str) -> None:
         if (self.already_sent):
+            self.ui.show_temp_message("Already trying to connect server.")
             return
 
         if any((ch.isspace() or ch == PROTO_DELIM) for ch in username):
@@ -166,6 +167,7 @@ class Client(Client_Dummy):
             self.already_sent = False
             return
 
+        self.already_sent = False
         self.net.send_command(CMD_NAME + " " + username)
         # save username here - after dont have it
         self.player = Player(username)
