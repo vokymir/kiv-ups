@@ -117,4 +117,6 @@ void Player::remove_card(const Card &c) {
   hand_.erase(it);
 }
 
+void Player::clear_hand() { hand_.resize(0); }
+
 } // namespace prsi

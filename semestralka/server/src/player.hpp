@@ -92,6 +92,8 @@ public:
   std::list<Card> &hand() { return hand_; }
   bool have_card(const Card &c);
   void remove_card(const Card &c);
+  // remove all cards from hand
+  void clear_hand();
 
   // helper
 

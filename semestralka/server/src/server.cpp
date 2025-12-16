@@ -743,6 +743,7 @@ void Server::leave_room(std::shared_ptr<Player> p, std::shared_ptr<Room> r) {
   // move to lobby & remove from room
   // may throw
   move_player_by_fd(p->fd(), r->players(), lobby_);
+  p->clear_hand();
 
   p->append_msg(Protocol::OK_LEAVE_ROOM());
   Logger::info("{} left room id={}.", Logger::more(p), r->id());
