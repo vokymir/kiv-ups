@@ -69,13 +69,19 @@ class Client(Client_Dummy):
     def check_server_availability(self) -> None:
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
+        print(f"ELAPSED {elapsed.seconds}")
+        print(f"timeout:sleep {self.timeout_sleep}")
+        ss: bool = elapsed > self.timeout_sleep
+        print(f"should sleep: {ss}")
 
         if (elapsed > self.timeout_dead):
+            print(f"DEAD")
             self.ui.show_info_window("Server is not available.")
             self.disconnect()
             self.notified_server_inactivity = False
 
         elif (elapsed > self.timeout_sleep):
+            print(f"SLEEP")
             if (not self.notified_server_inactivity):
                 self.notified_server_inactivity = True
                 self.ui.show_info_window("Cannot connect server...")
