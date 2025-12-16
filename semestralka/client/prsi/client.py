@@ -601,6 +601,9 @@ class Client(Client_Dummy):
             self.room.turn = False
 
     def parse_lose_message(self, _msg: list[str]) -> None:
+        if (self.player):
+            self.player.hand = []
+            self.ui.room_frame.update_hand([])
         self.ui.show_info_window("You've been defeated.");
         if (self.room): # avoid player clicking on stuff
             self.room.turn = False
