@@ -468,6 +468,12 @@ class Client(Client_Dummy):
             if (self.room):
                 self.room.top_card = card
 
+            # assume there is only one opponent
+            op: Player | None = self.opponent()
+            if (op):
+                op.n_cards -= 1
+                self.ui.room_frame.draw_opponent_cards(op.n_cards)
+
         except Exception as e:
             joined: str = " ".join(msg)
             print(f"[PROTO] invalid played message received ({joined})\
