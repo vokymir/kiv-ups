@@ -533,14 +533,10 @@ class Client(Client_Dummy):
             self.ui.show_temp_message("Someone was skipped?")
 
     def parse_win_message(self, _msg: list[str]) -> None:
-        if (self.player and self.player.state == ST_GAME):
-            self.ui.show_temp_message("You won.");
-            self.net.send_command(CMD_ROOM)
+        self.ui.show_info_window("You won gracefully.");
 
     def parse_lose_message(self, _msg: list[str]) -> None:
-        if (self.player and self.player.state == ST_GAME):
-            self.ui.show_temp_message("You lost.");
-            self.net.send_command(CMD_ROOM)
+        self.ui.show_info_window("You've been defeated.");
 
     def parse_state_message(self, msg: list[str]) -> None:
         pass
