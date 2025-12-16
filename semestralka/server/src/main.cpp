@@ -9,7 +9,7 @@ int main(int argc, char **argv) {
   // load config
   prsi::Config cfg{};
   if (argc > 1) {
-    prsi::Config cfg(argv[1]);
+    cfg = prsi::Config(argv[1]);
   }
 
   prsi::Server s{cfg};
