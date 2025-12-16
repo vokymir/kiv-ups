@@ -51,8 +51,8 @@ class Client(Client_Dummy):
         # ui
         self.ui: Ui = Ui(self)
 
+        self.check_server_availability()
         _ = self.ui.after(100, self.process_incoming_messages)
-        _ = self.ui.after(1000, self.check_server_availability)
         print("[Client] Initialization complete. Ready to run.")
 
     @override
@@ -69,9 +69,11 @@ class Client(Client_Dummy):
     def check_server_availability(self) -> None:
         if (not self.player):
             print("NO PLAYER")
+            _ = self.ui.after(1000, self.check_server_availability)
             return
         if (self.player and self.player.state == ST_UNNAMED):
             print("NO UNNAMED PLAYER ")
+            _ = self.ui.after(1000, self.check_server_availability)
             return
 
         now: datetime = datetime.now(timezone.utc)
