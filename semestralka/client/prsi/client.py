@@ -67,6 +67,8 @@ class Client(Client_Dummy):
 
     # reconnect stuff
     def check_server_availability(self) -> None:
+        if (self.player and self.player.state != ST_UNNAMED):
+            return
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
         print(f"ELAPSED {elapsed.seconds}")
