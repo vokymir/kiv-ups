@@ -348,9 +348,6 @@ class Game_Screen(tk.Frame):
                 command=self.client.draw_card, bg=TABLE_COLOR, bd=0, relief=tk.FLAT)
         deck_btn.grid(row=0, column=0, padx=CARD_WIDTH//2, pady=CARD_HEIGHT//2,
                       sticky=tk.E)
-        tk.Label(middle_frame, text="Deck (Click to Draw)", bg=TABLE_COLOR,
-                 fg=TEXT_COLOR, font=FONT_SMALL).grid(
-            row=1, column=0, sticky=tk.E)
 
         # = pile (top card)
         self.pile_label = tk.Label(middle_frame, bg=TABLE_COLOR, bd=1, relief=tk.SOLID)

@@ -72,6 +72,8 @@ class Client(Client_Dummy):
 
         elif (elapsed > self.timeout_sleep):
             self.ui.show_info_window("Cannot connect server...")
+            if (self.player):
+                _ = self.net.connect(self.player.ip, self.player.port)
 
 
     # get/set
@@ -153,7 +155,10 @@ class Client(Client_Dummy):
             return
 
         self.net.send_command(CMD_NAME + " " + username)
-        self.player = Player(username) # save username here - after dont have it
+        # save username here - after dont have it
+        self.player = Player(username)
+        self.player.ip = ip
+        self.player.port = str(port)
         self.ui.show_temp_message("Trying to connect.", 1000)
 
     # == lobby
@@ -326,7 +331,7 @@ class Client(Client_Dummy):
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
 
-        if (elapsed > self.timeout_dead):
+        if (self.net.connected and elapsed > self.timeout_dead):
             self.ui.show_info_window("Server is available.")
 
         self.last_ping_recv = now
@@ -409,7 +414,7 @@ class Client(Client_Dummy):
 
             # set global my room
             if (self.room ):
-                # always remember turn
+                # always remember
                 room.turn = self.room.turn
                 # only remember top card if new is invalid
                 if (room.top_card.suit == "N" or\
@@ -588,6 +593,9 @@ class Client(Client_Dummy):
             self.ui.show_temp_message("Someone was skipped?")
 
     def parse_win_message(self, _msg: list[str]) -> None:
+        if (self.player):
+            self.player.hand = []
+            self.ui.room_frame.update_hand([])
         self.ui.show_info_window("You won gracefully.");
         if (self.room): # avoid player clicking on stuff
             self.room.turn = False

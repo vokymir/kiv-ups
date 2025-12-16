@@ -67,6 +67,9 @@ class Player:
         # for other players
         self.n_cards: int = 0
 
+        self.ip: str = ""
+        self.port: str = ""
+
     def discard(self, card: Card) -> None:
         try:
             self.hand.remove(card)
