@@ -70,12 +70,11 @@ class Player:
         self.n_cards: int = 0
 
     def discard(self, card: Card) -> None:
-        print("DISCARD")
-        for i, c in enumerate(self.hand):
-            if (c.rank == card.rank and c.suit == card.suit):
-                cc: Card = self.hand.pop(i)
-                print(f"REMOVED CARD {cc.__str__()}")
-                break
+        try:
+            self.hand.remove(card)
+            print(f"REMOVED CARD {card}")
+        except ValueError:
+            print("CARD NOT FOUND")
 
 class Room:
     def __init__(self, id: int, state: str) -> None:

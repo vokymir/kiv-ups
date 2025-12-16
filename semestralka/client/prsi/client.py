@@ -30,6 +30,7 @@ class Client(Client_Dummy):
         # = room
         self.room: Room | None = None
         # = game
+        # to remember what player did & remove from hand
         self.last_played: Card | None = None
 
         # Already Sent DRAW/PLAY
@@ -200,6 +201,7 @@ class Client(Client_Dummy):
                 card.rank == self.room.top_card.rank or\
                 card.suit == self.room.top_card.suit):
                 self.net.send_command(CMD_PLAY + " " + card.__str__())
+                self.last_played = card
                 self.already_sent = True
             else:
                 self.ui.show_temp_message("You cannot play this.")
@@ -300,6 +302,8 @@ class Client(Client_Dummy):
             case "AWAKE":
                 self.parse_awake_message(parts)
                 # show who is awake
+            case "JOIN":
+                pass # to get room info is called elsewhere
             case _:
                 self.ui.show_temp_message(f"Received unknown message from server: {msg}")
 
@@ -317,6 +321,12 @@ class Client(Client_Dummy):
                     self.net.send_command(CMD_ROOM)
                 case "CREATE_ROOM":
                     self.net.send_command(CMD_ROOM)
+                case "PLAY":
+                    if (self.player and self.last_played):
+                        self.player.discard(self.last_played)
+                        self.ui.room_frame.update_hand(self.player.hand)
+                    self.last_played = None
+
                 case _:
                     pass
 
@@ -451,13 +461,10 @@ class Client(Client_Dummy):
 
     def parse_played_message(self, msg: list[str]) -> None:
         try:
-            name: str = msg[1]
             card: Card = Card(msg[2][0], msg[2][1])
 
-            # remove card from hand
-            if (self.player and self.player.nick == name):
-                self.player.discard(card)
-                self.ui.room_frame.update_hand(self.player.hand)
+            if (self.room):
+                self.room.top_card = card
 
         except Exception as e:
             joined: str = " ".join(msg)
