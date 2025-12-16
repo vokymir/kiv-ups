@@ -9,7 +9,7 @@ namespace prsi {
 class Config {
 public:
   // IP
-  std::string ip_ = "127.0.0.1";
+  std::string ip_ = "0.0.0.0";
   // PORT
   int port_ = 3'750;
   // EME
@@ -22,7 +22,7 @@ public:
   // PT
   int ping_timeout_ms_ = 2'000;
   // ST
-  int sleep_timeout_ms_ = 10'000;
+  int sleep_timeout_ms_ = 6'000;
   // DT
   int death_timeout_ms_ = 30'000;
   // MR
