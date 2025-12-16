@@ -34,13 +34,13 @@ class Client(Client_Dummy):
         # to remember what player did & remove from hand
         self.last_played: Card | None = None
 
-        # Already Sent DRAW/PLAY
+        # Already Sent NAME/DRAW/PLAY
         self.already_sent: bool = False
 
         # reconnect stuff
         self.last_ping_recv: datetime = datetime.now(timezone.utc)
-        self.timeout_sleep: timedelta = timedelta(seconds=5)
-        self.timeout_dead: timedelta = timedelta(seconds=10)
+        self.timeout_sleep: timedelta = timedelta(seconds=15)
+        self.timeout_dead: timedelta = timedelta(seconds=30)
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -143,8 +143,13 @@ class Client(Client_Dummy):
 
     @override
     def connect(self, ip: str, port: int, username: str) -> None:
+        if (self.already_sent):
+            return
+
+        self.already_sent = True
         if not(self.net.connect(ip, str(port))):
             self.ui.show_temp_message("Cannot connect to the server")
+            self.already_sent = False
             return
 
         self.net.send_command(CMD_NAME + " " + username)
@@ -331,6 +336,8 @@ class Client(Client_Dummy):
         if (len(msg) > 1):
             match msg[1]:
                 case "NAME":
+                    self.already_sent = False
+
                     if (not self.player):
                         self.ui.show_temp_message("WEIRD BUG #1")
                         self.disconnect()
