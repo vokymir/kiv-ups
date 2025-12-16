@@ -169,6 +169,7 @@ class Client(Client_Dummy):
 
     @override
     def connect(self, ip: str, port: int, username: str) -> None:
+        self.last_ping_recv = datetime.now(timezone.utc)
         if (self.already_sent):
             self.ui.show_temp_message("Already trying to connect server.")
             return
