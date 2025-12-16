@@ -87,7 +87,7 @@ class Client(Client_Dummy):
                 self.notified_server_inactivity = True
                 self.ui.show_info_window("Cannot connect server...")
             if (self.player):
-                self.net.running = False
+                # self.net.running = False
                 self.connect(self.player.ip, int(self.player.port), self.player.nick)
                 self.already_sent = False
 
