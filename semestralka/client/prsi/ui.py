@@ -410,6 +410,9 @@ class Game_Screen(tk.Frame):
         """
         Show opponents cards - only their backs
         """
+        for widget in self.opponent_hand_F.winfo_children():
+            widget.destroy()
+
         card_back_img: ImageTk.PhotoImage = self.ui.img_loader.get_image(CARD_BACK)
 
         overlap: float = 0.6
