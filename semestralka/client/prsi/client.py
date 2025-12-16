@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from queue import Queue
 from tkinter import messagebox
 import queue
@@ -39,6 +39,8 @@ class Client(Client_Dummy):
 
         # reconnect stuff
         self.last_ping_recv: datetime = datetime.now(timezone.utc)
+        self.timeout_sleep: timedelta = timedelta(seconds=5)
+        self.timeout_dead: timedelta = timedelta(seconds=10)
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -58,6 +60,19 @@ class Client(Client_Dummy):
         self.ui.update()
         self.ui.mainloop()
         print("--- Tkinter main loop exited ---")
+
+    # reconnect stuff
+    def check_server_availability(self) -> None:
+        now: datetime = datetime.now(timezone.utc)
+        elapsed: timedelta = now - self.last_ping_recv
+
+        if (elapsed > self.timeout_dead):
+            self.ui.show_info_window("Server is not available.")
+            self.disconnect()
+
+        elif (elapsed > self.timeout_sleep):
+            self.ui.show_info_window("Cannot connect server...")
+
 
     # get/set
 
@@ -282,8 +297,7 @@ class Client(Client_Dummy):
                 self.parse_lose_message(parts)
                 # show you are loser
             case "PING":
-                self.last_ping_recv = datetime.now(timezone.utc)
-                self.net.send_command(CMD_PONG)
+                self.parse_ping_message()
             case "STATE":
                 self.parse_state_message(parts)
                 # change UI accordingly
@@ -302,6 +316,16 @@ class Client(Client_Dummy):
                 pass # the win message will follow
             case _:
                 self.ui.show_temp_message(f"Received unknown message from server: {msg}")
+
+    def parse_ping_message(self) -> None:
+        now: datetime = datetime.now(timezone.utc)
+        elapsed: timedelta = now - self.last_ping_recv
+
+        if (elapsed > self.timeout_dead):
+            self.ui.show_info_window("Server is available.")
+
+        self.last_ping_recv = now
+        self.net.send_command(CMD_PONG)
 
     def parse_ok_message(self, msg: list[str]) -> None:
         if (len(msg) > 1):
