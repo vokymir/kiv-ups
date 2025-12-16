@@ -43,6 +43,7 @@ class Client(Client_Dummy):
         self.last_ping_recv: datetime = datetime.now(timezone.utc)
         self.timeout_sleep: timedelta = timedelta(seconds=15)
         self.timeout_dead: timedelta = timedelta(seconds=30)
+        self.notified_server_inactivity: bool = False
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -73,10 +74,12 @@ class Client(Client_Dummy):
             self.disconnect()
 
         elif (elapsed > self.timeout_sleep):
-            self.ui.show_info_window("Cannot connect server...")
+            if (not self.notified_server_inactivity):
+                self.notified_server_inactivity = True
+                self.ui.show_info_window("Cannot connect server...")
             if (self.player):
                 _ = self.net.connect(self.player.ip, self.player.port)
-
+                self.already_sent = False
 
     # get/set
 

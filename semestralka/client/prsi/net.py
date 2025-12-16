@@ -34,8 +34,8 @@ class Net:
             self.sock.settimeout(None) # separate thread, so no timeout
 
             self.connected = True
-
             self.running = True
+
             self.thread = threading.Thread(target=self._listen_loop, daemon=True)
             self.thread.start()
 
@@ -44,12 +44,12 @@ class Net:
 
         except ValueError:
             print(f"[NET] Connection error: Port must be a valid number.")
-            self.connected = False
-            return False
         except Exception as e:
             print(f"[NET] Connection error: {e}")
-            self.connected = False
-            return False
+
+        self.connected = False
+        self.running = False
+        return False
 
     def disconnect(self) -> None:
         """
