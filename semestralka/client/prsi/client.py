@@ -254,24 +254,13 @@ class Client(Client_Dummy):
                 self.ui.refresh_lobby()
                 self.ui.switch_frame(FN_LOBBY)
             case "ROOM":
-                self.parse_room_message(parts)
-                if (not self.room):
-                    self.ui.show_temp_message("Cannot retrieve room info")
-                self.ui.room_frame.set_room_id()
-                self.ui.room_frame.draw_opponent_cards(self.opponent_n_cards())
-                op: Player | None = self.opponent()
-                if (isinstance(op, Player)):
-                    self.ui.room_frame.draw_opponent_name(op.nick)
-                self.ui.switch_frame(FN_ROOM)
+                _ = self.parse_room_message(parts)
             case "GAME_START":
                 self.parse_gamestart_message(parts)
             case "HAND":
-                self.parse_hand_message(parts)
-                if (self.player):
-                    self.ui.room_frame.update_hand(self.player.hand)
+                _ = self.parse_hand_message(parts)
             case "TURN":
                 self.parse_turn_message(parts)
-                self.ui.room_frame.update_pile()
             case "PLAYED":
                 self.parse_played_message(parts)
             case "DRAWED":
@@ -358,8 +347,9 @@ class Client(Client_Dummy):
             resulting in: {e}")
             self.ui.show_temp_message("Cannot display rooms.")
 
-    def parse_room_message(self, msg: list[str]) -> None:
+    def parse_room_message(self, msg: list[str]) -> int:
         try:
+            n_tokens: int = 0
             id: int = int(msg[1])
             state: str = msg[2]
             room: Room = Room(id, state)
@@ -378,6 +368,9 @@ class Client(Client_Dummy):
 
                 room.players.append(player)
 
+            # total number of parsed tokens
+            n_tokens = 5 + n_players * 3
+
             # set global my room
             if (self.room ):
                 # always remember turn
@@ -393,15 +386,29 @@ class Client(Client_Dummy):
             if (self.player and self.player.state != ST_GAME):
                 self.player.state = ST_ROOM
 
+            # UI
+            if (not self.room):
+                self.ui.show_temp_message("Cannot retrieve room info")
+            self.ui.room_frame.set_room_id()
+            self.ui.room_frame.draw_opponent_cards(self.opponent_n_cards())
+            op: Player | None = self.opponent()
+            if (isinstance(op, Player)):
+                self.ui.room_frame.draw_opponent_name(op.nick)
+            self.ui.switch_frame(FN_ROOM)
+
+            return n_tokens
+
         except Exception as e:
             joined: str = " ".join(msg)
             print(f"[PROTO] invalid room message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot display room.")
+            return -1
 
 
-    def parse_hand_message(self, msg: list[str]) -> None:
+    def parse_hand_message(self, msg: list[str]) -> int:
         try:
+            n_tokens: int = 0
             count: int = int(msg[1])
             hand: list[Card] = []
 
@@ -413,14 +420,23 @@ class Client(Client_Dummy):
                 card: Card = Card(suit, rank)
                 hand.append(card)
 
+            n_tokens = 2 + count
+
             if (self.player):
                 self.player.hand = hand
+
+            # UI
+            if (self.player):
+                self.ui.room_frame.update_hand(self.player.hand)
+
+            return n_tokens
 
         except Exception as e:
             joined: str = " ".join(msg)
             print(f"[PROTO] invalid hand message received ({joined})\
             resulting in: {e}")
             self.ui.show_temp_message("Cannot load hand.")
+            return -1
 
     def parse_turn_message(self, msg: list[str]) -> None:
         try:
@@ -446,6 +462,9 @@ class Client(Client_Dummy):
 
             # definitely, its another turn
             self.already_sent = False
+
+            # UI
+            self.ui.room_frame.update_pile()
 
         except Exception as e:
             joined: str = " ".join(msg)
@@ -544,14 +563,38 @@ class Client(Client_Dummy):
 
     def parse_state_message(self, msg: list[str]) -> None:
         try:
-            state: str = msg[1]
+            _ = msg.pop(0) # so the whole msg could be passed to room message
+            state: str = msg[0]
+
             if (state == ST_UNNAMED):
                 self.ui.switch_frame(FN_LOGIN)
+
             elif (state == ST_LOBBY):
                 self.net.send_command(CMD_ROOMS)
                 self.ui.switch_frame(FN_LOBBY)
-            elif (state == ST_ROOM or state == ST_GAME):
-                pass
+
+            elif (state == ST_ROOM):
+                _ = self.parse_room_message(msg)
+
+            elif (state == ST_GAME):
+                n_tokens: int = self.parse_room_message(msg)
+
+                if (n_tokens < 0): raise Exception("Incorrect room message.")
+                for i in range(n_tokens):
+                    _ = msg.pop(0)
+
+                n_tokens = self.parse_hand_message(msg)
+
+                if (n_tokens < 0): raise Exception("Incorrect hand message.")
+                for i in range(n_tokens):
+                    _ = msg.pop(0)
+
+                self.parse_turn_message(msg)
+
+            else:
+                self.ui.show_temp_message("Server error happened. \
+                Please try again later.")
+                self.disconnect()
 
         except Exception as e:
             joined: str = " ".join(msg)
