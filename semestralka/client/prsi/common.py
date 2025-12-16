@@ -5,8 +5,6 @@ except ImportError:
     # Python <= 3.11
     from typing_extensions import override
 
-from typing import override
-
 from prsi.config import ST_UNNAMED
 
 class Card:
