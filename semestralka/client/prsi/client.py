@@ -89,6 +89,8 @@ class Client(Client_Dummy):
                 _ = self.net.connect(self.player.ip, self.player.port)
                 self.already_sent = False
 
+        _ = self.ui.after(1000, self.check_server_availability)
+
     # get/set
 
     @override
