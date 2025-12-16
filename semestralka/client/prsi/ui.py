@@ -95,6 +95,17 @@ class Ui(tk.Tk):
 
         _ = self.after(duration_ms, label.destroy)
 
+    def show_info_window(self, text: str) -> None:
+        win = tk.Toplevel(self)
+        win.title("Info")
+        win.geometry("300x100")
+
+        tk.Label(win, text=text).pack(padx=20, pady=10)
+        tk.Button(win, text="OK", command=win.destroy).pack()
+
+        win.transient(self)     # stays on top
+        # win.grab_set(False)     # non-modal
+
     def refresh_lobby(self) -> None:
         self.lobby_frame.refresh_room_list()
 

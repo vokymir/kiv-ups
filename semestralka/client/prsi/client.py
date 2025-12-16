@@ -439,7 +439,7 @@ class Client(Client_Dummy):
 
             if (self.player and self.player.nick == name):
                 self.room.turn = True
-                _ = messagebox.showinfo("Your turn", "It's your time to shine.")
+                self.ui.show_info_window("Your turn.")
             else:
                 self.room.turn = False
                 self.ui.show_temp_message("Opponents turn")
