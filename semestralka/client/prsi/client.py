@@ -36,6 +36,8 @@ class Client(Client_Dummy):
 
         # Already Sent NAME/DRAW/PLAY
         self.already_sent: bool = False
+        # Already sent join/create/list rooms
+        self.lobby_tried: bool = False
 
         # reconnect stuff
         self.last_ping_recv: datetime = datetime.now(timezone.utc)
@@ -174,17 +176,17 @@ class Client(Client_Dummy):
         Ask server for rooms
         AS=none, State=Lobby
         """
-        if (self.player and self.player.state == ST_LOBBY):
+        if ((not self.lobby_tried) and self.player and self.player.state == ST_LOBBY):
             self.net.send_command(CMD_ROOMS)
-            self.already_sent = True
+            self.lobby_tried = True
             return
         self.ui.show_temp_message("Cannot show rooms when not in lobby")
 
     @override
     def create_room(self) -> None:
-        if (self.player and self.player.state == ST_LOBBY):
+        if ((not self.lobby_tried) and self.player and self.player.state == ST_LOBBY):
             self.net.send_command(CMD_CREATE_ROOM)
-            self.already_sent = True
+            self.lobby_tried = True
             return
         self.ui.show_temp_message("Cannot create room when not in lobby")
 
@@ -193,9 +195,9 @@ class Client(Client_Dummy):
         """
         AS=none, State=Lobby
         """
-        if (self.player and self.player.state == ST_LOBBY):
+        if ((not self.lobby_tried) and self.player and self.player.state == ST_LOBBY):
             self.net.send_command(CMD_JOIN + " " + str(room_id))
-            self.already_sent = True
+            self.lobby_tried = True
             return
         self.ui.show_temp_message("Cannot join room when not in lobby")
 
@@ -374,7 +376,6 @@ class Client(Client_Dummy):
 
 
     def parse_rooms_message(self, msg: list[str]) -> None:
-        self.already_sent = False
         try:
             count: int = int(msg[1])
             rooms: list[Room] = []
@@ -390,6 +391,7 @@ class Client(Client_Dummy):
 
             # replace with new rooms
             self.known_rooms_ = rooms
+            self.lobby_tried = False
 
         except Exception as e:
             joined: str = " ".join(msg)
@@ -398,7 +400,6 @@ class Client(Client_Dummy):
             self.ui.show_temp_message("Cannot display rooms.")
 
     def parse_room_message(self, msg: list[str]) -> int:
-        self.already_sent = False
         try:
             n_tokens: int = 0
             id: int = int(msg[1])
@@ -447,6 +448,7 @@ class Client(Client_Dummy):
                 self.ui.room_frame.draw_opponent_name(op.nick)
             self.ui.switch_frame(FN_ROOM)
 
+            self.lobby_tried = False
             return n_tokens
 
         except Exception as e:
