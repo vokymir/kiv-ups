@@ -534,9 +534,13 @@ class Client(Client_Dummy):
 
     def parse_win_message(self, _msg: list[str]) -> None:
         self.ui.show_info_window("You won gracefully.");
+        if (self.room): # avoid player clicking on stuff
+            self.room.turn = False
 
     def parse_lose_message(self, _msg: list[str]) -> None:
         self.ui.show_info_window("You've been defeated.");
+        if (self.room): # avoid player clicking on stuff
+            self.room.turn = False
 
     def parse_state_message(self, msg: list[str]) -> None:
         pass
