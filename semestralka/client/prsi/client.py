@@ -69,7 +69,7 @@ class Client(Client_Dummy):
     def check_server_availability(self) -> None:
         if (not self.player):
             return
-        elif (self.player.state != ST_UNNAMED):
+        elif (self.player.state == ST_UNNAMED):
             return
 
         now: datetime = datetime.now(timezone.utc)
