@@ -148,6 +148,10 @@ class Client(Client_Dummy):
         if (self.already_sent):
             return
 
+        if any(ch.isspace() for ch in username):
+            self.ui.show_info_window("Username cannot contain whitespaces.")
+            return
+
         self.already_sent = True
         if not(self.net.connect(ip, str(port))):
             self.ui.show_temp_message("Cannot connect to the server")
