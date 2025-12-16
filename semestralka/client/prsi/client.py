@@ -11,7 +11,7 @@ except ImportError:
 
 from prsi.net import QM_DISCONNECTED, QM_ERROR, QM_MESSAGE, Net, Queue_Message
 from prsi.ui import Ui
-from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PLAY, CMD_PONG, CMD_ROOM, CMD_ROOMS, CMD_STATE, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM
+from prsi.config import CMD_CREATE_ROOM, CMD_DRAW, CMD_JOIN, CMD_LEAVE_ROOM, CMD_NAME, CMD_PLAY, CMD_PONG, CMD_ROOM, CMD_ROOMS, CMD_STATE, FN_LOBBY, FN_LOGIN, FN_ROOM, ST_GAME, ST_LOBBY, ST_ROOM, ST_UNNAMED
 from prsi.common import Card, Client_Dummy, Player, Room
 
 class Client(Client_Dummy):
@@ -544,7 +544,14 @@ class Client(Client_Dummy):
 
     def parse_state_message(self, msg: list[str]) -> None:
         try:
-            pass
+            state: str = msg[1]
+            if (state == ST_UNNAMED):
+                self.ui.switch_frame(FN_LOGIN)
+            elif (state == ST_LOBBY):
+                self.net.send_command(CMD_ROOMS)
+                self.ui.switch_frame(FN_LOBBY)
+            elif (state == ST_ROOM or state == ST_GAME):
+                pass
 
         except Exception as e:
             joined: str = " ".join(msg)
