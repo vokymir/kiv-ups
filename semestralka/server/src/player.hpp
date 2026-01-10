@@ -34,6 +34,7 @@ public:
 
 private:
   int fd_;
+  bool valid_fd_ = false;
   std::string nick_;
 
   Server &server_;
@@ -80,8 +81,15 @@ public:
 
   // get/set
 public:
-  int fd() const { return fd_; }
+  int fd() const {
+    if (!valid_fd_)
+      throw std::runtime_error("Here I forget check on valid FD (reconnect).");
+    return fd_;
+  }
   void fd(int new_fd) { fd_ = new_fd; }
+
+  bool valid_fd() const { return valid_fd_; }
+  void valid_fd(bool is_valid) { valid_fd_ = is_valid; }
 
   int tfd() const { return timer_fd_; }
   void tfd(int new_tfd) { timer_fd_ = new_tfd; }

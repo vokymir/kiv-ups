@@ -317,7 +317,7 @@ void Server::on_socket_lost(int fd) {
   close_connection(fd);
 
   // mark player as disconnected
-  p->fd(-1);
+  p->valid_fd(false);
 
   start_disconnect_timer(p);
 }
@@ -385,7 +385,7 @@ void Server::handle_timer(int tfd) {
     p->tfd(-1);
 
     // if still not reconnected kick from game
-    if (p->fd() == -1) {
+    if (!p->valid_fd()) {
       remove_from_game_server(p);
     }
 
