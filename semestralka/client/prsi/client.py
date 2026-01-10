@@ -75,11 +75,11 @@ class Client(Client_Dummy):
 
         # check when player exists and not on login
         if not self.player or self.ui.frame() is self.ui.login_frame:
+            print("[Client] There is no player, don't even think about checking server availability now.")
             _ = self.ui.after(2000, self.check_server_availability)
             return
 
-        now: datetime = datetime.now(timezone.utc)
-        elapsed: timedelta = now - self.last_ping_recv
+        elapsed: timedelta = self.elapsed()
 
         if elapsed > self.timeout_dead:
             # server considered dead
@@ -303,10 +303,14 @@ class Client(Client_Dummy):
 
             if (qm_type == QM_ERROR):
                 _ = messagebox.showerror("Network Error", content if content else "Unknown Error")
-                self.ui.switch_frame(FN_LOGIN)
+                # dont do it if performing auto-reconnect
+                if not (self.elapsed() > self.timeout_sleep):
+                    self.ui.switch_frame(FN_LOGIN)
 
             elif (qm_type == QM_DISCONNECTED):
-                self.ui.switch_frame(FN_LOGIN)
+                # dont do it if performing auto-reconnect
+                if not (self.elapsed() > self.timeout_sleep):
+                    self.ui.switch_frame(FN_LOGIN)
 
             elif (qm_type == QM_MESSAGE):
                 if (content):
@@ -379,16 +383,21 @@ class Client(Client_Dummy):
             case _:
                 self.ui.show_temp_message(f"Received unknown message from server: {msg}")
 
-    def parse_ping_message(self) -> None:
+    def elapsed(self) -> timedelta:
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
+
+        return elapsed
+
+    def parse_ping_message(self) -> None:
+        elapsed: timedelta = self.elapsed()
 
         if (self.net.connected and elapsed > self.timeout_sleep):
             self.notified_server_inactivity = False
             self.net.send_command(CMD_STATE) # ask whats new
             self.ui.show_info_window("Server is available.")
 
-        self.last_ping_recv = now
+        self.last_ping_recv = datetime.now(timezone.utc)
         self.net.send_command(CMD_PONG)
 
     def parse_ok_message(self, msg: list[str]) -> None:
