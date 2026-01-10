@@ -233,7 +233,9 @@ void Server::receive(int fd) {
   if (!p) {
     Logger::error("Receive: Player with id={} was not found anywhere.",
                   std::to_string(fd));
-    close_connection(fd);
+    if (p->valid_fd()) {
+      close_connection(fd);
+    }
     return;
   }
 
