@@ -72,6 +72,7 @@ class Client(Client_Dummy):
         if self.manual_disconnect:
             # stop all auto server checks
             return
+
         if (not self.player):
             _ = self.ui.after(1000, self.check_server_availability)
             return
@@ -83,25 +84,32 @@ class Client(Client_Dummy):
         elapsed: timedelta = now - self.last_ping_recv
 
         if (elapsed > self.timeout_dead):
-            self.ui.show_info_window("Server is not available.")
-            self.disconnect()
-            self.notified_server_inactivity = False
+            if not self.notified_server_inactivity:
+                self.ui.show_info_window("Server is not available.")
+                self.notified_server_inactivity = True
+            self.disconnect(manual=False)
+            self.manual_disconnect = False # allow future reconnect
 
         elif (elapsed > self.timeout_sleep):
             if (not self.notified_server_inactivity):
-                self.notified_server_inactivity = True
                 self.ui.show_info_window("Cannot connect server...")
+                self.notified_server_inactivity = True
+
             if (self.player):
                 # disconnect removes this player, so must restore it
                 p: Player = Player(self.player.nick)
                 p.ip = self.player.ip
                 p.port = self.player.port
 
-                self.disconnect()
+                self.disconnect(manual=False)
 
                 self.player = p
 
-                self.connect(self.player.ip, int(self.player.port), self.player.nick)
+                try:
+                    self.connect(self.player.ip, int(self.player.port), self.player.nick)
+                except Exception:
+                    pass
+
                 self.already_sent = False
 
         _ = self.ui.after(1000, self.check_server_availability)
@@ -152,17 +160,22 @@ class Client(Client_Dummy):
     # == any time
 
     @override
-    def disconnect(self) -> None:
+    def disconnect(self, manual:bool = True) -> None:
         """
         AS=none
         """
-        self.manual_disconnect = True  # prevent auto reconnect
-        self.net.disconnect()
+        if (self.net.connected):
+            try:
+                self.net.disconnect()
+            except Exception:
+                pass
+
+        if (manual):
+            self.manual_disconnect = True
 
         self.player = None
         self.room = None
         self.known_rooms_ = []
-        self.notified_server_inactivity = False
 
         self.ui.switch_frame(FN_LOGIN)
 
