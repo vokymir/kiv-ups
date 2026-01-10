@@ -81,12 +81,11 @@ public:
 
   // get/set
 public:
-  int fd() const {
-    if (!valid_fd_)
-      throw std::runtime_error("Here I forget check on valid FD (reconnect).");
-    return fd_;
+  int fd() const { return fd_; }
+  void fd(int new_fd) {
+    fd_ = new_fd;
+    valid_fd_ = true;
   }
-  void fd(int new_fd) { fd_ = new_fd; }
 
   bool valid_fd() const { return valid_fd_; }
   void valid_fd(bool is_valid) { valid_fd_ = is_valid; }
