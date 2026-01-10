@@ -102,6 +102,9 @@ class Client(Client_Dummy):
                         print("[Client] Reconnect successful.")
                         self.notified_server_inactivity = False
                         self.last_ping_recv = datetime.now(timezone.utc)
+                        self.ui.show_info_window("Reconnecting to the server was successful! Welcome back in the game.")
+                    else:
+                        print("[Client] Reconnect was a failure.")
             except Exception as e:
                 print(f"[Client] Auto-reconnect failed: {e}")
                 # will retry next tick
@@ -185,21 +188,21 @@ class Client(Client_Dummy):
     # == unnamed
 
     @override
-    def connect(self, ip: str, port: int, username: str) -> None:
+    def connect(self, ip: str, port: int, username: str) -> bool:
         if (self.already_sent):
             self.ui.show_temp_message("Already trying to connect server.")
-            return
+            return False
 
         if any((ch.isspace() or ch == PROTO_DELIM) for ch in username):
             self.ui.show_info_window("Username cannot contain whitespaces.")
             self.already_sent = False
-            return
+            return False
 
         self.already_sent = True
         if not(self.net.connect(ip, str(port))):
             self.ui.show_temp_message("Cannot connect to the server")
             self.already_sent = False
-            return
+            return False
         self.last_ping_recv = datetime.now(timezone.utc)
 
         self.already_sent = False
@@ -209,6 +212,7 @@ class Client(Client_Dummy):
         self.player.ip = ip
         self.player.port = str(port)
         self.ui.show_temp_message("Trying to connect.", 1000)
+        return True
 
     # == lobby
 
