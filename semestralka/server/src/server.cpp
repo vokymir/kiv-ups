@@ -237,6 +237,12 @@ void Server::receive(int fd) {
     return;
   }
 
+  if (!p->valid_fd()) {
+    Logger::info("{} does not have valid socket connected, cannot receive.",
+                 Logger::more(p));
+    return;
+  }
+
   try { // player receive
     p->receive();
 
@@ -397,7 +403,10 @@ void Server::terminate_player(std::shared_ptr<Player> p) {
   remove_from_game_server(p);
   Logger::info("Player {}, fd={}, removed from the whole game.", p->nick(),
                p->fd());
-  close_connection(p->fd());
+
+  if (p->valid_fd()) {
+    close_connection(p->fd());
+  }
 }
 
 void Server::close_connection(int fd) {
@@ -684,6 +693,8 @@ void Server::handle_name(const std::vector<std::string> &msg,
     }
 
     // erase this temporary player object
+    // (in unnamed is only the tmp object, and if there are two, with the same
+    // fd, it doesn't matter)
     erase_by_fd(unnamed_, p->fd());
     close_connection(old_fd);
 
