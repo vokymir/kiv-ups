@@ -12,6 +12,7 @@
 namespace prsi {
 
 Player::Player(Server &s, int fd) : server_(s), fd_(fd) {
+  this->fd(fd_); // to set fd valid
   set_last_pong();
   set_last_ping();
 }
