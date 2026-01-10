@@ -34,8 +34,9 @@ class Client(Client_Dummy):
         # to remember what player did & remove from hand
         self.last_played: Card | None = None
 
-        # Already Sent NAME/DRAW/PLAY
-        self.already_sent: bool = False
+        # Already Sent NAME/DRAW+PLAY
+        self.already_sent_name: bool = False
+        self.already_sent_action: bool = False
         # Already sent join/create/list rooms
         self.lobby_tried: bool = False
 
@@ -168,6 +169,8 @@ class Client(Client_Dummy):
         If hard=False, temporary disconnect (trying auto-reconnect): keep UI as is.
         """
         self.net.disconnect()
+        self.already_sent_action = False
+        self.already_sent_name = False
 
         if not hard:
             return
@@ -189,23 +192,23 @@ class Client(Client_Dummy):
 
     @override
     def connect(self, ip: str, port: int, username: str) -> bool:
-        if (self.already_sent):
+        if (self.already_sent_name):
             self.ui.show_temp_message("Already trying to connect server.")
             return False
 
         if any((ch.isspace() or ch == PROTO_DELIM) for ch in username):
             self.ui.show_info_window("Username cannot contain whitespaces.")
-            self.already_sent = False
+            self.already_sent_name = False
             return False
 
-        self.already_sent = True
+        self.already_sent_name = True
         if not(self.net.connect(ip, str(port))):
             self.ui.show_temp_message("Cannot connect to the server")
-            self.already_sent = False
+            self.already_sent_name = False
             return False
         self.last_ping_recv = datetime.now(timezone.utc)
 
-        self.already_sent = False
+        self.already_sent_name = False
         self.net.send_command(CMD_NAME + " " + username)
         # save username here - after dont have it
         self.player = Player(username)
@@ -273,21 +276,21 @@ class Client(Client_Dummy):
         """
         AS=true, State=game
         """
-        if (self.room and self.room.turn and (not self.already_sent)):
+        if (self.room and self.room.turn and (not self.already_sent_action)):
             self.net.send_command(CMD_DRAW)
-            self.already_sent = True
+            self.already_sent_action = True
             return
         self.ui.show_temp_message("It's not your turn.")
 
     @override
     def play_card(self, card: Card) -> None:
-        if (self.room and self.room.turn and (not self.already_sent)):
+        if (self.room and self.room.turn and (not self.already_sent_action)):
             if (card.rank == "Q" or\
                 card.rank == self.room.top_card.rank or\
                 card.suit == self.room.top_card.suit):
                 self.net.send_command(CMD_PLAY + " " + card.__str__())
                 self.last_played = card
-                self.already_sent = True
+                self.already_sent_action = True
             else:
                 self.ui.show_temp_message("You cannot play this.")
         else:
@@ -408,7 +411,7 @@ class Client(Client_Dummy):
         if (len(msg) > 1):
             match msg[1]:
                 case "NAME":
-                    self.already_sent = False
+                    self.already_sent_name = False
 
                     if (not self.player):
                         self.ui.show_temp_message("WEIRD BUG #1")
@@ -571,7 +574,7 @@ class Client(Client_Dummy):
                 self.ui.show_temp_message("Opponents turn")
 
             # definitely, its another turn
-            self.already_sent = False
+            self.already_sent_action = False
 
             # UI
             self.ui.room_frame.update_pile()
@@ -586,7 +589,7 @@ class Client(Client_Dummy):
         if self.player:
             self.player.state = ST_GAME
 
-        self.already_sent = False
+        self.already_sent_action = False
 
         self.net.send_command(CMD_ROOM)
 
