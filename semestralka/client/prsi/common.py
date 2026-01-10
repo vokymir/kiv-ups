@@ -92,8 +92,8 @@ class Client_Dummy:
     def run(self) -> None:
         pass
 
-    def connect(self, _ip: str, _port: int, _username: str) -> None:
-        pass
+    def connect(self, _ip: str, _port: int, _username: str) -> bool:
+        return False
     def state(self) -> None:
         pass
     def disconnect(self) -> None:

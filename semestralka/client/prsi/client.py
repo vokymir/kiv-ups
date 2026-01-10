@@ -102,7 +102,7 @@ class Client(Client_Dummy):
                         print("[Client] Reconnect successful.")
                         self.notified_server_inactivity = False
                         self.last_ping_recv = datetime.now(timezone.utc)
-                        self.ui.show_info_window("Reconnecting to the server was successful! Welcome back in the game.")
+                        self.ui.show_info_window("Reconnecting to the server was successful!\n Welcome back in the game.")
                     else:
                         print("[Client] Reconnect was a failure.")
             except Exception as e:
@@ -696,13 +696,13 @@ class Client(Client_Dummy):
                 n_tokens: int = self.parse_room_message(msg)
 
                 if (n_tokens < 0): raise Exception("Incorrect room message.")
-                for i in range(n_tokens):
+                for _ in range(n_tokens):
                     _ = msg.pop(0)
 
                 n_tokens = self.parse_hand_message(msg)
 
                 if (n_tokens < 0): raise Exception("Incorrect hand message.")
-                for i in range(n_tokens):
+                for _ in range(n_tokens):
                     _ = msg.pop(0)
 
                 self.parse_turn_message(msg)
