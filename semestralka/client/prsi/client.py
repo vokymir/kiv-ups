@@ -72,39 +72,45 @@ class Client(Client_Dummy):
         Auto-reconnect if temporarily unreachable.
         Leave server only after timeout_dead.
         """
-        # only on login screen
-        if (not self.player):
+
+        # check when player exists and not on login
+        if not self.player or self.ui.frame() is self.ui.login_frame:
+            _ = self.ui.after(2000, self.check_server_availability)
             return
 
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
 
         if elapsed > self.timeout_dead:
-            # Server dead: leave server for real
-            if self.player:
-                self.ui.show_info_window("Server is not available. Leaving...")
-            self.disconnect(hard=True)  # now it's final disconnect
+            # server considered dead
+            self.ui.show_info_window("Server is not available. Leaving...")
+            self.disconnect(hard=True)
 
         elif elapsed > self.timeout_sleep:
-            # Server temporarily unreachable: notify, try reconnect
+            # temporary server unreachable
             if not self.notified_server_inactivity:
                 self.notified_server_inactivity = True
                 self.ui.show_info_window("Server seems unreachable. Trying to reconnect...")
 
-            if self.player:
-                self.disconnect(hard=False)  # temporary disconnect
-                try:
-                    self.connect(self.player.ip, int(self.player.port), self.player.nick)
-                except Exception:
-                    # still unreachable: will retry on next check
-                    pass
+            # reconnect
+            try:
+                if self.player:
+                    print("[Client] Attempting auto-reconnect...")
+                    self.disconnect(hard=False)  # temporary disconnect
+                    success = self.connect(self.player.ip, int(self.player.port), self.player.nick)
+                    if success:
+                        print("[Client] Reconnect successful.")
+                        self.notified_server_inactivity = False
+                        self.last_ping_recv = datetime.now(timezone.utc)
+            except Exception as e:
+                print(f"[Client] Auto-reconnect failed: {e}")
+                # will retry next tick
 
         else:
             # server reachable, reset notification flag
             self.notified_server_inactivity = False
 
-        # check again later
-        _ = self.ui.after(2000, self.check_server_availability)  # check every 2 seconds
+        _ = self.ui.after(2000, self.check_server_availability)
 
     # get/set
 
