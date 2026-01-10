@@ -24,9 +24,11 @@ public:
   // ST
   int sleep_timeout_ms_ = 6'000;
   // DT
-  int death_timeout_ms_ = 30'000;
+  int death_timeout_ms_ = 180'000;
   // MR
   int max_rooms_ = 10;
+  // KT
+  int kick_timer_ms_ = 60'000;
 
 public:
   // load config from file
@@ -49,6 +51,7 @@ private:
   void st(const std::string &val) { sleep_timeout_ms_ = std::stoi(val); }
   void dt(const std::string &val) { death_timeout_ms_ = std::stoi(val); }
   void mr(const std::string &val) { max_rooms_ = std::stoi(val); }
+  void kt(const std::string &val) { kick_timer_ms_ = std::stoi(val); }
 
   static std::string to_upper(const std::string &s) {
     std::string result = s;

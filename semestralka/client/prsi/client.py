@@ -87,7 +87,15 @@ class Client(Client_Dummy):
                 self.notified_server_inactivity = True
                 self.ui.show_info_window("Cannot connect server...")
             if (self.player):
-                # self.net.running = False
+                # disconnect removes this player, so must restore it
+                p: Player = Player(self.player.nick)
+                p.ip = self.player.ip
+                p.port = self.player.port
+
+                self.disconnect()
+
+                self.player = p
+
                 self.connect(self.player.ip, int(self.player.port), self.player.nick)
                 self.already_sent = False
 

@@ -19,6 +19,7 @@
 #include <string>
 #include <sys/epoll.h>
 #include <sys/socket.h>
+#include <sys/timerfd.h>
 #include <unistd.h>
 #include <unordered_map>
 
@@ -58,7 +59,7 @@ Server::Server(const Config &cfg)
       ping_timeout_ms_(cfg.ping_timeout_ms_),
       sleep_timeout_ms_(cfg.sleep_timeout_ms_),
       death_timeout_ms_(cfg.death_timeout_ms_), ip_(cfg.ip_),
-      max_rooms_(cfg.max_rooms_) {
+      max_rooms_(cfg.max_rooms_), kick_timer_ms_(cfg.kick_timer_ms_) {
 
   events_.resize(epoll_max_events_);
   setup();
@@ -88,6 +89,9 @@ void Server::run() {
       if (ev.data.fd == listen_fd_) { // NEW CONNECTION
         accept_connection();
 
+      } else if (is_timer_fd(ev.data.fd)) {
+        handle_timer(ev.data.fd);
+
       } else if (ev.events & EPOLLIN) { // RECV
         receive(ev.data.fd);
 
@@ -95,7 +99,8 @@ void Server::run() {
         server_send(ev.data.fd);
 
       } else if (ev.events & (EPOLLHUP | EPOLLERR)) { // DISCONNECT
-        disconnect(ev.data.fd);
+
+        on_socket_lost(ev.data.fd);
       }
     }
 
@@ -297,6 +302,95 @@ int Server::count_players() const {
   }
 
   return count;
+}
+
+void Server::on_socket_lost(int fd) {
+  auto weak_p = find_player(fd);
+  auto p = weak_p.lock();
+  if (!p) {
+    close_connection(fd);
+    return;
+  }
+
+  Logger::warn("{} lost connection, starting grace timer.", Logger::more(p));
+
+  close_connection(fd);
+
+  // mark player as disconnected
+  p->fd(-1);
+
+  start_disconnect_timer(p);
+}
+
+void Server::start_disconnect_timer(std::shared_ptr<Player> p) {
+  // If already running, don't start twice
+  if (p->tfd() != -1) {
+    return;
+  }
+
+  int tfd = timerfd_create(CLOCK_MONOTONIC, TFD_NONBLOCK);
+  if (tfd == -1) {
+    Logger::error("timerfd_create failed: {}", std::strerror(errno));
+    return;
+  }
+
+  itimerspec spec{};
+  spec.it_value.tv_sec = kick_timer_ms_ / 1000;
+  spec.it_interval.tv_sec = 0; // one-time run only
+
+  if (timerfd_settime(tfd, 0, &spec, nullptr) == -1) {
+    Logger::error("timerfd_settime failed: {}", std::strerror(errno));
+    close(tfd);
+    return;
+  }
+
+  epoll_event ev{};
+  ev.events = EPOLLIN;
+  ev.data.fd = tfd;
+
+  if (epoll_ctl(epoll_fd_, EPOLL_CTL_ADD, tfd, &ev) == -1) {
+    Logger::error("epoll_ctl ADD timer failed: {}", std::strerror(errno));
+    close(tfd);
+    return;
+  }
+
+  p->tfd(tfd);
+}
+
+bool Server::is_timer_fd(int fd) {
+  for (auto &p : list_players()) {
+    if (p->tfd() == fd) {
+      return true;
+    }
+  }
+  return false;
+}
+
+void Server::handle_timer(int tfd) {
+  // find which player this belongs to
+  for (auto &p : list_players()) {
+    if (p->tfd() != tfd) {
+      continue;
+    }
+
+    uint64_t expirations;
+    read(tfd, &expirations, sizeof(expirations)); // must drain
+
+    Logger::warn("Reconnect timer expired for player {}. Removing from game.",
+                 Logger::more(p));
+
+    // remove from epoll
+    epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, tfd, nullptr);
+    close(tfd);
+    p->tfd(-1);
+
+    // if still not reconnected kick from game
+    if (p->fd() == -1) {
+      remove_from_game_server(p);
+    }
+
+    return;
+  }
 }
 
 void Server::terminate_player(std::shared_ptr<Player> p) {
@@ -581,6 +675,13 @@ void Server::handle_name(const std::vector<std::string> &msg,
 
     existing->fd(p->fd());
     existing->append_msg(Protocol::OK_NAME());
+
+    // cancel reconnect timer if running
+    if (existing->tfd() != -1) {
+      epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, existing->tfd(), nullptr);
+      close(existing->tfd());
+      existing->tfd(-1);
+    }
 
     // erase this temporary player object
     erase_by_fd(unnamed_, p->fd());

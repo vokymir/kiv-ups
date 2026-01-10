@@ -49,6 +49,8 @@ private:
   // how many sleep cycles were experienced without pong
   int did_sleep_times_ = 0;
 
+  int timer_fd_ = -1;
+
 public:
   // read from socket into read_buffer
   void receive();
@@ -80,6 +82,9 @@ public:
 public:
   int fd() const { return fd_; }
   void fd(int new_fd) { fd_ = new_fd; }
+
+  int tfd() const { return timer_fd_; }
+  void tfd(int new_tfd) { timer_fd_ = new_tfd; }
 
   const std::string &nick() const { return nick_; }
   void nick(const std::string &nick) {

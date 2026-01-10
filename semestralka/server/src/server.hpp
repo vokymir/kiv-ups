@@ -72,7 +72,18 @@ private:
 
   // net + game
 private:
-  // remove player from all rooms or lobby, notify others & disconnect player
+  // if a socket connection is lost, player won't automatically be kicked-out,
+  // rather a timer will start. if timer ends and no new socket is assigned to
+  // player in time, then the player is kicked
+  void on_socket_lost(int fd);
+  // start a timer for given player
+  void start_disconnect_timer(std::shared_ptr<Player> p);
+  // is the FD a timer of player disconnect?
+  bool is_timer_fd(int fd);
+  // kick player out of the server if timer is fired
+  void handle_timer(int tfd);
+  // remove player from all rooms or lobby, notify
+  // others & disconnect player
   // from server
   void terminate_player(std::shared_ptr<Player> p);
   // remove player from room/lobby + notify others
@@ -176,6 +187,7 @@ private:
   int players_in_game_ = 2;
   int start_hand_size_ = 4;
   int max_hand_size_ = 9;
+  int kick_timer_ms_;
 };
 
 } // namespace prsi
