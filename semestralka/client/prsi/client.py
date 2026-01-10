@@ -156,24 +156,20 @@ class Client(Client_Dummy):
     # == any time
 
     @override
-    def disconnect(self, manual:bool = True) -> None:
+    def disconnect(self, manual: bool = True) -> None:
         """
-        AS=none
+        Disconnect from the server.
+        If manual=True, the user actively left or server dead → show login.
+        If manual=False, temporary disconnect (trying auto-reconnect) → keep UI as is.
         """
-        if (self.net.connected):
-            try:
-                self.net.disconnect()
-            except Exception:
-                pass
+        self.net.disconnect()
 
-        if (manual):
-            self.manual_disconnect = True
-
-        self.player = None
         self.room = None
         self.known_rooms_ = []
 
-        self.ui.switch_frame(FN_LOGIN)
+        if manual:
+            self.player = None
+            self.ui.switch_frame(FN_LOGIN)
 
     @override
     def state(self) -> None:
