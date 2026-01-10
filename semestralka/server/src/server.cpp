@@ -362,6 +362,7 @@ void Server::start_disconnect_timer(std::shared_ptr<Player> p) {
     return;
   }
 
+  Logger::info("{} started reconnect timer.", Logger::more(p));
   p->tfd(tfd);
 }
 
@@ -384,8 +385,7 @@ void Server::handle_timer(int tfd) {
     uint64_t expirations;
     read(tfd, &expirations, sizeof(expirations)); // must drain
 
-    Logger::warn("Reconnect timer expired for player {}. Removing from game.",
-                 Logger::more(p));
+    Logger::warn("{} Reconnect timer expired.", Logger::more(p));
 
     // remove from epoll
     epoll_ctl(epoll_fd_, EPOLL_CTL_DEL, tfd, nullptr);

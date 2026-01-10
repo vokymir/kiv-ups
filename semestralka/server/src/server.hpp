@@ -175,9 +175,10 @@ private:
 
 private:
   // configuration
+  // NOTE: more info on this configurables is in class Config
   std::string ip_;
   int port_;
-  int epoll_max_events_; // must be at least max_clients_ + 1 (listen socket)
+  int epoll_max_events_;
   int epoll_timeout_ms_;
   int max_clients_;
   int max_rooms_;

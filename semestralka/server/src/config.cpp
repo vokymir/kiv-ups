@@ -11,7 +11,8 @@ Config::Config() {}
 const std::unordered_map<std::string, Config::Setter> Config::setters_ = {
     {"IP", &Config::ip}, {"PORT", &Config::port}, {"EME", &Config::eme},
     {"ET", &Config::et}, {"MC", &Config::mc},     {"PT", &Config::pt},
-    {"ST", &Config::st}, {"DT", &Config::dt},     {"MR", &Config::mr}};
+    {"ST", &Config::st}, {"DT", &Config::dt},     {"MR", &Config::mr},
+    {"KT", &Config::kt}};
 
 Config::Config(const std::string &filename) {
   // open file

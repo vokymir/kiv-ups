@@ -9,26 +9,44 @@ namespace prsi {
 class Config {
 public:
   // IP
+  // the ip address on which the server is listening, default is all
   std::string ip_ = "0.0.0.0";
   // PORT
+  // the port on which the server is listening, the default value is 3750,
+  // because if you put this value inside classic seven-segment display
+  // calculator and look at it upside down, you get the word OSLE. (translate at
+  // your own risk)
   int port_ = 3'750;
   // EME
-  // should be at least max_clients_ + 1 (listen)
+  // maximum number of events to which the epoll would listen
+  // should be at least 2 * max_clients_ + 1 (listen)
+  // 2 times because each client could have reconnect timer
   int epoll_max_events_ = 32;
   // ET
+  // in how many miliseconds would epoll_wait() stop be blocking
   int epoll_timeout_ms_ = 500;
   // MC
+  // how many clients could be connected to the server at once
+  // at least 2 are required (one game-room consists of two players)
   int max_clients_ = 10;
   // PT
+  // how often send pings
   int ping_timeout_ms_ = 2'000;
   // ST
-  int sleep_timeout_ms_ = 6'000;
+  // in how many milliseconds without PONG is client considered asleep
+  int sleep_timeout_ms_ = 5'000;
   // DT
+  // in how many milliseconds without PONG is client considered dead
+  // NOTE: death is stronger than kick, after death timeout is over, the player
+  // is definitely removed from the server
   int death_timeout_ms_ = 180'000;
   // MR
+  // max number of rooms, at least 1 is needed to play a game
   int max_rooms_ = 10;
   // KT
-  int kick_timer_ms_ = 60'000;
+  // kic-out timer, in how many ms would you automatic timer kick out of server.
+  // currently not used really
+  int kick_timer_ms_ = 180'000;
 
 public:
   // load config from file
