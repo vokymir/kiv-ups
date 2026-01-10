@@ -72,6 +72,9 @@ class Client(Client_Dummy):
         Auto-reconnect if temporarily unreachable.
         Leave server only after timeout_dead.
         """
+        if (not self.player):
+            return
+
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
 
