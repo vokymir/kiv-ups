@@ -44,6 +44,8 @@ class Client(Client_Dummy):
         self.timeout_sleep: timedelta = timedelta(seconds=10)
         self.timeout_dead: timedelta = timedelta(seconds=60)
         self.notified_server_inactivity: bool = False
+        # track manual disconnects
+        self.manual_disconnect: bool = False
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -67,6 +69,9 @@ class Client(Client_Dummy):
 
     # reconnect stuff
     def check_server_availability(self) -> None:
+        if self.manual_disconnect:
+            # stop all auto server checks
+            return
         if (not self.player):
             _ = self.ui.after(1000, self.check_server_availability)
             return
@@ -151,11 +156,13 @@ class Client(Client_Dummy):
         """
         AS=none
         """
+        self.manual_disconnect = True  # prevent auto reconnect
         self.net.disconnect()
 
         self.player = None
         self.room = None
         self.known_rooms_ = []
+        self.notified_server_inactivity = False
 
         self.ui.switch_frame(FN_LOGIN)
 
@@ -170,6 +177,7 @@ class Client(Client_Dummy):
 
     @override
     def connect(self, ip: str, port: int, username: str) -> None:
+        self.manual_disconnect = False  # allow auto reconnect again
         self.last_ping_recv = datetime.now(timezone.utc)
         if (self.already_sent):
             self.ui.show_temp_message("Already trying to connect server.")
