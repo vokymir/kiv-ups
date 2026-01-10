@@ -78,14 +78,13 @@ class Client(Client_Dummy):
         elapsed: timedelta = now - self.last_ping_recv
 
         if elapsed > self.timeout_dead:
-            # Server dead → leave server
+            # Server dead: leave server for real
             if self.player:
                 self.ui.show_info_window("Server is not available. Leaving...")
-            self.disconnect(manual=False)
-            self.notified_server_inactivity = False
+            self.disconnect(manual=True)  # now it's final disconnect
 
         elif elapsed > self.timeout_sleep:
-            # Server temporarily unreachable → notify, try reconnect
+            # Server temporarily unreachable: notify, try reconnect
             if not self.notified_server_inactivity:
                 self.notified_server_inactivity = True
                 self.ui.show_info_window("Server seems unreachable. Trying to reconnect...")
@@ -95,16 +94,16 @@ class Client(Client_Dummy):
                 p = Player(self.player.nick)
                 p.ip = self.player.ip
                 p.port = self.player.port
-                self.disconnect(manual=False)
+                self.disconnect(manual=False)  # temporary disconnect, keep UI
                 self.player = p
                 try:
                     self.connect(p.ip, int(p.port), p.nick)
                 except Exception:
-                    # still unreachable → will retry on next check
+                    # still unreachable: will retry on next check
                     pass
 
         else:
-            # server reachable → reset notification flag
+            # server reachable, reset notification flag
             self.notified_server_inactivity = False
 
         # check again later
