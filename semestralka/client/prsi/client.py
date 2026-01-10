@@ -41,8 +41,8 @@ class Client(Client_Dummy):
 
         # reconnect stuff
         self.last_ping_recv: datetime = datetime.now(timezone.utc)
-        self.timeout_sleep: timedelta = timedelta(seconds=10)
-        self.timeout_dead: timedelta = timedelta(seconds=60)
+        self.timeout_sleep: timedelta = timedelta(seconds=7)
+        self.timeout_dead: timedelta = timedelta(seconds=120)
         self.notified_server_inactivity: bool = False
         # track manual disconnects
         self.manual_disconnect: bool = False
@@ -69,50 +69,46 @@ class Client(Client_Dummy):
 
     # reconnect stuff
     def check_server_availability(self) -> None:
-        if self.manual_disconnect:
-            # stop all auto server checks
-            return
-
-        if (not self.player):
-            _ = self.ui.after(1000, self.check_server_availability)
-            return
-        if (self.player and self.player.state == ST_UNNAMED):
-            _ = self.ui.after(1000, self.check_server_availability)
-            return
-
+        """
+        Periodically check if server is alive.
+        Auto-reconnect if temporarily unreachable.
+        Leave server only after timeout_dead.
+        """
         now: datetime = datetime.now(timezone.utc)
         elapsed: timedelta = now - self.last_ping_recv
 
-        if (elapsed > self.timeout_dead):
-            if not self.notified_server_inactivity:
-                self.ui.show_info_window("Server is not available.")
-                self.notified_server_inactivity = True
+        if elapsed > self.timeout_dead:
+            # Server dead → leave server
+            if self.player:
+                self.ui.show_info_window("Server is not available. Leaving...")
             self.disconnect(manual=False)
-            self.manual_disconnect = False # allow future reconnect
+            self.notified_server_inactivity = False
 
-        elif (elapsed > self.timeout_sleep):
-            if (not self.notified_server_inactivity):
-                self.ui.show_info_window("Cannot connect server...")
+        elif elapsed > self.timeout_sleep:
+            # Server temporarily unreachable → notify, try reconnect
+            if not self.notified_server_inactivity:
                 self.notified_server_inactivity = True
+                self.ui.show_info_window("Server seems unreachable. Trying to reconnect...")
 
-            if (self.player):
-                # disconnect removes this player, so must restore it
-                p: Player = Player(self.player.nick)
+            if self.player:
+                # attempt reconnect without losing player
+                p = Player(self.player.nick)
                 p.ip = self.player.ip
                 p.port = self.player.port
-
                 self.disconnect(manual=False)
-
                 self.player = p
-
                 try:
-                    self.connect(self.player.ip, int(self.player.port), self.player.nick)
+                    self.connect(p.ip, int(p.port), p.nick)
                 except Exception:
+                    # still unreachable → will retry on next check
                     pass
 
-                self.already_sent = False
+        else:
+            # server reachable → reset notification flag
+            self.notified_server_inactivity = False
 
-        _ = self.ui.after(1000, self.check_server_availability)
+        # check again later
+        _ = self.ui.after(2000, self.check_server_availability)  # check every 2 seconds
 
     # get/set
 
