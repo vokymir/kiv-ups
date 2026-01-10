@@ -44,8 +44,6 @@ class Client(Client_Dummy):
         self.timeout_sleep: timedelta = timedelta(seconds=7)
         self.timeout_dead: timedelta = timedelta(seconds=120)
         self.notified_server_inactivity: bool = False
-        # track manual disconnects
-        self.manual_disconnect: bool = False
 
         # network part of client - talk via queue
         self.net: Net = Net(self.mq)
@@ -81,7 +79,7 @@ class Client(Client_Dummy):
             # Server dead: leave server for real
             if self.player:
                 self.ui.show_info_window("Server is not available. Leaving...")
-            self.disconnect(manual=True)  # now it's final disconnect
+            self.disconnect(hard=True)  # now it's final disconnect
 
         elif elapsed > self.timeout_sleep:
             # Server temporarily unreachable: notify, try reconnect
@@ -90,14 +88,9 @@ class Client(Client_Dummy):
                 self.ui.show_info_window("Server seems unreachable. Trying to reconnect...")
 
             if self.player:
-                # attempt reconnect without losing player
-                p = Player(self.player.nick)
-                p.ip = self.player.ip
-                p.port = self.player.port
-                self.disconnect(manual=False)  # temporary disconnect, keep UI
-                self.player = p
+                self.disconnect(hard=False)  # temporary disconnect
                 try:
-                    self.connect(p.ip, int(p.port), p.nick)
+                    self.connect(self.player.ip, int(self.player.port), self.player.nick)
                 except Exception:
                     # still unreachable: will retry on next check
                     pass
@@ -155,20 +148,22 @@ class Client(Client_Dummy):
     # == any time
 
     @override
-    def disconnect(self, manual: bool = True) -> None:
+    def disconnect(self, hard: bool = True) -> None:
         """
         Disconnect from the server.
-        If manual=True, the user actively left or server dead → show login.
-        If manual=False, temporary disconnect (trying auto-reconnect) → keep UI as is.
+        If hard=True, the user actively left or server dead: show login.
+        If hard=False, temporary disconnect (trying auto-reconnect): keep UI as is.
         """
         self.net.disconnect()
 
+        if not hard:
+            return
+
+        self.player = None
         self.room = None
         self.known_rooms_ = []
 
-        if manual:
-            self.player = None
-            self.ui.switch_frame(FN_LOGIN)
+        self.ui.switch_frame(FN_LOGIN)
 
     @override
     def state(self) -> None:
@@ -181,7 +176,6 @@ class Client(Client_Dummy):
 
     @override
     def connect(self, ip: str, port: int, username: str) -> None:
-        self.manual_disconnect = False  # allow auto reconnect again
         self.last_ping_recv = datetime.now(timezone.utc)
         if (self.already_sent):
             self.ui.show_temp_message("Already trying to connect server.")
