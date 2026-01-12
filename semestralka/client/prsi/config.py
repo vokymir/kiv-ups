@@ -63,12 +63,3 @@ ST_UNNAMED = "UNNAMED"
 ST_LOBBY = "LOBBY"
 ST_ROOM = "ROOM"
 ST_GAME = "GAME"
-
-# rules - we will see about that
-RULES_TEXT = {
-    "7": "Seventh: Next player must draw 2 cards or play another 7.",
-    "Ace": "Ace: You can skip the next player.",
-    "Svršek (Queen/Over)": "Change Suit: You can change the current suit.",
-    "Green King (King of Spades)": "Effect: Next player draws 5 cards!",
-    "Basic": "Must follow suit or rank."
-}
