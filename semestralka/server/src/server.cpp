@@ -487,9 +487,13 @@ std::vector<std::shared_ptr<Player>> Server::list_players() {
 std::weak_ptr<Player> Server::find_player(int fd) {
   auto all = list_players();
 
-  auto it = std::find_if(
-      all.begin(), all.end(),
-      [fd](const std::shared_ptr<Player> &p) { return p->fd() == fd; });
+  // don't accept player with invalid socket FD
+  // reason: on reconnect with InTCPtor the slow nature of converging did cause
+  // a little time when two clients have had the same FD, but one wasn't valid
+  auto it = std::find_if(all.begin(), all.end(),
+                         [fd](const std::shared_ptr<Player> &p) {
+                           return p->fd() == fd && p->valid_fd();
+                         });
   if (it == all.end()) {
     return {};
   }
