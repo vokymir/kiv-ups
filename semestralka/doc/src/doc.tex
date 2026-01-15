@@ -104,6 +104,53 @@ Poznámky k protokolu:
 
 \end{itemize}
 
+\chapter{Technická dokumentace implementace}
+
+\section{Server}
+
+Třída config zajišťuje načtení proměnných z konfiguračního souboru a výchozí
+hodnoty. Třída logger nabízí možnost vypsat jakoukoliv zprávu i podle její
+vážnosti (error, info, warn).
+
+Třídy room, card a player se starají hlavně o herní logiku a tolik se
+nezajímají o síť. Není to dokonalá dekompozice, v playerovi jsou uloženy
+důležité informace (např. čas posledního pingu) a některé pomocné funkce, ale
+ty jsou zpravidla volány ze třídy server. Původní plán byl rozdělit třídu
+player na třídy player a client, což mělo lepší dekompozici, ale nedokázal jsem
+to pořádně uchopit, tak je to dohromady.
+
+Hlavní operativní třídou je server, pomocná pro ní je protocol. Protocol
+vytváří zprávy k odeslání centralizovaně. Server při inicializaci vytvoří
+epoll, který se kontroluje ve funkci run.
+
+Vstupním bodem je funkce main, která vytvoří server a naplní ho daty z configu.
+
+
+
+\section{Klient}
+
+Klient je implementován jako python modul, v adresáři \filename{prsi}. Je volán
+z vnějšku, ze souboru \filename{run.py}. Základem je třída Client, která
+vlastní Ui a Net. Aplikace funguje na dvou vláknech: Ui a Net.
+
+Pro Ui je použit tKinter, nad kterým je vystavěno uživatelské rozhraní se všemi
+tlačítky apod. Hrací karty jsou velmi odlišné od standardních (kreslila je
+kamarádka), ale mají stejné funkce jako standardní; načítají se pomocí třídy
+Img\_Loader, která je ve třídě Ui.
+
+Komunikace mezi ui a net třídami je zajištěna dvěma způsoby: třída net si sice
+vytáří nové vlákno na síťové poslouchání, ale její metody se dají normálně
+volat - takže například posílání síťových zpráv jde jednoduše. Komunikace
+směrem ze sítě (z vlákna) do klienta/ui je přes frontu zpráv, do které vlákno
+přidává a klient pravidelně kontroluje.
+
+V souboru \filename{config.py} se nachází konstanty definující jak UI (barvy,
+velikosti, fonty), tak i síťovou komunikaci (konkrétní názvy stavů, zprávy,
+magic a oddělovač). V souboru \filename{common.py} se nachází definice tříd
+Card, Player, Room. Kromě toho se tu vyskytuje i třída Client\_Dummy, která
+existuje pouze kvůli rekurzivnímu vkládání - tato třída je proto v dědičnosti
+rodičovskou třídě Client, která implemetuje konkrétní funkcionalitu.
+
 \chapter{Uživatelská příručka}
 
 Server by mělo být možné spustit na libovolné GNU/Linux zařízení, kde je možné
@@ -129,7 +176,22 @@ skript pro GNU/Linux Debian:
 
 Na MS Windows použijte ekvivalentní postup.
 
+\chapter{Závěr}
 
+Výsledná aplikace je dost robustní na problémy se sítí i uživatelem. Na začátku
+projektu jsem se snažil o dokonalou architekturu serveru, ale nakonec to pro mě
+bylo moc složité a raději jsem server navrhl jednoduše, ale pro mě
+srozumitelně. Teď, po jeho dokončení, bych už nejspíš byl schopen dosáhnout
+vyšší abstrakce a stále rozumět. Hlavní nevýhoda aktuální implementace je
+svázanost klienta-hráče se socketem. Ideálně bych měl odděleně hráče a klienty,
+přičemž pouze klient by byl svázán se socketem a hráč s maximálně jedním
+klientem.
 
+Přišlo mi nepříjemné implementovat herní logiku na duplicitně ve dvou jazycích.
+Nevím, jestli existuje nějaké řešení, ale nechce se mi věřit, že by se takto
+opravdu operovalo mimo školu.
+
+Musím se pochválit za využití epollu na serveru - podařilo se mi tím vyhnout se
+spoustě obtíží, které jsem slýchal od přátel.
 
 \backmatter \backpage \end{document}
