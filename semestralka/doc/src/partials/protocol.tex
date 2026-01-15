@@ -1,41 +1,44 @@
 \begin{center}
 
-  \begin{longtable} {cccl}
+    \begin{longtable}{p{5cm} p{2cm} p{7cm}}
 
     \caption{Popis veškerých zpráv v protokolu. Pokud je zpráva variabilní, část z ní se opakuje v závislosti na něčem, je tato opakující se část uzavřena mezi symboly \# (které se v protokolu nevyužívají). Statické části zpráv jsou psány velkými písmeny, proměnné malými.}
     \label{tab:proto}\\
 
-    \toprule[1.5pt] \textbf{server} & \textbf{klient} & \textbf{povolené stavy} & \textbf{popis} \\ \midrule
+    \toprule[1.5pt] \textbf{zpráva} & \textbf{povolené stavy} & \textbf{popis} \\ \midrule
     \endfirsthead
 
-    \multicolumn{4}{c}{\tablename{}~\thetable{} \textit{(pokračování z~předchozí
-    stránky)}}\\ \midrule \textbf{server} & \textbf{klient} & \textbf{povolené stavy}& \textbf{popis} \\
+    \multicolumn{3}{c}{\tablename{}~\thetable{} \textit{(pokračování z~předchozí
+    stránky)}}\\ \midrule \textbf{zpráva} & \textbf{povolené stavy}& \textbf{popis} \\
     \midrule \endhead
 
-    \midrule \multicolumn{4}{r}{\textit{(tabulka pokračuje na další stránce)}}\\
+    \midrule \multicolumn{3}{r}{\textit{(tabulka pokračuje na další stránce)}}\\
     \endfoot
 
     \bottomrule[1.5pt] \endlastfoot
 
-    \multicolumn{4}{c}{\textbf{Zprávy iniciované klientem}}\\
+    \multicolumn{3}{c}{\textbf{Zprávy iniciované klientem}}\\
     \midrule
 
-    - & NAME string & unnamed & Klient si zvolí libovolné jméno.\\
-    OK NAME & - & unnamed & Server potvrdí výběr jména.\\
+    NAME string & unnamed & Klient si zvolí libovolné jméno.\\
+    OK NAME & unnamed & Server potvrdí výběr jména.\\
 
-    - & LIST\_ROOMS & lobby & Klient prosí server o seznam místností.\\
-    ROOMS count \# id room-state \# & - & lobby & Server posílá seznam místností, každá má svůj číselný identifikátor (int) a stav (string).\\
+    LIST\_ROOMS & lobby & Klient prosí server o seznam místností.\\
+    ROOMS count \# id room-state \# & lobby & Server posílá seznam místností, každá má svůj číselný identifikátor (int) a stav (string).\\
 
-    - & JOIN\_ROOM id & lobby & Klient žádá o připojení do místnosti.\\
-    OK JOIN\_ROOM & - & lobby & Server potvrzuje připojení do místnosti.\\
-    FAIL JOIN\_ROOM & - & lobby & Server nemohl přiřadit klienta do místnosti (byla plná, neexistovala).\\
+    JOIN\_ROOM id & lobby & Klient žádá o připojení do místnosti.\\
+    OK JOIN\_ROOM & lobby & Server potvrzuje připojení do místnosti.\\
+    FAIL JOIN\_ROOM & lobby & Server nemohl přiřadit klienta do místnosti (byla plná, neexistovala).\\
 
-    - & CREATE\_ROOM & lobby & Klient se pokouší vytvořit místnost.\\
-    OK CREATE\_ROOM & - & lobby & Server vytvořil místnost a přiřadil do ní klienta.\\
-    FAIL CREATE\_ROOM & - & lobby & Server nemohl vytvořit místnost (dosažen limit místností).\\
+    CREATE\_ROOM & lobby & Klient se pokouší vytvořit místnost.\\
+    OK CREATE\_ROOM & lobby & Server vytvořil místnost a přiřadil do ní klienta.\\
+    FAIL CREATE\_ROOM & lobby & Server nemohl vytvořit místnost (dosažen limit místností).\\
 
-    - & ROOM\_INFO & room & Klient žádá podrobnější informace o místnosti, ve které se nachází.\\
+    ROOM\_INFO & room/game & Klient žádá podrobnější informace o místnosti, ve které se nachází.\\
     ROOM id room-state PLAYERS count \# name state \# & room/game & Server posílá informace o serveru.\\
+
+    LEAVE\_ROOM & room/game & Klient opouští místnost.\\
+    OK LEAVE\_ROOM & room/game (/lobby) & Server potvrzuje opuštění místnosti. Klientská aplikace tou dobou už může být v lobby, v závislosti na implementaci.\\
 
 
   \end{longtable}
