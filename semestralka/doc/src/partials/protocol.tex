@@ -66,7 +66,26 @@
     CARDS count \# suitrank \# & game & Server posílá hráči karty, které si líznul.\\
     OK CARDS & game & Klient potvrzuje, že si líznul karty.\\
 
+    WIN & game & Server oznamuje hráči, že vyhrál danou hru.\\
+    LOSE & game & Server oznamuje hráči, že prohrál danou hru.\\
 
+    OK WIN & game & Klient potvzuje zprávu WIN.\\
+    OK LOSE & game & Klient potvzuje zprávu LOSE.\\
+
+    \multicolumn{3}{c}{\textbf{Režijní zprávy}}\\
+    \midrule
+
+    PING & - & Server se dotazuje klienta, zda stále žije.\\
+    PONG & - & Klient odpovídá serveru, že stále žije.\\
+
+    SLEEP name & room/game & Server oznamuje hráčům v místnosti, že jiný hráč je dočasně nedostupný.\\
+    OK SLEEP & room/game & Klient potvruje zprávu SLEEP.\\
+
+    AWAKE name & room/game & Server oznamuje hráčům v místnosti, že hráč, který byl dočasně nedostupný, je opět online.\\
+    OK AWAKE & room/game & Klient potvrzuje zprávu AWAKE.\\
+
+    DEAD name & room/game & Server oznamuje hráčům v místnosti, že jiný hráč byl odpojen z důvodu nedostupnosti.\\
+    OK DEAD & room/game & Klient potvrzuje zprávu DEAD.\\
 
 
   \end{longtable}
