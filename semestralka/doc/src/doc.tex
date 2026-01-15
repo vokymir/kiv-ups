@@ -91,6 +91,17 @@ Poznámky k protokolu:
         zařízení klienta a hráči nastaví nový FD, tedy přiřadí hráče novému
         socketu.
 
+    \item Zprávy ze serveru o stavu klienta mohou být velice dlouhé, zvlášť
+        pokud je ve hře. Vyjde to ale levněji, než posílat tři zprávy zvlášť,
+        kvůli magicu a oddělovači.
+
+    \item Na jméno hráče nejsou kladeny žádné požadavky, kromě toho, že nesmí
+        obsahovat oddělovač (|) a bílé znaky. To také znamená, že dlouhé jméno
+        hráče může významně zpomalit přenos. (teoreticky) Útočníci s dlouhým
+        jménem by mohli naschvál způsobovat krátkou nedostupnost a opět se
+        připojovat a tím saturovat síť oběti, protože obě tyto zprávy obsahují
+        jméno klienta.
+
 \end{itemize}
 
 
