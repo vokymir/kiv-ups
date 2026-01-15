@@ -2,6 +2,8 @@
 
 \usepackage{pdfpages}
 
+\usepackage{float}
+
 \title{Karetní hra prší pro dva hráče realizovaná nad TCP}
 
 \author{Jakub}{Vokoun}{}{}
@@ -26,7 +28,37 @@ fungující aplikace s dobrým návrhem protokolu a jeho implementací.
 
 \chapter{Protokol}
 
+Komunikace mezi serverem a klientem není řízená celou dobu z jedné strany.
+Samotná hra je iniciovaná a řízená serverem, pohyb klienta po serveru je řízen
+klientem.
 
+Klient se může v jednu chvíli nacházet pouze v jednom stavu. Stavy jsou
+následující:
+
+\begin{itemize}
+
+    \item unnamed
+
+    \item lobby
+
+    \item room
+
+    \item game
+
+\end{itemize}
+
+
+\begin{figure}[H]
+
+    \centering
+
+    \includegraphics[width=0.5\textwidth]{img/protocol_flow.pdf}
+
+    \caption{Průchod klienta serverem.}
+
+    \label{fig:protocol_flow}
+
+\end{figure}
 
 
 \backmatter \backpage \end{document}
