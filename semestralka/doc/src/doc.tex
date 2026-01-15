@@ -60,12 +60,25 @@ následující:
 
 \end{figure}
 
+% TODO: jake stavy ma room
+
 Zprávy v protokolu mají proměnnou délku, v závislosti jak na typu zprávy, tak i
 na přenášených datech. Protokol používá lidsky čitelná anglická slova psaná
 velkými písmeny. Jednotlivé části zprávy jsou odděleny mezerou, zprávy jsou od
 sebe odděleny znakem |. Protokol vypadá následovně:
 
 \input{partials/protocol.tex}
+
+Poznámky k protokolu:
+
+\begin{itemize}
+
+    \item Výběr jména nemůže neuspět, jelikož pokud si klient zvolí jméno
+        stejné, jako již existující hráč, server předpokládá změnu koncového
+        zařízení klienta a hráči nastaví nový FD, tedy přiřadí hráče novému
+        socketu.
+
+\end{itemize}
 
 
 \backmatter \backpage \end{document}
