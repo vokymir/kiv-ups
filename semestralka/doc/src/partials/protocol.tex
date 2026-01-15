@@ -21,71 +21,71 @@
     \midrule
 
     NAME string & unnamed & Klient si zvolí libovolné jméno.\\
-    OK NAME & unnamed & Server potvrdí výběr jména.\\
+    OK NAME & unnamed & Server potvrdí výběr jména.\\[0.3cm]
 
     LIST\_ROOMS & lobby & Klient prosí server o seznam místností.\\
-    ROOMS count \# id room-state \# & lobby & Server posílá seznam místností, každá má svůj číselný identifikátor (int) a stav (string).\\
+    ROOMS count \# id room-state \# & lobby & Server posílá seznam místností, každá má svůj číselný identifikátor (int) a stav (string).\\[0.3cm]
 
     JOIN\_ROOM id & lobby & Klient žádá o připojení do místnosti.\\
     OK JOIN\_ROOM & lobby & Server potvrzuje připojení do místnosti.\\
-    FAIL JOIN\_ROOM & lobby & Server nemohl přiřadit klienta do místnosti (byla plná, neexistovala).\\
+    FAIL JOIN\_ROOM & lobby & Server nemohl přiřadit klienta do místnosti (byla plná, neexistovala).\\[0.3cm]
 
     CREATE\_ROOM & lobby & Klient se pokouší vytvořit místnost.\\
     OK CREATE\_ROOM & lobby & Server vytvořil místnost a přiřadil do ní klienta.\\
-    FAIL CREATE\_ROOM & lobby & Server nemohl vytvořit místnost (dosažen limit místností).\\
+    FAIL CREATE\_ROOM & lobby & Server nemohl vytvořit místnost (dosažen limit místností).\\[0.3cm]
 
     ROOM\_INFO & room/game & Klient žádá podrobnější informace o místnosti, ve které se nachází.\\
-    ROOM id room-state PLAYERS count \# name state \# & room/game & Server posílá informace o serveru.\\
+    ROOM id room-state PLAYERS count \# name state \# & room/game & Server posílá informace o místnosti.\\[0.3cm]
 
     LEAVE\_ROOM & room/game & Klient opouští místnost.\\
-    OK LEAVE\_ROOM & room/game (/lobby) & Server potvrzuje opuštění místnosti. Klientská aplikace tou dobou už může být v lobby, v závislosti na implementaci.\\
+    OK LEAVE\_ROOM & room/game (/lobby) & Server potvrzuje opuštění místnosti. Klientská aplikace tou dobou už může být v lobby, v závislosti na implementaci.\\[0.3cm]
 
     \multicolumn{3}{c}{\textbf{Zprávy iniciované serverem}}\\
     \midrule
 
     GAME\_START & room & Server upozorňuje všechny hráče v místnosti, že začíná hra.\\
-    OK GAME\_START & game & Klient potvrzuje serveru, že začíná hra.\\
+    OK GAME\_START & game & Klient potvrzuje serveru, že začíná hra.\\[0.3cm]
 
     HAND count \# suitrank \# & game & Server pošle hráči jeho karty, vždy ve formátu H7 například.\\
-    OK HAND & game & Klient potvzuje přijetí ruky.\\
+    OK HAND & game & Klient potvzuje přijetí ruky.\\[0.3cm]
 
     TURN name TOP suitrank & game & Server oznamuje že je nové kolo, kdo je na tahu a jaká je svrchní karta.\\
     OK TURN & game & Klient potvzuje přijetí TURN zprávy.\\
     PLAY suitrank & game & Klient, který je na tahu posílá, jak chce hrát.\\
-    DRAW & game & Klient, který je na tahu, si líže.\\
+    DRAW & game & Klient, který je na tahu, si líže.\\[0.3cm]
 
     PLAYED name suitrank & game & Server oznamuje, že hráč zahrál kartu - a jakou.\\
-    OK PLAYED & game & Klient potvzuje zprávu PLAYED.\\
+    OK PLAYED & game & Klient potvzuje zprávu PLAYED.\\[0.3cm]
 
     DRAWED name count & game & Server oznamuje, že hráč si líznul počet karet.\\
-    OK DRAWED & game & Klient potvzuje zprávu DRAWED.\\
+    OK DRAWED & game & Klient potvzuje zprávu DRAWED.\\[0.3cm]
 
     SKIP name & game & Server oznamuje, že hráč je přeskočen (kvůli kartě eso).\\
-    OK SKIP & game & Klient potvrzuje zprávu SKIP.\\
+    OK SKIP & game & Klient potvrzuje zprávu SKIP.\\[0.3cm]
 
     CARDS count \# suitrank \# & game & Server posílá hráči karty, které si líznul.\\
-    OK CARDS & game & Klient potvrzuje, že si líznul karty.\\
+    OK CARDS & game & Klient potvrzuje, že si líznul karty.\\[0.3cm]
 
     WIN & game & Server oznamuje hráči, že vyhrál danou hru.\\
-    LOSE & game & Server oznamuje hráči, že prohrál danou hru.\\
+    LOSE & game & Server oznamuje hráči, že prohrál danou hru.\\[0.3cm]
 
     OK WIN & game & Klient potvzuje zprávu WIN.\\
-    OK LOSE & game & Klient potvzuje zprávu LOSE.\\
+    OK LOSE & game & Klient potvzuje zprávu LOSE.\\[0.3cm]
 
     \multicolumn{3}{c}{\textbf{Režijní zprávy}}\\
     \midrule
 
     PING & - & Server se dotazuje klienta, zda stále žije.\\
-    PONG & - & Klient odpovídá serveru, že stále žije.\\
+    PONG & - & Klient odpovídá serveru, že stále žije.\\[0.3cm]
 
     SLEEP name & room/game & Server oznamuje hráčům v místnosti, že jiný hráč je dočasně nedostupný.\\
-    OK SLEEP & room/game & Klient potvruje zprávu SLEEP.\\
+    OK SLEEP & room/game & Klient potvruje zprávu SLEEP.\\[0.3cm]
 
     AWAKE name & room/game & Server oznamuje hráčům v místnosti, že hráč, který byl dočasně nedostupný, je opět online.\\
-    OK AWAKE & room/game & Klient potvrzuje zprávu AWAKE.\\
+    OK AWAKE & room/game & Klient potvrzuje zprávu AWAKE.\\[0.3cm]
 
     DEAD name & room/game & Server oznamuje hráčům v místnosti, že jiný hráč byl odpojen z důvodu nedostupnosti.\\
-    OK DEAD & room/game & Klient potvrzuje zprávu DEAD.\\
+    OK DEAD & room/game & Klient potvrzuje zprávu DEAD.\\[0.3cm]
 
     STATE & - & Klient se dotazuje serveru, ve kterém stavu se nachází. Užitečné po reconnectu.\\
     STATE UNKNOWN & - & Server odpovídá na zprávu STATE, došlo k chybě a stav klienta je neznámý = třeba manuální reconnect.\\
