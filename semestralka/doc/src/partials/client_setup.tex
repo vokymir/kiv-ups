@@ -1,0 +1,12 @@
+
+
+\setuxprompt{user@machine}{~/}
+\begin{console}{Ukázka instalace závislostí a spuštění klienta ve virtuálním prostředí venv.}
+`\uxprompt` sudo apt install python3-venv
+`\uxprompt` python3 -m venv .venv
+`\uxprompt` source .venv/bin/activate
+(.venv) `\uxprompt` pip install pillow typing_extensions
+...
+(.venv) `\uxprompt` python3 run.py
+...
+\end{console}

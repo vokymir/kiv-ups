@@ -1,0 +1,34 @@
+\begin{center}
+
+    \begin{longtable}{p{2cm} p{2cm} p{7cm}}
+
+    \caption{Seznam všech konfiguračních proměnných pro server.}
+    \label{tab:cfg}\\
+
+    \toprule[1.5pt] \textbf{proměnná} & \textbf{výchozí} & \textbf{popis} \\ \midrule
+    \endfirsthead
+
+    \multicolumn{3}{c}{\tablename{}~\thetable{} \textit{(pokračování z~předchozí
+    stránky)}}\\ \midrule \textbf{proměnná} & \textbf{výchozí} & \textbf{popis} \\
+    \midrule \endhead
+
+    \midrule \multicolumn{3}{r}{\textit{(tabulka pokračuje na další stránce)}}\\
+    \endfoot
+
+    \bottomrule[1.5pt] \endlastfoot
+
+        IP string & 0.0.0.0 & Na jaké IP server poslouchá.\\
+        PORT int & 3750 & Na jakém portu server naslouchá.\\
+        MC int & 10 & Maximální počet klientů.\\
+        MR int & 10 & Maximální počet místností.\\[1cm]
+
+        \multicolumn{3}{c}{\textbf{nedoporučeno upravovat}}\\ \midrule
+        EME int & 32 & Epoll max events.\\
+        ET int & 500 & Epoll timeout [ms]. Za kolik ms přestane být epoll blokující.\\
+        PT int & 2.000 & Frekvence posílání pingu v ms.\\
+        ST int & 5.000 & Kolik ms bez pingu znamená, že je klient dočasně nedostupný.\\
+        DT int & 180.000 & Kolik ms bez pingu, než je klient prohlášen za nedostupného.\\
+
+  \end{longtable}
+
+\end{center}

@@ -37,13 +37,13 @@ následující:
 
 \begin{itemize}
 
-    \item unnamed
+    \item unnamed: Nepojmenovaný klient, pouze připojen na server.
 
-    \item lobby
+    \item lobby: Pojmenovaný klient, který se může připojit do místností.
 
-    \item room
+    \item room: Pojmenovaný klient v místnosti, čeká na její zaplnění.
 
-    \item game
+    \item game: Pojmenovaný klient v místnost hraje/dohrál hru.
 
 \end{itemize}
 
@@ -103,6 +103,33 @@ Poznámky k protokolu:
         jméno klienta.
 
 \end{itemize}
+
+\chapter{Uživatelská příručka}
+
+Server by mělo být možné spustit na libovolné GNU/Linux zařízení, kde je možné
+přeložit a spustit C++ 23, a kam může být připojena knihovna fmt. Pokud by byl
+problém s knihovnou, tím že je použitá pouze pro logger můžete třídu Logger
+upravit a o mnoho nepřijdete.
+
+Kompilace/spuštění serveru: \input{partials/server_setup.tex}
+
+Server lze nakonfigurovat v textovém souboru, který bude programu předaný při
+spuštění. Formát souboru je: jedna konfigurační proměnná na řádek, mezerou
+oddělená od hodnoty. Pokud se proměnná vyskytuje v souboru vícekrát, směrodatný
+je její poslední výskyt.
+
+\input{partials/config.tex}
+
+Klientská aplikace je napsána v jazyku Python 3 a měla by být spustitelná na
+jakémkoliv zařízení s interpretem pythonu v dané verzi a knihovnami pillow a
+typing\_extensions. Doporučený postup je použít virtuální prostředí. Ukázkový
+skript pro GNU/Linux Debian:
+
+\input{partials/client_setup.tex}
+
+Na MS Windows použijte ekvivalentní postup.
+
+
 
 
 \backmatter \backpage \end{document}
