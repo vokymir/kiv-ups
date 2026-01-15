@@ -87,6 +87,12 @@
     DEAD name & room/game & Server oznamuje hráčům v místnosti, že jiný hráč byl odpojen z důvodu nedostupnosti.\\
     OK DEAD & room/game & Klient potvrzuje zprávu DEAD.\\
 
+    STATE & - & Klient se dotazuje serveru, ve kterém stavu se nachází. Užitečné po reconnectu.\\
+    STATE UNKNOWN & - & Server odpovídá na zprávu STATE, došlo k chybě a stav klienta je neznámý = třeba manuální reconnect.\\
+    STATE UNNAMED & - & Server odpovídá na zprávu STATE, klient se nachází ve stavu unnamed.\\
+    STATE LOBBY & - & Server odpovídá na zprávu STATE, klient se nachází ve stavu lobby.\\
+    STATE ROOM \_ & - & Server odpovídá na zprávu STATE, klient se nachází ve stavu room. Na místo podtržítka dosaďte přesný formát zprávy ROOM.\\
+    STATE GAME \_ & - & Server odpovídá na zprávu STATE, klient se nachází ve stavu game. Na místo podtržítka dosaďte přesný formát zpráv ROOM, HAND, TURN.\\
 
   \end{longtable}
 

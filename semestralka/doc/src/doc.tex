@@ -60,12 +60,25 @@ následující:
 
 \end{figure}
 
-% TODO: jake stavy ma room
+Každá existující místnost se musí nacházet v jednom ze stavů: OPEN, PLAYING,
+FINISHED. Přičemž stav OPEN znamená, že je volné místo pro dalšího hráče, stav
+PLAYING že probíhá hra, a stav FINISHED, že hra byla ukončena, ale ještě
+nejméně jeden klient neopustil místnost.
 
 Zprávy v protokolu mají proměnnou délku, v závislosti jak na typu zprávy, tak i
 na přenášených datech. Protokol používá lidsky čitelná anglická slova psaná
 velkými písmeny. Jednotlivé části zprávy jsou odděleny mezerou, zprávy jsou od
-sebe odděleny znakem |. Protokol vypadá následovně:
+sebe odděleny znakem |. Každá zpráva začíná tzv. magickem PRSI. Protokol vypadá
+následovně:
+
+Formát zprávy:
+
+\begin{center}
+
+    \textbf{PRSI ... |}
+
+\end{center}
+
 
 \input{partials/protocol.tex}
 
