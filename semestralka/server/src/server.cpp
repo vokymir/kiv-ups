@@ -1022,7 +1022,7 @@ void Server::handle_play(const std::vector<std::string> &msg,
     // skip the player
     room->advance_player();
 
-    // is this end of game?
+    // is this end of game? (only because might now have more than MAX_CARDS)
     auto w = room->get_winner();
     auto win = w.lock();
     if (win) {
