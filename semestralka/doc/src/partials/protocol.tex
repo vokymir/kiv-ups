@@ -40,6 +40,34 @@
     LEAVE\_ROOM & room/game & Klient opouští místnost.\\
     OK LEAVE\_ROOM & room/game (/lobby) & Server potvrzuje opuštění místnosti. Klientská aplikace tou dobou už může být v lobby, v závislosti na implementaci.\\
 
+    \multicolumn{3}{c}{\textbf{Zprávy iniciované serverem}}\\
+    \midrule
+
+    GAME\_START & room & Server upozorňuje všechny hráče v místnosti, že začíná hra.\\
+    OK GAME\_START & game & Klient potvrzuje serveru, že začíná hra.\\
+
+    HAND count \# suitrank \# & game & Server pošle hráči jeho karty, vždy ve formátu H7 například.\\
+    OK HAND & game & Klient potvzuje přijetí ruky.\\
+
+    TURN name TOP suitrank & game & Server oznamuje že je nové kolo, kdo je na tahu a jaká je svrchní karta.\\
+    OK TURN & game & Klient potvzuje přijetí TURN zprávy.\\
+    PLAY suitrank & game & Klient, který je na tahu posílá, jak chce hrát.\\
+    DRAW & game & Klient, který je na tahu, si líže.\\
+
+    PLAYED name suitrank & game & Server oznamuje, že hráč zahrál kartu - a jakou.\\
+    OK PLAYED & game & Klient potvzuje zprávu PLAYED.\\
+
+    DRAWED name count & game & Server oznamuje, že hráč si líznul počet karet.\\
+    OK DRAWED & game & Klient potvzuje zprávu DRAWED.\\
+
+    SKIP name & game & Server oznamuje, že hráč je přeskočen (kvůli kartě eso).\\
+    OK SKIP & game & Klient potvrzuje zprávu SKIP.\\
+
+    CARDS count \# suitrank \# & game & Server posílá hráči karty, které si líznul.\\
+    OK CARDS & game & Klient potvrzuje, že si líznul karty.\\
+
+
+
 
   \end{longtable}
 
